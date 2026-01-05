@@ -1,0 +1,33 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# --- Database & Persistenza ---
+# Esclude il database SQLite locale se lo usi per test
+*.db
+*.sqlite3
+# Esclude la cartella dei dati di PostgreSQL (se mappata localmente)
+postgres_data/
+
+# --- Docker ---
+.dockerpyc
+.dockerpyi
+# A volte utile escludere log di docker
+*.log
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Documentazione & Report ---
+# Se generi PDF o file temporanei per il report
+*.bak
+*.tmp
