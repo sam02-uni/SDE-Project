@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Column, text, TIMESTAMP # type: ignore
 
+# TABELLE SQL
 
 class Participant(SQLModel, table=True):  # Partecipazione di un User a una League
     user_id: int = Field(foreign_key="user.id", primary_key=True) # Foreign Key verso User
@@ -41,7 +42,7 @@ class League(SQLModel, table=True):
     owner: User = Relationship()
 
 
-
+# DATA OBJECTS (per richieste/risposte API)
 
 
 
