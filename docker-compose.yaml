@@ -1,5 +1,5 @@
 services:
-  # Database condiviso (PostgreSQL è ottimo per questo scopo)
+  # PostgreSQL Database Service
   db:
     image: postgres:15-alpine
     container_name: fanta-db
@@ -13,14 +13,14 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data/
 
-  # Il tuo primo servizio del Data Layer
-  user-service:
-    build: ./user-service
-    container_name: user-service
+  # Data Layer Service: database interface
+  data-service:
+    build: ./fanta-data-service
+    container_name: fanta-data-service
     ports:
       - "8001:8000" # Espone la porta 8000 del container sulla 8001 locale
     volumes:
-      - ./user-service:/app # Mappa il codice sorgente in user-service folder dentro il container in /app
+      - ./fanta-data-service:/app # Mappa il codice sorgente in fanta-data-service folder dentro il container in /app
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
     depends_on:
