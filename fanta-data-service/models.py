@@ -44,5 +44,19 @@ class League(SQLModel, table=True):
 
 # DATA OBJECTS (per richieste/risposte API)
 
+class LeagueUpdate(SQLModel):
+    name: Optional[str] = None
+    max_credits: Optional[int] = None
+    winner: Optional[str] = None
+
+class LeagueWithParticipants(SQLModel):
+    id: int
+    owner_id: int
+    name: str
+    creation_date: datetime
+    max_credits: int
+    winner: Optional[str]
+    participants: list[User] = []
+    owner : User
 
 

@@ -3,34 +3,35 @@
 from fastapi import APIRouter, Depends, HTTPException 
 from sqlmodel import Session, select
 from database import get_session
-from models import Participant, User, League
+from models import User
 
 router = APIRouter(
     prefix="/users",     # Tutte le rotte in questo file inizieranno con /users
     tags=["Users"]       # Utile per organizzare la documentazione Swagger
 )
 
-@router.get("/", response_model=list[User])  # GET /users
+@router.get("/", response_model=list[User], tags=["Users"])  # GET /users
 def get_all_users(session: Session = Depends(get_session)) -> list[User]:
         statement = select(User)
         results = session.exec(statement).all()
         return results
 
-@router.get("/{user_id}", response_model=User) 
+@router.get("/{user_id}", response_model=User, tags=["Users"]) 
 def get_user(user_id: int, session: Session = Depends(get_session)) -> User:
     statement = select(User).where(User.id == user_id)
     result = session.exec(statement)
     user = result.first()
+    return user
     
 
-@router.post("/", response_model=User) # POST /users
+@router.post("/", response_model=User, tags=["Users"]) # POST /users
 def create_user(user: User, session: Session = Depends(get_session)) -> User:
     session.add(user)
     session.commit()
     session.refresh(user)
     return user
 
-@router.patch("/{user_id}", response_model=User)  # PATCH /users/{user_id}
+@router.patch("/{user_id}", response_model=User, tags=["Users"])  # PATCH /users/{user_id}
 def update_user(user_id: int, updated_user: User, session: Session = Depends(get_session)) -> User:
     db_user = session.get(User, user_id)
     if not db_user:
@@ -42,7 +43,7 @@ def update_user(user_id: int, updated_user: User, session: Session = Depends(get
     session.refresh(db_user)
     return db_user
 
-@router.delete("/{user_id}")  # DELETE /users/{user_id}
+@router.delete("/{user_id}", tags=["Users"])  # DELETE /users/{user_id}
 def delete_user(user_id:int, session: Session = Depends(get_session)) -> dict:
     user = session.get(User, user_id)
     if not user:
