@@ -72,7 +72,7 @@ def fetch_fanta_news():
     return aggregated_news
 
 # Esecuzione
-scrape_gazzetta_serie_a()
-news = fetch_fanta_news()
-for n in news[:10]: # Vediamo le prime 5 news
-    print(f"[{n['fonte']}] {n['titolo']}\n{n['link']}\n")
+#scrape_gazzetta_serie_a()
+#news = fetch_fanta_news()
+#for n in news[:10]: # Vediamo le prime 5 news
+#    print(f"[{n['fonte']}] {n['titolo']}\n{n['link']}\n")
