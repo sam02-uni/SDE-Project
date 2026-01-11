@@ -1,5 +1,2 @@
 fastapi[standard]
 uvicorn[standard]
-requests
-bs4
-feedparser
