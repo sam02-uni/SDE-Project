@@ -1,17 +1,19 @@
 from typing import Optional
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Column, text, TIMESTAMP # type: ignore
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Column, text, TIMESTAMP, JSON # type: ignore
+import enum
 
 # TABELLE SQL
+
+class PlayerPosition(str, enum.Enum):
+    P = "Portiere"
+    D = "Difensore"
+    C = "Centrocampista"
+    A = "Attaccante"
 
 class Participant(SQLModel, table=True):  # Partecipazione di un User a una League
     user_id: int = Field(foreign_key="user.id", primary_key=True) # Foreign Key verso User
     league_id: int = Field(foreign_key="league.id", primary_key=True) # Foreign Key verso League
-    '''join_date: Optional[datetime] = Field(sa_column=Column(
-        TIMESTAMP(timezone=True),
-        nullable=False,
-        server_default=text("CURRENT_TIMESTAMP"),
-    ))'''
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -40,6 +42,50 @@ class League(SQLModel, table=True):
     # comodità in Python
     participants: list[User] = Relationship(back_populates="leagues", link_model=Participant)  # da python con League accedo agli User partecipanti
     owner: User = Relationship()
+    squads: list["Squad"] = Relationship(back_populates="league")  # da python con League accedo alle Rose nella lega
+
+class PlayerSquadLink(SQLModel, table=True):
+    player_id: int = Field(foreign_key="player.id", primary_key=True)
+    squad_id: int = Field(foreign_key="squad.id", primary_key=True)
+
+class Squad(SQLModel, table=True):
+    __table_args__ = (
+        UniqueConstraint("owner_id", "league_id", name="unique_squad_constraint"),
+    )
+    id: Optional[int] = Field(default=None, primary_key=True)
+    owner_id: int = Field(foreign_key="user.id") # Foreign Key verso User
+    league_id: int = Field(foreign_key="league.id") # Foreign Key verso
+    name: str = Field(index=True)
+    score: int = Field(default=0)
+
+    # comodità
+    owner: User = Relationship() # user che possiede la rosa
+    league: League = Relationship(back_populates="squads") # lega a cui appartiene la rosa
+    players: list["Player"] | None = Relationship(link_model=PlayerSquadLink)  # giocatori nella rosa
+
+class Player(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    surname: str = Field(index=True)
+    role: PlayerPosition
+    serie_a_team: str 
+    quot: int
+    mean_rating: float = 0.0
+
+class MatchDay(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    year: str 
+    number: int
+    
+class LineUp(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    squad_id: int = Field(foreign_key="squad.id") # Foreign Key verso Squad
+    matchday_id: int = Field(foreign_key="matchday.id") # Foreign Key verso MatchDay
+    starting_players: list[str] = Field(sa_column=Column(JSON)) # lista di cognomi
+    bench_players: list[str] = Field(sa_column=Column(JSON))
+
+    squad: Squad = Relationship()
+
 
 
 # DATA OBJECTS (per richieste/risposte API)
@@ -49,6 +95,10 @@ class LeagueUpdate(SQLModel):
     max_credits: Optional[int] = None
     winner: Optional[str] = None
 
+class SquadUpdate(SQLModel):
+    name: Optional[str] = None
+    score: Optional[int] = None
+    
 class LeagueWithParticipants(SQLModel):
     id: int
     owner_id: int

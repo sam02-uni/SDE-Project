@@ -14,19 +14,19 @@ router = APIRouter(
 # Relationships in SQLModel sono lazyLoading: i dati collegati non vengono caricati automaticamente, ma solo quando vi si accede esplicitamente
 # con lega.participants ad esempio
 
-@router.get("/", response_model=list[League], tags=["Leagues"])  # GET /leagues
+@router.get("/", response_model=list[League])  # GET /leagues
 def get_all_leagues(session: Session = Depends(get_session)) -> list[League]:
     result = session.exec(select(League)).all()
     return result
 
-@router.get("/{league_id}", response_model=League, tags=["Leagues"]) # GET /leagues/{league_id}
+@router.get("/{league_id}", response_model=League) # GET /leagues/{league_id}
 def get_league(league_id: int, session: Session = Depends(get_session)) -> League:
     league = session.get(League, league_id)
     if not league:
         raise HTTPException(status_code=404, detail="League not found")
     return league
 
-@router.post("/", response_model=League, tags=["Leagues"]) # POST /leagues
+@router.post("/", response_model=League) # POST /leagues
 def create_league(league: League, session: Session = Depends(get_session)):
     session.add(league)
     session.commit()
@@ -34,7 +34,7 @@ def create_league(league: League, session: Session = Depends(get_session)):
     return league
 
 
-@router.patch("/{league_id}", response_model=League, tags=["Leagues"])  # PATCH /leagues/{league_id}
+@router.patch("/{league_id}", response_model=League)  # PATCH /leagues/{league_id}
 def update_league(league_id: int, updated_league: LeagueUpdate, session: Session = Depends(get_session)) -> League:
     db_league = session.get(League, league_id)
     if not db_league:
@@ -46,7 +46,7 @@ def update_league(league_id: int, updated_league: LeagueUpdate, session: Session
     session.refresh(db_league)
     return db_league
 
-@router.delete("/{league_id}", tags=["Leagues"])  # DELETE /leagues/{league_id}
+@router.delete("/{league_id}")  # DELETE /leagues/{league_id}
 def delete_league(league_id:int, session: Session = Depends(get_session)):
     league = session.get(League, league_id)  
     if not league:
