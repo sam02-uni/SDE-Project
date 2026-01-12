@@ -18,7 +18,7 @@ def getLineUps(squad_id: Optional[int] = None, matchDay_id: Optional[int] = None
             result = session.exec(select(LineUp)).all()
             return result
         case (squad_id, None): # get lineups for a specific squad
-            result = session.exec(select(LineUp).where(LineUp.sqaud_id == squad_id)).all()
+            result = session.exec(select(LineUp).where(LineUp.squad_id == squad_id)).all()
             return result
         case (None, matchDay_id): # get lineups for a specific matchday
             result = session.exec(select(LineUp).where(LineUp.matchday_id == matchDay_id)).all()
@@ -27,6 +27,15 @@ def getLineUps(squad_id: Optional[int] = None, matchDay_id: Optional[int] = None
             result = session.exec(select(LineUp).where((LineUp.squad_id == squad_id) & (LineUp.matchday_id == matchDay_id))).all()
             return result
         
+
+@router.get("/{lineup_id}", response_model=LineUp)  # GET /lineups/{lineup_id}
+def get_lineup(lineup_id: int, session: Session = Depends(get_session)) -> LineUp:
+    lineup = session.get(LineUp, lineup_id)
+    if not lineup:
+        raise HTTPException(status_code=404, detail="LineUp not found")
+    return lineup
+
+
 @router.post("/", response_model=LineUp)  # POST /lineups
 def create_lineup(lineup: LineUp, session: Session = Depends(get_session)) -> LineUp:
     session.add(lineup)
@@ -42,3 +51,5 @@ def delete_lineup(lineup_id: int, session: Session = Depends(get_session)) -> di
     session.delete(lineup_db)
     session.commit()
     return {"ok":True}
+
+

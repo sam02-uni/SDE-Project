@@ -1,4 +1,4 @@
-from fastapi import APIouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
 from models import Player
@@ -30,4 +30,11 @@ def create_player(player: Player, session: Session = Depends(get_session)) -> Pl
     session.refresh(player)
     return player
 
-# TODO: delete player
+@router.delete("/{player_id}")  # DELETE /players/{player_id}
+def delete_player(player_id:int, session: Session = Depends(get_session)):
+    player = session.get(Player, player_id)  
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+    session.delete(player)
+    session.commit()
+    return {"ok": True}
