@@ -19,7 +19,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgres://user:password@db:5432/login_db
+      DATABASE_URL: postgresql+asyncpg://user:password@db:5432/login_db
     volumes:
       - .:/app   # monta il progetto nel container
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
