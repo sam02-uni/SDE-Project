@@ -2,6 +2,7 @@ import requests
 import json
 from datetime import datetime
 from bs4 import BeautifulSoup
+from newspaper import Article
 
 # URL e il tag HTML
 SOURCES = {
@@ -32,17 +33,33 @@ def grab_news():
                 if link_tag and link_tag.has_attr('href'):
                     link = link_tag['href']
                 
-                # Filtro lunghezza e costruzione oggetto
+                # Filtro lunghezza
                 if len(text) > 20:
-                    # Pulizia link: se è relativo aggiungiamo il dominio corretto
+                    # 1. Costruzione link completo
                     full_link = link
                     if link and not link.startswith('http'):
                         base_url = "https://www.gazzetta.it" if "gazzetta" in url else "https://www.sosfanta.com"
                         full_link = base_url + link
 
+                    # 2. Estrazione Riassunto con Newspaper3k
+                    riassunto = "Riassunto non disponibile."
+                    if full_link.startswith('http'):
+                        try:
+                            # download_timeout ridotto per evitare blocchi infiniti
+                            article = Article(full_link, language='it', request_timeout=5)
+                            article.download()
+                            article.parse()
+                            # Prendiamo i primi 200 caratteri e puliamo i ritorni a capo
+                            if article.text:
+                                riassunto = " ".join(article.text[:200].split()) + "..."
+                        except Exception as e:
+                            print(f"Errore scraping articolo {full_link}: {e}")
+
+                    # 3. Costruzione oggetto finale
                     all_news.append({
-                        "sorgente": name, # Corretto: name è già la stringa "Gazzetta" o "SOS Fanta"
+                        "sorgente": name,
                         "titolo": text,
+                        "riassunto": riassunto, # Nuovo campo aggiunto
                         "link": full_link,
                         "categoria": "Fantacalcio"
                     })
@@ -55,3 +72,4 @@ def grab_news():
 # Esecuzione
 #risultato_json = grab_news()
 #print(risultato_json)
+

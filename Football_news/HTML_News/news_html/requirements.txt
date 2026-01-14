@@ -2,3 +2,5 @@ fastapi[standard]
 uvicorn[standard]
 requests
 bs4
+lxml_html_clean
+newspaper3k

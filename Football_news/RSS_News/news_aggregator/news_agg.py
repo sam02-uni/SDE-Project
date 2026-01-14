@@ -1,5 +1,17 @@
 # Filtrare e formattare le news in modo tale che siano visibili per l'utente
 
+KEYWORDS = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"]
+# filtered = filter_fanta_relevance(news)
+# print(f"Trovate {len(filtered)} notizie rilevanti per il Fantacalcio.")
+
+def filter_fanta_relevance(news_list):
+    """Filter for the news. Need a news list"""
+    relevant_news = []
+    for item in news_list:
+        if any(key in item['titolo'].lower() for key in KEYWORDS):
+            relevant_news.append(item)
+    return relevant_news
+
 def rss_filter(news):
     filtered_news = []
     
