@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-# Dizionario con URL e il tag HTML tipico che contiene il titolo in quel sito
+# URL e il tag HTML
 SOURCES = {
     "SOS Fanta": "https://www.sosfanta.com/news-formazioni/",
     "Gazzetta": "https://www.gazzetta.it/calcio/serie-a/"

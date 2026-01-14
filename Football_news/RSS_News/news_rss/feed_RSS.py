@@ -4,6 +4,8 @@ import feedparser
 FEED_URLS = [
     "https://www.corrieredellosport.it/rss/calcio/serie-a",
     "https://www.tuttosport.com/rss/calcio/serie-a"
+    #"https://www.calciomercato.com/feed",
+    # "https://www.fantacalcio.it/rss"
 ]
 
 KEYWORDS = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"]
@@ -40,5 +42,5 @@ def fetch_fanta_news():
 # Esecuzione
 #scrape_gazzetta_serie_a()
 #news = fetch_fanta_news()
-#for n in news[:10]: # Vediamo le prime 5 news
+#for n in news[:10000]: # Vediamo le prime 5 news
 #    print(f"[{n['fonte']}] {n['titolo']}\n{n['link']}\n")
