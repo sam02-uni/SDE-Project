@@ -109,4 +109,16 @@ class LeagueWithParticipants(SQLModel):
     participants: list[User] = []
     owner : User
 
+#REFRESH TOKEN
+class RefreshTokenBase(SQLModel):
+    token: str
+    user_id: int
+    expires_at: datetime
 
+# Questo è il modello della tabella nel Database
+class RefreshToken(RefreshTokenBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+# Questo è quello che uso per il Logout
+class RefreshTokenStop(SQLModel):
+    token: str
