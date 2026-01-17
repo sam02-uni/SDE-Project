@@ -8,7 +8,8 @@ def filter_fanta_relevance(news_list):
     """Filter for the news. Need a news list"""
     relevant_news = []
     for item in news_list:
-        if any(key in item['titolo'].lower() for key in KEYWORDS):
+        titolo = item.get('titolo', "").lower()
+        if any(key in titolo for key in KEYWORDS):
             relevant_news.append(item)
     return relevant_news
 

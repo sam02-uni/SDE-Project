@@ -15,6 +15,7 @@ def on_startup():
 
 @app.get("/newshtml")
 def get_News_Fanta():  # : usare async methods se nel codice chiami terze parti con await
+    """Return a JSON with all the info necessary for the news section"""
     return html_scraper.grab_news()
 
 

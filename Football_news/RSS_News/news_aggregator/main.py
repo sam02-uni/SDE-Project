@@ -11,16 +11,22 @@ tags_metadata = [ # per la documentazione Swagger
 ]
 
 app = FastAPI(title="RSS Aggregator", openapi_tags=tags_metadata)
-@app.on_event("startup")
-def on_startup():
-    call_RSS()
 
 RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
 
 @app.get("/rss-fanta")
 async def call_RSS():
+    """Method that take and return the data needed for the news section"""
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{RSS_URL}/fantanews")
         data = response.json() 
         filtered_response = news_agg.rss_filter(data)
-        return {"Response from RSS": filtered_response}
+        return {"news": filtered_response}
+    
+@app.get("/filetered-news")
+async def filteredNews(): 
+    """Take the filtered news"""
+    news_list = await call_RSS() 
+    data = news_list.get("news", []) 
+    filter_news = news_agg.filter_fanta_relevance(data)
+    return {"Filter": filter_news}

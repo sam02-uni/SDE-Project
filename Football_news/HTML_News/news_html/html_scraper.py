@@ -49,19 +49,20 @@ def grab_news():
                             article = Article(full_link, language='it', request_timeout=5)
                             article.download()
                             article.parse()
-                            # Prendiamo i primi 200 caratteri e puliamo i ritorni a capo
                             if article.text:
                                 riassunto = " ".join(article.text[:200].split()) + "..."
+                            
+                            if article.publish_date:
+                                data_pubblicazione = article.publish_date.strftime("%d/%m/%Y %H:%M")
                         except Exception as e:
                             print(f"Errore scraping articolo {full_link}: {e}")
 
-                    # 3. Costruzione oggetto finale
                     all_news.append({
-                        "sorgente": name,
+                        "fonte": name,
                         "titolo": text,
-                        "riassunto": riassunto, # Nuovo campo aggiunto
-                        "link": full_link,
-                        "categoria": "Fantacalcio"
+                        "riassunto": riassunto,
+                        "data": data_pubblicazione, 
+                        "link": full_link
                     })
 
         except Exception as e:
