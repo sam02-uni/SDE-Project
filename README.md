@@ -10,5 +10,6 @@ Stack delle tecnologie:
 - 8002 rss feed
 - 8003 news aggregator rss
 - 8004 html scraper
+- 8005 process centric news
 
 
