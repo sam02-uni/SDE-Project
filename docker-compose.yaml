@@ -26,5 +26,18 @@ services:
     depends_on:
       - db
 
+    # League Business Service
+  #league-service:
+  #  build: ./league-service
+  #  container_name: league-business-service
+  #  ports:
+  #    - "8004:8000" # Espone la porta 8000 del container sulla 8001 locale
+  #  volumes:
+  #    - ./league-service:/app # Mappa il codice sorgente in league-service folder dentro il container in /app
+  #  environment:
+  #    - DATA_SERVICE_URL_BASE=http://localhost:8001/
+  #  depends_on:
+  #    - data-service
+
 volumes:
   db_data:

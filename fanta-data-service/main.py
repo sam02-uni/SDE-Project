@@ -7,15 +7,15 @@ from routers import users, leagues, squads, players, lineUps, matchdays
 
 tags_metadata = [ # per la documentazione Swagger
     {
-        "name": "users",
+        "name": "Users",
         "description": "Operations with users.",
     },
     {
-        "name": "leagues",
+        "name": "Leagues",
         "description": "Operations with leagues.",
     },
     {
-        "name":"participants",
+        "name":"Participants",
         "description":"Operations with league participants.",
     }
 ]
