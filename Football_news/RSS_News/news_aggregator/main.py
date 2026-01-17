@@ -13,13 +13,14 @@ tags_metadata = [ # per la documentazione Swagger
 app = FastAPI(title="RSS Aggregator", openapi_tags=tags_metadata)
 @app.on_event("startup")
 def on_startup():
-    call_b()
+    call_RSS()
 
 RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
 
 @app.get("/rss-fanta")
-async def call_b():
+async def call_RSS():
     async with httpx.AsyncClient() as client:
-        # Qui service_a contatta service_b usando il DNS interno di Docker
         response = await client.get(f"{RSS_URL}/fantanews")
-        return {"risposta_da_RSS": response.json()}
+        data = response.json() 
+        filtered_response = news_agg.rss_filter(data)
+        return {"Response from RSS": filtered_response}

@@ -25,6 +25,21 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
     depends_on:
       - db
+  
+  # Auth Service
+  # auth-service:
+  #  build: .
+  #  restart: always
+  #  depends_on:
+  #    - db
+  #  ports:
+  #    - "8000:8000"
+  #  environment:
+  #    DATABASE_URL: postgresql+asyncpg://user:password@db:5432/login_db
+  #  volumes:
+  #    - ./auth-service:/app   # monta il progetto nel container
+  #  command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
 
     # League Business Service
   #league-service:
@@ -41,3 +56,4 @@ services:
 
 volumes:
   db_data:
+

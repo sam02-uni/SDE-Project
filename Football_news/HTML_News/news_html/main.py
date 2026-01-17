@@ -13,7 +13,7 @@ app = FastAPI(title="HTML Scaper", openapi_tags=tags_metadata)
 def on_startup():
     data = html_scraper.grab_news()
 
-@app.get("/fantanews")
+@app.get("/newshtml")
 def get_News_Fanta():  # : usare async methods se nel codice chiami terze parti con await
     return html_scraper.grab_news()
 
