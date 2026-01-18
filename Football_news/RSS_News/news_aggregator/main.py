@@ -1,7 +1,8 @@
 import news_agg
 import os
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+from typing import List, Optional
 
 tags_metadata = [ # per la documentazione Swagger
     {
@@ -23,10 +24,11 @@ async def call_RSS():
         filtered_response = news_agg.rss_filter(data)
         return {"news": filtered_response}
     
-@app.get("/filetered-news")
-async def filteredNews(): 
+@app.get("/filter-news")
+async def get_filtered_news(tags: Optional[List[str]] = Query(None)):
     """Take the filtered news"""
-    news_list = await call_RSS() 
-    data = news_list.get("news", []) 
-    filter_news = news_agg.filter_fanta_relevance(data)
-    return {"Filter": filter_news}
+    async with httpx.AsyncClient() as client:
+        news_list = await call_RSS() 
+        data = news_list.get("news", []) 
+        filtered_data = news_agg.apply_fanta_filter(data, tags)
+        return {"Filter": filtered_data}
