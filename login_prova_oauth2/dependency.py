@@ -3,8 +3,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from datetime import datetime
 import os
-import db
-from models import User
+from . import db
+from .models import User
 
 security = HTTPBearer()
 SECRET_KEY = os.getenv("SECRET_KEY")

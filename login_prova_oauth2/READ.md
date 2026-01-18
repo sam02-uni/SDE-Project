@@ -1,98 +1,110 @@
-# Servizio di Autenticazione – Fantacalcio
+# Auth Service 
 
-## Descrizione
+Il servizio gestisce:
+- Autenticazione OAuth2 con Google
+- Emissione e validazione di Access Token (JWT)
+- Gestione dei Refresh Token
+- Sessione utente tramite cookie HTTP-only
 
-Questo servizio implementa l’autenticazione degli utenti per l’applicazione Fantacalcio.
-Supporta login tramite **Google OAuth 2.0**, gestione di **JWT (access token)** e **refresh token**.
-
+---
 
 ## Tecnologie utilizzate
 
-* Python 3.11
-* FastAPI
-* SQLModel
-* PostgreSQL
-* Google OAuth 2.0
-* JWT (RS256)
-* Docker
-
-## Flusso di autenticazione (Google OAuth)
-
-1. Il frontend richiede `/auth/login`
-2. Il backend redireziona l’utente verso Google
-3. Google restituisce un `code` al backend (`/auth/callback`)
-4. Il backend scambia il `code` con:
-
-   * `id_token`
-   * `access_token`
-5. Il backend verifica:
-
-   * firma JWT
-   * issuer
-   * audience
-6. Se l’utente non esiste, viene creato
-7. Vengono restituiti:
-
-   * access token
-   * refresh token
+- FastAPI
+- OAuth2 (Google)
+- JWT (HS256)
+- Cookie HTTP-only
+- Microservizi REST
+- Python, httpx, requests
 
 ---
 
-## API principali
+## Flusso di autenticazione
 
-### Login
+### 1. Login con Google
+- L’utente accede a `/auth/login`
+- Viene reindirizzato a Google OAuth2
+- Google ritorna a `/auth/callback`
 
-`GET /auth/login`
-
-Redireziona l’utente alla pagina di login Google.
-
----
-
-### Callback OAuth
-
-`GET /auth/callback?code=...`
-
-Gestisce il callback di Google e completa l’autenticazione.
-
----
-
-### Logout
-
-`POST /auth/logout`
-
-**Body JSON:**
-
-```json
-{
-  "refresh_token": "string"
-}
-```
-
-Invalida il refresh token salvato.
+### 2. Callback OAuth
+Il servizio:
+1. Scambia il `code` con Google per un `id_token`
+2. Valida la firma RS256 usando le chiavi pubbliche Google (JWKS)
+3. Recupera o crea l’utente nel `fanta-data-service`
+4. Genera:
+   - **Access Token JWT** (10 minuti)
+   - **Refresh Token** (30 giorni)
+5. Imposta i cookie:
+   - `access_token` (HttpOnly)
+   - `refresh_token` (HttpOnly)
+6. Reindirizza l’utente alla home page
 
 ---
 
-## Autenticazione
+## Gestione dei token
 
-* Access token: JWT
-* Refresh token: salvato su database
-* Autenticazione tramite header:
+### Access Token
+- JWT firmato HS256
+- Durata breve (10 minuti)
+- Usato dai microservizi per autorizzare le richieste
 
-```
-Authorization: Bearer <access_token>
-```
+### Refresh Token
+- Token casuale sicuro
+- Salvato nel `fanta-data-service`
+- Inviato solo tramite cookie HTTP-only
+- Usato esclusivamente dall’Auth Service
 
 ---
 
-## Avvio del progetto (locale)
+## Flusso di Refresh 
 
-```bash
-docker compose up --build
-```
+1. Il browser chiama un microservizio Fanta
+2. Il microservizio risponde `401 Unauthorized` (token scaduto)
+3. Il frontend intercetta il `401`
+4. Il frontend chiama `/auth/refresh`
+5. L’Auth Service:
+   - Valida il refresh token
+   - Genera un nuovo access token
+   - Imposta un nuovo cookie `access_token`
+6. Il frontend ripete automaticamente la richiesta originale (al microservizio fanta)
 
-Il servizio sarà disponibile su:
+👉 I microservizi non gestiscono il refresh
 
-```
-http://localhost:8000
-```
+---
 
+## Endpoint principali
+
+### `GET /auth/login`
+Avvia il flusso OAuth2 con Google.
+
+---
+
+### `GET /auth/callback`
+Gestisce il ritorno da Google, crea la sessione e imposta i cookie.
+
+---
+
+### `POST /auth/refresh`
+Rigenera l’Access Token usando il Refresh Token presente nei cookie.
+
+**Input**
+- Cookie: `refresh_token`
+
+**Output**
+- Set-Cookie: `access_token`
+- JSON di conferma
+
+---
+
+### `POST /auth/logout`
+Revoca il refresh token e rimuove i cookie dal browser.
+
+---
+
+### `GET /auth/verify`
+Valida un Access Token JWT.
+
+**Uso**
+- Endpoint chiamato dagli altri microservizi per autorizzare richieste.
+
+**Header**

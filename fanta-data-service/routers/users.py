@@ -1,6 +1,6 @@
 # endpoint per gli utenti
 
-from fastapi import APIRouter, Depends, HTTPException 
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from database import get_session
 from models import User
@@ -19,6 +19,13 @@ def get_all_users(session: Session = Depends(get_session)) -> list[User]:
 @router.get("/{user_id}", response_model=User, tags=["Users"]) 
 def get_user(user_id: int, session: Session = Depends(get_session)) -> User:
     statement = select(User).where(User.id == user_id)
+    result = session.exec(statement)
+    user = result.first()
+    return user
+
+@router.get("/by-email/{user_email}", response_model=User, tags=["Users"]) 
+def get_user_by_email(user_email: str, session: Session = Depends(get_session)) -> User:
+    statement = select(User).where(User.email == user_email)
     result = session.exec(statement)
     user = result.first()
     return user
