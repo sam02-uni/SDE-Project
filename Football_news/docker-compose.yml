@@ -49,7 +49,8 @@ services:
       - RSS_URL=http://rss-feed-service:8000
       - AGG_URL=http://aggregator-service:8000
       - SCRAPE_URL=http://html-scrape-service:8000
-      - HTML_URL=http://html-aggregator-service:8000 
+      - HTML_URL=http://html-aggregator-service:8000
+      - TOKEN_URL=http://auth-service:8000 
     depends_on:
       - rss-feed-service
       - aggregator-service

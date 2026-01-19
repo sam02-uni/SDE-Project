@@ -1,9 +1,11 @@
 import processCentric
 import os
 import httpx
-from fastapi import FastAPI, Query
+import requests
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 
 tags_metadata = [ # per la documentazione Swagger
@@ -15,6 +17,8 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="Process Centric News", openapi_tags=tags_metadata)
 
+app.mount("/Static", StaticFiles(directory="Football_News/Static"), name="static")
+
 # Rende accessibile il servizio anche ai file ed alle pagine esterne
 app.add_middleware(
     CORSMiddleware,
@@ -24,13 +28,27 @@ app.add_middleware(
     allow_headers=["*"], # Permette tutti gli header
 )
 
-# RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
+TOKEN_URL = os.getenv("TOKEN_URL", "http://localhost:8000")
 AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
 HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
 
 @app.get("/news")
 async def takeNews():
     """Take the data from RSS and HTML"""
+    
+    biscotto = requests.cookies.get("access_token")
+    headers = {
+        "Authorization": f"Bearer {biscotto}",
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.get(f"{TOKEN_URL}/auth/verify", headers)
+
+        if response.status_code == 401:
+            raise HTTPException(status_code=401, detail="Token scaduto o non valido")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail="Errore di comunicazione interna")
+    
     async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.get(f"{AGG_URL}/rss-fanta")
         RSSdata = response.json()
@@ -44,6 +62,20 @@ async def takeNews():
 @app.get("/news-filter")
 async def takeFilNews(tags: Optional[List[str]] = Query(None)):
     """Take the data filtered from RSS and HTML"""
+    
+    biscotto = requests.cookies.get("access_token")
+    headers = {
+        "Authorization": f"Bearer {biscotto}",
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.get(f"{TOKEN_URL}/auth/verify", headers)
+
+        if response.status_code == 401:
+            raise HTTPException(status_code=401, detail="Token scaduto o non valido")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail="Errore di comunicazione interna")
+    
     async with httpx.AsyncClient(timeout=120.0) as client:
         params = {"tags": tags} if tags else {}
         try:

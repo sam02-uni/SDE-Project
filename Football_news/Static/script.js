@@ -1,6 +1,7 @@
 // --- CONFIGURAZIONE ---
 const API_URL = "http://localhost:8005/news";
 const FILTER_URL = "http://localhost:8005/news-filter";
+const TOKEN_URL = "http://localhost:8000/auth/refresh";
 const itemsPerPage = 12;
 const tags = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"];
 let allNews = [];
@@ -50,7 +51,14 @@ overlay.addEventListener("click", closeNav);
 // --- RECUPERO NEWS ---
 async function fetchNews() {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {credential: "includes"});
+        if (response.status == 401){
+            refresh = await fetch (TOKEN_URL, {credential: "includes"});
+            if (refresh.status != 200){
+                window.location.href = "http://localhost:8000/static/login.html"
+            }
+            response = await fetch(url, {credential: "includes"});
+        }
         const data = await response.json();
         console.log("Dati ricevuti dal server:", data);
         if (data.Response && data.Response.Filter) {
@@ -113,7 +121,14 @@ async function applyFilters() {
     selectedTags.forEach(tag => url.searchParams.append("tags", tag));
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {credential: "includes"});
+        if (response.status == 401){
+            refresh = await fetch (TOKEN_URL, {credential: "includes"});
+            if (refresh.status != 200){
+                window.location.href = "http://localhost:8000/static/login.html"
+            }
+            response = await fetch(url, {credential: "includes"});
+        }
         const data = await response.json();
         
         // Python ora ci restituisce già la lista filtrata
