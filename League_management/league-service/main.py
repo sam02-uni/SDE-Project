@@ -1,8 +1,9 @@
 # Business Logic Service for the League Management
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import requests
 import os
 import json
+from models import BaseLeagueModel
 
 tags_metadata = [ # for the Swagger documentation
     ]
@@ -13,7 +14,7 @@ tags_metadata = [ # for the Swagger documentation
 
 app = FastAPI(title="League Business Service", openapi_tags=tags_metadata, root_path="/business/league") 
 
-data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://fanta-data-service:8001")
+data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
 
 @app.get("/business/leagues")
 def read_root():  
@@ -30,12 +31,13 @@ def get_league_details(league_id: int):
     return league_data
 
 @app.post("/business/leagues", response_model=str) # response model è l'id della lega creata 
-def create_league(league_data: dict): # league_data contiene name, max_credits
-    # TODO 
-    # controllare autenticazione utente
-    # prendere id dell'utente loggato : owner_id
+def create_league(league_data: BaseLeagueModel): # league_data contiene name, max_credits
+    # TODO controllare autenticazione utente, prendere id dell'utente loggato : owner_id
     payload = dict(name=league_data["name"], max_credits=league_data["max_credits"], owner_id=1) # TODO owner id
-    new_league = requests.post(f"{data_service_url_base}/leagues", json=payload).json()
+    response = requests.post(f"{data_service_url_base}/leagues", json=payload)
+    if response.status_code != 201:
+        raise HTTPException(status_code=response.status_code, detail="Not created")
+    new_league = response.json()
     return new_league["id"]
 
 @app.delete("/business/leagues/{league_id}")
