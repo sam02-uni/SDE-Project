@@ -118,6 +118,6 @@ class RefreshTokenBase(SQLModel):
 class RefreshToken(RefreshTokenBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-# Questo è quello che uso per il Logout
+# Questo è quello che uso per il Logout e get
 class RefreshTokenStop(SQLModel):
     token: str

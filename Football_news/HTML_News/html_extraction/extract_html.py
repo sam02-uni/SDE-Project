@@ -1,4 +1,3 @@
-# Filtrare e formattare le news in modo tale che siano visibili per l'utente
 from typing import List
 
 KEYWORDS = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"]
@@ -24,20 +23,3 @@ def apply_fanta_filter(news_list: List[dict], active_tags: List[str] = None) -> 
             relevant_news.append(item)
             
     return relevant_news
-
-def rss_filter(news):
-    filtered_news = []
-    
-    for item in news:
-        notizia = item.get('notizia', {}) 
-
-        new_item = {
-            'titolo': notizia.get('title', 'Titolo non disponibile'),
-            'riassunto': notizia.get('summary', {}).get('value', 'Nessun riassunto') if isinstance(notizia.get('summary'), dict) else notizia.get('summary', 'Nessun riassunto'),
-            'link': notizia.get('link', '#'),
-            'data': notizia.get('published', 'N/A'),
-            'fonte': item.get('fonte', 'Sconosciuta')
-        }
-        filtered_news.append(new_item)
-
-    return filtered_news

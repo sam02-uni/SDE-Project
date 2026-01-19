@@ -37,3 +37,13 @@ def revoke_refresh_token(
         return {"status": "revoked"}
     
     return {"status": "already_absent"}
+
+@router.get("/get")
+def get_refresh_token(
+    data: RefreshTokenStop,
+    session: Session = Depends(get_session)
+    ):
+    
+    statement = select(RefreshToken).where(RefreshToken.token == data.token)
+    token_obj = session.exec(statement).first()
+    return token_obj

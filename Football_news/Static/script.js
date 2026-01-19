@@ -1,0 +1,144 @@
+// --- CONFIGURAZIONE ---
+const API_URL = "http://localhost:8005/news";
+const FILTER_URL = "http://localhost:8005/news-filter";
+const itemsPerPage = 12;
+const tags = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"];
+let allNews = [];
+let filteredNews = [];
+let selectedTags = [];
+let currentPage = 1;
+
+// --- ELEMENTI DOM ---
+const sidebar = document.getElementById("mySidebar");
+const overlay = document.getElementById("overlay");
+const triggerArea = document.getElementById("triggerArea");
+const newsGrid = document.getElementById("newsGrid");
+const searchBar = document.getElementById("searchBar");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const pageInfo = document.getElementById("pageInfo");
+const filterBtn = document.getElementById("filterBtn");
+const filterMenu = document.getElementById("filterMenu");
+const tagChecklist = document.getElementById("tagChecklist");
+const applyBtn = document.getElementById("applyFilters");
+
+// --- GENERAZIONE CHECKLIST ---
+tags.forEach(tag => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${tag}"> ${tag.charAt(0).toUpperCase() + tag.slice(1)}`;
+    tagChecklist.appendChild(label);
+});
+
+// --- LOGICA FILTRO ---
+filterBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    filterMenu.classList.toggle("active");
+});
+
+// Chiude il menu se clicchi fuori
+document.addEventListener("click", () => filterMenu.classList.remove("active"));
+filterMenu.addEventListener("click", (e) => e.stopPropagation());
+
+// --- LOGICA SIDEBAR ---
+const openNav = () => { sidebar.classList.add("active"); overlay.classList.add("active"); };
+const closeNav = () => { sidebar.classList.remove("active"); overlay.classList.remove("active"); };
+
+triggerArea.addEventListener("mouseenter", openNav);
+sidebar.addEventListener("mouseleave", closeNav);
+overlay.addEventListener("click", closeNav);
+
+// --- RECUPERO NEWS ---
+async function fetchNews() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        console.log("Dati ricevuti dal server:", data);
+        if (data.Response && data.Response.Filter) {
+            allNews = data.Response.Filter; 
+        } 
+        // Se invece restituisce {"Response": [...]}
+        else if (data.Response) {
+            allNews = data.Response;
+        }
+        // Se invece restituisce direttamente la lista
+        else if (Array.isArray(data)) {
+            allNews = data;
+        }
+
+        filteredNews = allNews;
+        renderPage();
+    } catch (error) {
+        console.error("Errore fetch:", error);
+        newsGrid.innerHTML = `<p>Errore nel caricamento: ${error.message}</p>`;
+    }
+}
+
+// --- RENDERING ---
+function renderPage() {
+    newsGrid.innerHTML = "";
+    
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = filteredNews.slice(start, end);
+
+    if (pageItems.length === 0) {
+        newsGrid.innerHTML = "<p>Nessuna notizia trovata.</p>";
+    }
+
+    pageItems.forEach(item => {
+        const article = document.createElement("article");
+        article.className = "box-titolo";
+        article.innerHTML = `
+            <div class="fonte">${item.fonte || 'News'}</div>
+            <h3>${item.titolo}</h3>
+            <p>${item.riassunto || 'Nessuna anteprima disponibile.'}</p>
+            <a href="${item.link}" target="_blank">Leggi notizia →</a>
+        `;
+        newsGrid.appendChild(article);
+    });
+
+    // Aggiorna stato paginazione
+    pageInfo.innerText = `Pagina ${currentPage}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = end >= filteredNews.length;
+}
+
+// Funzione aggiornata per applicare i filtri chiamando il backend
+async function applyFilters() {
+    const checkboxes = tagChecklist.querySelectorAll("input:checked");
+    const selectedTags = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Costruiamo la query string: ?tags=infortunio&tags=stop...
+    let url = new URL(FILTER_URL);
+    selectedTags.forEach(tag => url.searchParams.append("tags", tag));
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Python ora ci restituisce già la lista filtrata
+        allNews = data.Response.Filter || [];
+        filteredNews = allNews;
+        
+        currentPage = 1;
+        renderPage();
+        filterMenu.classList.remove("active");
+    } catch (error) {
+        console.error("Errore durante il filtraggio:", error);
+    }
+}
+
+// Collega il pulsante "Applica" alla nuova funzione
+applyBtn.addEventListener("click", applyFilters);
+// --- NAVIGAZIONE ---
+function changePage(direction) {
+    currentPage += direction;
+    renderPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+prevBtn.addEventListener("click", () => changePage(-1));
+nextBtn.addEventListener("click", () => changePage(1));
+
+// --- AVVIO ---
+fetchNews();

@@ -33,43 +33,41 @@ def grab_news():
                 if link_tag and link_tag.has_attr('href'):
                     link = link_tag['href']
                 
-                # Filtro lunghezza
                 if len(text) > 20:
-                    # 1. Costruzione link completo
                     full_link = link
                     if link and not link.startswith('http'):
                         base_url = "https://www.gazzetta.it" if "gazzetta" in url else "https://www.sosfanta.com"
                         full_link = base_url + link
 
-                    # 2. Estrazione Riassunto con Newspaper3k
                     riassunto = "Riassunto non disponibile."
                     if full_link.startswith('http'):
                         try:
-                            # download_timeout ridotto per evitare blocchi infiniti
                             article = Article(full_link, language='it', request_timeout=5)
                             article.download()
                             article.parse()
-                            # Prendiamo i primi 200 caratteri e puliamo i ritorni a capo
                             if article.text:
                                 riassunto = " ".join(article.text[:200].split()) + "..."
+                            
+                            if article.publish_date:
+                                data_pubblicazione = article.publish_date.strftime("%d/%m/%Y %H:%M")
+                            else:
+                                data_pubblicazione = "N/A"
                         except Exception as e:
                             print(f"Errore scraping articolo {full_link}: {e}")
 
-                    # 3. Costruzione oggetto finale
                     all_news.append({
-                        "sorgente": name,
+                        "fonte": name,
                         "titolo": text,
-                        "riassunto": riassunto, # Nuovo campo aggiunto
-                        "link": full_link,
-                        "categoria": "Fantacalcio"
+                        "riassunto": riassunto,
+                        "data": data_pubblicazione, 
+                        "link": full_link
                     })
 
         except Exception as e:
             print(f"Errore su {name}: {e}")
 
-    return json.dumps(all_news, indent=4, ensure_ascii=False)
+    return all_news
 
-# Esecuzione
-#risultato_json = grab_news()
-#print(risultato_json)
+# risultato_json = grab_news()
+# print(risultato_json)
 
