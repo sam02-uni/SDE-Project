@@ -6,10 +6,10 @@ import enum
 # TABELLE SQL
 
 class PlayerPosition(str, enum.Enum):
-    P = "Portiere"
-    D = "Difensore"
-    C = "Centrocampista"
-    A = "Attaccante"
+    G = "G"
+    D = "D"
+    M = "M"
+    A = "A"
 
 class Participant(SQLModel, table=True):  # Partecipazione di un User a una League
     user_id: int = Field(foreign_key="user.id", primary_key=True) # Foreign Key verso User
@@ -69,7 +69,6 @@ class Player(SQLModel, table=True):
     surname: str = Field(index=True)
     role: PlayerPosition
     serie_a_team: str 
-    quot: int
     mean_rating: float = 0.0
 
 class MatchDay(SQLModel, table=True):

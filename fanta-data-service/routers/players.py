@@ -30,6 +30,13 @@ def create_player(player: Player, session: Session = Depends(get_session)) -> Pl
     session.refresh(player)
     return player
 
+@router.post("/chunk", status_code=201) # POST /players/chunk
+def create_players_chunk(players: list[Player], session: Session = Depends(get_session)):
+    for player in players:
+        session.add(player)
+    session.commit()
+    return {"ok": True}
+
 @router.delete("/{player_id}")  # DELETE /players/{player_id}
 def delete_player(player_id:int, session: Session = Depends(get_session)):
     player = session.get(Player, player_id)  

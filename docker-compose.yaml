@@ -50,9 +50,37 @@ services:
   #  volumes:
   #    - ./league-service:/app # Mappa il codice sorgente in league-service folder dentro il container in /app
   #  environment:
-  #    - DATA_SERVICE_URL_BASE=http://localhost:8001/
+  #    - DATA_SERVICE_URL_BASE=http://data-service:8001/
   #  depends_on:
   #    - data-service
+
+  #League Management Process centric Service
+  #league-management-process-service:
+  #  build: ./League_management/league-management-service
+  #  container_name: league-management-process-service
+  #  ports:
+  #    - "8007:8000" 
+  #  volumes:
+  #    - ./League_management/league-management-service:/app # Mappa il codice sorgente dentro il container in /app
+  #  environment:
+  #    - LEAGUE_SERVICE_URL_BASE=http://league-service:8004/
+  #    - SQUAD_SERVICE_URL_BASE=http://squad-service:8004/ TODO 
+  #  depends_on:
+  #    - league-service
+  #    - squad-service
+
+  #Adapter Football service
+  adapter-football-service:
+    build: ./football-api-adapter
+    container_name: footballapi-adapter-service
+    ports:
+      - "8010:8000" 
+    volumes:
+      - ./football-api-adapter:/app # Mappa il codice sorgente dentro il container in /app
+    environment:
+      - DATA_SERVICE_URL_BASE=http://data-service:8000/
+    env_file:
+      - ./football-api-adapter/.env
 
 volumes:
   db_data:
