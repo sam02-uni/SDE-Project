@@ -58,7 +58,7 @@ async function fetchNews() {
         } 
         // Se invece restituisce {"Response": [...]}
         else if (data.Response) {
-            allNews = data.Response.news;
+            allNews = data.Response;
         }
         // Se invece restituisce direttamente la lista
         else if (Array.isArray(data)) {

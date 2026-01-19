@@ -18,6 +18,25 @@ services:
       - RSS_URL=http://rss-feed-service:8000
     depends_on:
       - rss-feed-service
+  html-scrape-service:
+    build: ./HTML_News/news_html
+    container_name: html_scraper_container
+    ports:
+      - "8004:8000" # Espone la porta 8000 del container sulla 8004 locale
+    volumes:
+      - ./HTML_News/news_html:/app # Mappa il codice sorgente in fanta-data-service folder dentro il container in /app
+  html-aggregator-service:
+    build: ./HTML_News/html_extraction
+    container_name: html_aggregator_container
+    ports:
+      - "8006:8000" # Espone la porta 8000 del container sulla 8006 locale
+    volumes:
+      - ./HTML_News/html_extraction:/app # Mappa il codice sorgente in fanta-data-service folder dentro il container in /app
+    environment:
+      # L'URL usa il nome del servizio "service_b" come hostname
+      - SCRAPE_URL=http://html-scrape-service:8000
+    depends_on:
+      - html-scrape-service
   news-service:
     build: .
     container_name: news_container
@@ -28,7 +47,11 @@ services:
     environment:
       # L'URL usa il nome del servizio "service_b" come hostname
       - RSS_URL=http://rss-feed-service:8000
-      - AGG_URL=http://aggregator-service:8000 
+      - AGG_URL=http://aggregator-service:8000
+      - SCRAPE_URL=http://html-scrape-service:8000
+      - HTML_URL=http://html-aggregator-service:8000 
     depends_on:
       - rss-feed-service
       - aggregator-service
+      - html-scrape-service
+      - html-aggregator-service

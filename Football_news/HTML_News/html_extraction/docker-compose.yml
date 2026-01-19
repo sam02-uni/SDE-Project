@@ -1,0 +1,8 @@
+services: # Data Layer Service: database interface
+  rss-feed-service:
+    build: .
+    container_name: html_extract_container
+    ports:
+      - "8006:8000" # Espone la porta 8000 del container sulla 8006 locale
+    volumes:
+      - .:/app # Mappa il codice sorgente in fanta-data-service folder dentro il container in /app

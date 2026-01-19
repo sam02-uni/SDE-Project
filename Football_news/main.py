@@ -1,4 +1,4 @@
-import process_rss
+import processCentric
 import os
 import httpx
 from fastapi import FastAPI, Query
@@ -26,24 +26,37 @@ app.add_middleware(
 
 # RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
 AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
+HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
+
 @app.get("/news")
 async def takeNews():
     """Take the data from RSS and HTML"""
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.get(f"{AGG_URL}/rss-fanta")
-        data = response.json() 
-        return {"Response":data}
+        RSSdata = response.json()
+        rss_list = RSSdata.get("news", RSSdata) if isinstance(RSSdata, dict) else RSSdata
+        response = await client.get(f"{HTML_URL}/html-fanta")
+        HTMLdata = response.json()
+        html_list = HTMLdata.get("news", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
+        data = processCentric.merge_and_sort_news(rss_list, html_list)
+        return {"Response" : data}
 
 @app.get("/news-filter")
 async def takeFilNews(tags: Optional[List[str]] = Query(None)):
     """Take the data filtered from RSS and HTML"""
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         params = {"tags": tags} if tags else {}
         try:
             # Invio della richiesta all'aggregatore
             response = await client.get(f"{AGG_URL}/filter-news", params=params, timeout=10.0)
             response.raise_for_status()
-            data = response.json()
+            RSSdata = response.json()
+            rss_list = RSSdata.get("Filter", RSSdata) if isinstance(RSSdata, dict) else RSSdata
+            response = await client.get(f"{HTML_URL}/html-filter-news", params=params, timeout=10.0)
+            response.raise_for_status()
+            HTMLdata = response.json()
+            html_list = HTMLdata.get("Filter", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
+            data = processCentric.merge_and_sort_news(rss_list, html_list)
             return JSONResponse(content={"Response": data})
 
         except httpx.HTTPStatusError as exc:
