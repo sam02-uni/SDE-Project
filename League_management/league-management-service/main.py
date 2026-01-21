@@ -1,10 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import requests
 import os
-import json
-from models import BaseLeagueModel, ParticipantUserWithSquad
-
-# TODO: definire i modelli di request e response in models.py
+from models import BaseLeagueModel, Player, ParticipantUserWithSquad
 
 app = FastAPI(title="League managament process centric service", root_path = "/process/league-management")
 
@@ -24,25 +21,34 @@ def init_base_league(league_info: BaseLeagueModel):
     
     return response.json() # id created league
 
-@app.post("/{league_id}/add_participant", status_code=201, response_model=str)
+# TODO: To TEST
+@app.post("/{league_id}/add_participant", status_code=201, response_model=str) # Add User With Their Squad to League
 def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad):
-    # league_id in PATH , email utente, lista di giocatori, nome della rosa in BODY
-    # aggiunge un utente con rosa relativa alla lega
     
     # ENDPOINT in Business User per verificare che email esiste in db
     #  TODO
 
-    # League business per aggiungere partecipante alla lega
-    # TODO
-
+    # League Business service in order to add participant to league
+    response = requests.post(f"{league_service_url_base}/business/league/{league_id}/participants", json=participantWithSquad["email_user"])
+    if response.status_code != 201:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+    
     # Squad business per creare rosa di utente in lega
-    # TODO
+    response = requests.post(f"{squad_service_url_base}/business/squads", json={
+        "owner_id": "TODO", # get user id from email
+        "league_id": league_id,
+        "name": participantWithSquad["squad_name"],
+        "players": participantWithSquad["players"]
+    })
+    
+    if response.status_code != 201:
+        raise HTTPException(status_code=response.status_code, detail="Squad not created")
 
-    # return ok
-    pass
+    return response.json() # return squad created 
+    
 
 # usato quando utente scrive nome nella casella di testo e 'cerca' e restituisce i giocatori con quei nomi
 @app.get("/suggest_players")
 def suggest_players(given_name:str):
     response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
-    return response.json()
+    return response.json() # return json list of players (all fields)

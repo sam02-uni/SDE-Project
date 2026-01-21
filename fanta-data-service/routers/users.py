@@ -1,6 +1,6 @@
 # endpoint per gli utenti
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
 from models import User

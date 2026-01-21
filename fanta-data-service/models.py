@@ -12,8 +12,8 @@ class PlayerPosition(str, enum.Enum):
     A = "A"
 
 class Participant(SQLModel, table=True):  # Partecipazione di un User a una League
-    user_id: int = Field(foreign_key="user.id", primary_key=True) # Foreign Key verso User
-    league_id: int = Field(foreign_key="league.id", primary_key=True) # Foreign Key verso League
+    user_id: int = Field(foreign_key="user.id", primary_key=True, ondelete="CASCADE") # Foreign Key verso User
+    league_id: int = Field(foreign_key="league.id", primary_key=True, ondelete="CASCADE") # Foreign Key verso League
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -42,19 +42,19 @@ class League(SQLModel, table=True):
     # comodità in Python
     participants: list[User] = Relationship(back_populates="leagues", link_model=Participant)  # da python con League accedo agli User partecipanti
     owner: User = Relationship()
-    squads: list["Squad"] = Relationship(back_populates="league")  # da python con League accedo alle Rose nella lega
+    squads: list["Squad"] = Relationship(back_populates="league", cascade_delete=True)  # da python con League accedo alle Rose nella lega
 
 class PlayerSquadLink(SQLModel, table=True):
-    player_id: int = Field(foreign_key="player.id", primary_key=True)
-    squad_id: int = Field(foreign_key="squad.id", primary_key=True)
+    player_id: int = Field(foreign_key="player.id", primary_key=True, ondelete="RESTRICT") # do not delete player before delete this
+    squad_id: int = Field(foreign_key="squad.id", primary_key=True, ondelete="CASCADE") # delete this if squad is deleted
 
 class Squad(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("owner_id", "league_id", name="unique_squad_constraint"),
     )
     id: Optional[int] = Field(default=None, primary_key=True)
-    owner_id: int = Field(foreign_key="user.id") # Foreign Key verso User
-    league_id: int = Field(foreign_key="league.id") # Foreign Key verso
+    owner_id: int = Field(foreign_key="user.id", ondelete="CASCADE") # Foreign Key verso User
+    league_id: int = Field(foreign_key="league.id", ondelete="CASCADE") # Foreign Key verso
     name: str = Field(index=True)
     score: int = Field(default=0)
 
@@ -62,6 +62,7 @@ class Squad(SQLModel, table=True):
     owner: User = Relationship() # user che possiede la rosa
     league: League = Relationship(back_populates="squads") # lega a cui appartiene la rosa
     players: list["Player"] | None = Relationship(link_model=PlayerSquadLink)  # giocatori nella rosa
+    lineups: list["LineUp"] | None = Relationship(back_populates="squad", cascade_delete=True) # da squad accedo alle formazioni
 
 class Player(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -78,12 +79,12 @@ class MatchDay(SQLModel, table=True):
     
 class LineUp(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    squad_id: int = Field(foreign_key="squad.id") # Foreign Key verso Squad
-    matchday_id: int = Field(foreign_key="matchday.id") # Foreign Key verso MatchDay
+    squad_id: int = Field(foreign_key="squad.id", ondelete="CASCADE") # Foreign Key verso Squad
+    matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
     starting_players: list[str] = Field(sa_column=Column(JSON)) # lista di cognomi
     bench_players: list[str] = Field(sa_column=Column(JSON))
 
-    squad: Squad = Relationship()
+    squad: Squad = Relationship(back_populates="lineups")
 
 
 
@@ -99,7 +100,7 @@ class SquadUpdate(SQLModel):
     score: Optional[int] = None
     
 class LeagueWithParticipants(SQLModel):
-    id: int
+    id: Optional[int] = None
     owner_id: int
     name: str
     creation_date: datetime
@@ -107,6 +108,14 @@ class LeagueWithParticipants(SQLModel):
     winner: Optional[str]
     participants: list[User] = []
     owner : User
+
+class SquadWithPlayers(SQLModel):
+    id: Optional[int] = None
+    owner_id: int
+    league_id: int
+    name: str
+    score: int = 0
+    players: list[Player] = []
 
 #REFRESH TOKEN
 class RefreshTokenBase(SQLModel):

@@ -20,7 +20,7 @@ def get_player(player_id: int, session: Session = Depends(get_session)) -> Playe
     return player
 
 @router.get("/", response_model=list[Player])
-def get_players(name:Optional[str], session: Session = Depends(get_session)) -> list[Player]: # name query param not mandatory
+def get_players(name:Optional[str] = None, session: Session = Depends(get_session)) -> list[Player]: # name query param not mandatory
     if name:
         statement = select(Player).where(
             func.lower(Player.surname).contains(name.lower())

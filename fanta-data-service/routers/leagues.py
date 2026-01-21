@@ -74,7 +74,8 @@ def get_league_participants(league_id: int, session: Session = Depends(get_sessi
         owner = league_db.owner
     )
     return league_with_participants
-                                                                    
+
+                                                          
 @router.post("/{league_id}/participants", response_model=LeagueWithParticipants,  tags=["Participants"]) # POST /leagues/{league_id}/participants
 def add_participant_to_league(league_id: int, participant_id: int, session: Session = Depends(get_session)) -> LeagueWithParticipants:
     league = session.get(League, league_id)
