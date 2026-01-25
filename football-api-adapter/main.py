@@ -27,6 +27,8 @@ mapping_position = {
     "right-back": "D",
     "centre-back": "D",
     "midfield": "M",
+    "left midfield": "M",
+    "right midfield": "M",
     "defensive midfield": "M",
     "central midfield": "M",
     "attacking midfield": "M",
@@ -47,14 +49,25 @@ def update_players(team_id: str): # team_id query param
         raise HTTPException(status_code=400, detail="external API Error")
     squad_name = squad["name"]
     players = []
+    #print(squad['squad'])
     for player in squad['squad']:
         player_to_db = dict()
         player_to_db["id"] = player["id"]
         player_to_db["mean_rating"] = 0.0
+
         name_surname = str(player["name"]).split(" ")
-        player_to_db["name"] = name_surname[0]
-        player_to_db["surname"] = name_surname[-1]
-        player_to_db["role"] = mapping_position.get(player["position"].lower(), "M")
+        if len(name_surname) < 2:
+            player_to_db["name"] = ''
+            player_to_db["surname"] = name_surname[0] # se un solo nome lo metto come cognome
+        else:
+            player_to_db['name'] = name_surname[0] # a name primo nome
+            player_to_db["surname"] = ' '.join(nome for nome in name_surname[1:]) # a surname il resto
+
+        position = player["position"]
+        if position is None:
+            position = "midfield" # default position
+        player_to_db["role"] = mapping_position.get(position.lower())
+
         player_to_db["serie_a_team"] = squad_name
         players.append(player_to_db)
     
@@ -62,3 +75,8 @@ def update_players(team_id: str): # team_id query param
     if response.status_code != 201:
         raise HTTPException(status_code=500, detail=f"data service error:{response.text}")
     return {'ok':True}
+
+@app.get("/current_matchday_info")
+def get_current_matchday_info():
+    info = client.get_matchday_info(competiton_id='2019')
+    return info

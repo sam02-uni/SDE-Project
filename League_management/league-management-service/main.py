@@ -52,3 +52,28 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
 def suggest_players(given_name:str):
     response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
     return response.json() # return json list of players (all fields)
+
+# TODO: TEST
+@app.get("/{league_id}/info_dashboard")
+def get_info_dashboard(league_id: int): # return info to display on the dashboard of the league
+    dict_result = dict()
+    # admin ?
+    # TODO
+
+    # current matchday:
+    response = requests.get(f"{league_service_url_base}/business/leaguescurrent_matchday")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="not able to get current matchday infos")
+
+    response_dict = response.json()
+    dict_result.update({'currentMatchday':response_dict['currentMatchday'], 'firstMatchStarted': response_dict['firstMatchStarted']})
+
+    # squad of the user
+    # TODO
+
+    # standing:
+    response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/table")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="not able to get standing infos")
+    
+    dict_result.update({'standing': response.json()})

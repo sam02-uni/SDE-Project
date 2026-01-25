@@ -76,6 +76,17 @@ class MatchDay(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     year: str 
     number: int
+
+class PlayerRating(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    player_id: int = Field(foreign_key="player.id", ondelete="CASCADE") # Foreign Key verso Player
+    matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
+    fanta_rating: float
+    real_rating: float
+
+    # comodità
+    player: Player = Relationship()
+    matchday: MatchDay = Relationship()
     
 class LineUp(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

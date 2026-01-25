@@ -15,6 +15,7 @@ tags_metadata = [ # for the Swagger documentation
 app = FastAPI(title="League Business Service", openapi_tags=tags_metadata, root_path="/business/league") 
 
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
+football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") # TODO add in Compose
 
 @app.get("/")
 def read_root():  
@@ -48,6 +49,7 @@ def delete_league(league_id: int):
 def update_league(league_id: int):
     pass
 
+# TODO: TEST
 @app.get("/{league_id}/table") # classifica della lega
 def get_league_table(league_id: int):
     squads_data = requests.get(f"{data_service_url_base}/squad?league_id={league_id}").json()
@@ -70,3 +72,11 @@ def add_league_participant(league_id: int, email_participant: str): # email in b
     
     return response.json() # return LeagueWithParticipants directly from data service
     
+# TODO: TEST
+@app.get("/current_matchday")
+def get_current_matchday_info():
+    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+    if response.status_code != 200:
+        return {"error": "unable to fetch current matchday info"}
+    
+    return response.json()
