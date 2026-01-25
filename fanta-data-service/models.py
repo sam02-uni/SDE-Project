@@ -78,8 +78,11 @@ class MatchDay(SQLModel, table=True):
     number: int
 
 class PlayerRating(SQLModel, table=True):
+    __table_args__ = (
+        UniqueConstraint("player_id", "matchday_id", name="unique_rating_constraint"),
+    )
     id: Optional[int] = Field(default=None, primary_key=True)
-    player_id: int = Field(foreign_key="player.id", ondelete="CASCADE") # Foreign Key verso Player
+    player_id: int = Field(foreign_key="player.id", ondelete="CASCADE", index=True) # Foreign Key verso Player
     matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
     fanta_rating: float
     real_rating: float

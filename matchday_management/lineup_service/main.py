@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import requests
 import os
 from models import BaseLineUp
@@ -21,16 +21,48 @@ def insert_lineup(base_line_up: BaseLineUp):
     
 
 # nell'endpoint get_voti prima controlli sul db e poi se non ci sono li prendi da scraper e salvi e returni
+# @app.get("/get_grades")
+
+
 @app.get("/update_grades")
 def update_grades():
     response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/22")
-    players = response.json()
-    matchday = players['matchday']
-    players = players['grades']
+    players_scraped = response.json()
+
+    matchday = players_scraped['matchday']
+    response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday}")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Matchday not found")
+    matchday_db_id = response.json()[0]['id']
+
+    players_scraped = players_scraped['grades']   # squad_name, player_surname, grade, fanta_grade
 
     # associazione dei nomi
-    for player in players:
-        response = requests.get(f"{data_service_url_base}/players?name={player['']}")
+    for player_scraped in players_scraped:
+        response = requests.get(f"{data_service_url_base}/players?name={player_scraped['player_surname']}&serie_a_team={player_scraped['squad_name']}")
+        if response.status_code != 200:
+            continue # non carico voto
+        players_found_db = response.json()
+        if len(players_found_db) == 0:
+            continue # non carico voto
+        print("arrivato qui:", player_scraped['player_surname'])
+
+        # 1 o più giocatori comunque li metto lo stesso voto a tutti
+        for player_found_db in players_found_db:
+            payload = dict(
+                player_id=player_found_db['id'],
+                matchday_id=matchday_db_id,
+                real_rating=player_scraped['grade'],
+                fanta_rating=player_scraped['fanta_grade']
+            )
+            response = requests.post(f"{data_service_url_base}/players/rating", json=payload)
+            if response.status_code != 201:
+                error_detail = response.json()['detail']
+                raise HTTPException(status_code=response.status_code, detail=f"Grade not inserted because of: {error_detail}")
+          
+    return {"message": "Grades updated successfully"}
+            
+
 
 
 # calcolo punteggio per formazione e giocatori ?

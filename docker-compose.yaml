@@ -167,13 +167,27 @@ services:
       - html-scrape-service
       - html-aggregator-service
 
-  grades-scrape-service:
+  grades-scraper-service:
     build: ./matchday_management/fanta_grades_scraper
-    container_name: grades_scraper
+    container_name: grades_scraper_service
     ports:
       - "8015:8000" # Espone la porta 8000 del container sulla 8004 locale
     volumes:
       - ./matchday_management/fanta_grades_scraper:/app 
+
+  lineup-service:
+    build: ./matchday_management/lineup_service
+    container_name: lineup-business-service
+    ports:
+      - "8016:8000" 
+    volumes:
+      - ./matchday_management/lineup_service:/app 
+    environment:
+      - DATA_SERVICE_URL_BASE=http://data-service:8000/
+      - GRADES_SCRAPER_URL_BASE=http://grades-scraper-service:8000/
+    depends_on:
+      - data-service
+      - grades-scraper-service
 
 
 volumes:

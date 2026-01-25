@@ -36,6 +36,9 @@ class GradesScraper():
             
             tabelle = soup.find_all('table', class_='grades-table')
             for tabella in tabelle:
+                # squad name:
+                squad_name = tabella.find('thead').select_one('a.team-name.team-link').get_text(strip=True)
+
                 body_tabella = tabella.find('tbody')
                 for riga in body_tabella.find_all('tr')[:-1]: # ultimo è allenatore  
                     colonne = riga.find_all('td')
@@ -47,8 +50,10 @@ class GradesScraper():
                         voto_reale_giocatore = colonne[1].select_one('span.player-grade').get('data-value').strip() 
                         voto_giocatore = colonne[1].select_one('span.player-fanta-grade').get('data-value').strip()
                         if voto_giocatore == '55':
-                            voto_giocatore = 'SV'
-                        grades_list.append({'player_surname': nome_giocatore, 'grade': voto_reale_giocatore, 'fanta_grade': voto_giocatore})
+                            voto_giocatore = '0'
+                        voto_reale_giocatore_clean = voto_reale_giocatore.replace(',','.')
+                        voto_giocatore_clean = voto_giocatore.replace(',','.')
+                        grades_list.append({'squad_name': squad_name, 'player_surname': nome_giocatore, 'grade': voto_reale_giocatore_clean, 'fanta_grade': voto_giocatore_clean})
         
             return grades_list
         else:
