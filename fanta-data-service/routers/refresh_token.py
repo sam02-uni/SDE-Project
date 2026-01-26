@@ -38,7 +38,7 @@ def revoke_refresh_token(
     
     return {"status": "already_absent"}
 
-@router.get("/get")
+@router.post("/get")
 def get_refresh_token(
     data: RefreshTokenStop,
     session: Session = Depends(get_session)
@@ -46,4 +46,20 @@ def get_refresh_token(
     
     statement = select(RefreshToken).where(RefreshToken.token == data.token)
     token_obj = session.exec(statement).first()
+    return token_obj
+
+@router.get("/")
+def get_All(session : Session = Depends(get_session)):
+    statement = select(RefreshToken)
+    token_obj = session.exec(statement).all()
+    return token_obj
+
+@router.delete("/")
+def get_All(session : Session = Depends(get_session)):
+    statement = select(RefreshToken)
+    token_obj = session.exec(statement).all()
+    for token in token_obj:
+        session.delete(token)
+    
+    session.commit()
     return token_obj

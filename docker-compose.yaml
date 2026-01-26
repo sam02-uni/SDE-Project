@@ -27,22 +27,19 @@ services:
       - db
   
   # Auth Service
-  #auth-service:
-    #build: ./login_prova_oauth2
-    #container_name: fanta-auth-service
-    #restart: always
-    #depends_on:
-    #  - db
-    #ports:
-    #  - "8000:8000"
-    #environment:
-    #  - DATABASE_URL=${DATABASE_URL}
-    #  - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-    #  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-    #  - GOOGLE_REDIRECT_URI=http://localhost:8000/auth/callback
-    #  - SECRET_KEY=${AUTH_SECRET_KEY}
-    #volumes:
-     # - ./:/app   # monta il progetto nel container
+ # auth-service:
+  #  build: ./login_prova_oauth2
+   # container_name: fanta-auth-service
+   # restart: always
+   # depends_on:
+   #   - db
+   # ports:
+   #   - "8000:8000"
+   # environment:
+   #   - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
+   # volumes:
+   #   - ./:/app   # monta il progetto nel container
+    #  - ./login_prova_oauth2/keys:/app/keys:ro
     #command: uvicorn login_prova_oauth2.main:app --reload --host 0.0.0.0 --port 8000
 
 
@@ -86,6 +83,23 @@ services:
     depends_on:
     #  - league-service
       - squad-service
+
+
+  #test-service:
+  #  build: ./test_service
+  #  container_name: test-service
+  #  ports:
+  #    - "8012:8000"
+  #  depends_on:
+   #   - auth-service
+
+  #test-process:
+  #  build: ./process_centric_test
+  #  container_name: test-process
+   # ports:
+   #   - "8013:8000"
+   # depends_on:
+   #   - auth-service
 
   #Adapter Football service
   #adapter-football-service:

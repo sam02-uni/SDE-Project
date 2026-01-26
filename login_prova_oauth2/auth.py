@@ -6,6 +6,10 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from sqlmodel import select, Session
 import requests
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+import base64
+
 
 
 
@@ -23,6 +27,22 @@ SCOPES = "openid email profile"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
+
+# Carica la chiave privata
+with open("keys/private.pem", "rb") as f:
+    PRIVATE_KEY = serialization.load_pem_private_key(
+        f.read(), password=None, backend=default_backend() # leggo la chiave privata
+    )
+
+PUBLIC_KEY = PRIVATE_KEY.public_key() # chiave pubblica corrispondente alla chiave privata
+NUMBERS = PUBLIC_KEY.public_numbers() # contiene i numeri n e e
+KID = "auth-key-1"
+
+def b64(n: int) -> str:
+    return base64.urlsafe_b64encode(
+        n.to_bytes((n.bit_length() + 7)//8, "big") # rappresento n con il numero di byte necessari
+    ).decode().rstrip("=")
+
 
 # Richiesta sincrona per recuperare le chiavi pubbliche di Google all'avvio
 jwks = requests.get(GOOGLE_JWKS_URL).json()
@@ -135,24 +155,24 @@ OUTPUT:
                 "email": user["email"],
                 "exp": datetime.utcnow() + timedelta(minutes=10)
             },
-        SECRET_KEY,
-        algorithm="HS256"
-)
-
+        PRIVATE_KEY,
+        algorithm="RS256",
+        headers={"kid": KID}
+        )
 # 3️⃣ Refresh token
         refresh_token = secrets.token_urlsafe(64)
 
         requests.post(
             f"{DATA_SERVICE_URL}/refresh/save",
             json={
+                "token": refresh_token,
                 "user_id": user["id"],
-                "refresh_token": refresh_token,
                 "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat()
             }
         )
 
 # 4️⃣ Redirect
-        response = RedirectResponse(url="/static/home.html")
+        response = RedirectResponse(url="http://localhost:8013/static/home.html")
 
 # 5️⃣ Cookie
         cookie_params = {
@@ -194,32 +214,37 @@ OUTPUT:
   - JSON di conferma successo.
 """
     refresh_token = request.cookies.get("refresh_token")
+    print({"REFRESH TOKEN": refresh_token})
 
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token mancante")
 
-    token_obj = requests.get(f"{DATA_SERVICE_URL}/refresh/get/{refresh_token}")
+    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json={"token": refresh_token})
     if not token_obj:
+        print("REFRESH TOKEN NON TROVATO NEL DATABASEE")
         raise HTTPException(status_code=401, detail="Refresh token non valido")
 
     token=token_obj.json()
     expires_at = datetime.fromisoformat(token["expires_at"])
     if expires_at < datetime.utcnow():
+        print("REFRESH TOKEN SCADUTOOO")
         raise HTTPException(status_code=401, detail="Refresh token scaduto")
 
     user = requests.get(f"{DATA_SERVICE_URL}/users/{token['user_id']}")
     if not user:
+        print("UTENTE REFRESH TOKEN NON TROVATO")
         raise HTTPException(status_code=404, detail="Utente non trovato")
 
     utente=user.json()
     new_jwt = jwt.encode(
-        {
-            "user_id": utente["id"],
-            "email": utente["email"],
-            "exp": datetime.utcnow() + timedelta(minutes=10),
-        },
-        SECRET_KEY,
-        algorithm="HS256"
+            {
+                "user_id": utente["id"],
+                "email": utente["email"],
+                "exp": datetime.utcnow() + timedelta(minutes=10)
+            },
+        PRIVATE_KEY,
+        algorithm="RS256",
+        headers={"kid": KID}
     )
     
     response = JSONResponse(content={"message": "Token rinnovato con successo"})
@@ -227,7 +252,7 @@ OUTPUT:
             "httponly": True,
             "secure": False,  # True in produzione HTTPS
             "samesite": "lax",
-            "path": "/"
+            "path": "/",
         }
 
     response.set_cookie(
@@ -236,8 +261,7 @@ OUTPUT:
         max_age=600,
         **cookie_params
         )
-
-
+    
     return response
 
 @router.post("/logout")
@@ -269,44 +293,34 @@ OUTPUT:
     
     return response
 
-@router.get("/verify")
-def verify_token(request: Request):
+
+@router.get("/jwks")
+def jwks_project():
     """
-ENDPOINT: GET /auth/verify
-DESCRIZIONE: Valida l'Access Token e restituisce l'identità dell'utente.
-INPUT: Header 'Authorization: Bearer <JWT>'.
-LOGICA:
-  1. Estrae il token JWT dall'header Authorization.
-  2. Decodifica e verifica la firma utilizzando la SECRET_KEY interna.
-  3. Controlla la validità temporale (exp claim).
-OUTPUT: 
-  - JSON contenente 'id' (user_id) ed 'email' dell'utente autenticato.
-SICUREZZA: 
-  - Restituisce 401 se il token è manomesso, scaduto o mancante.
-  - Utilizzato dagli altri microservizi per autorizzare le richieste.
-"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Header mancante")
-    
-    token = auth_header.split(" ")[1]
-    try:
-        decoded_data = jwt.decode(
-            token, 
-            SECRET_KEY, 
-            algorithms=["HS256"]
-        )
+ Restituisce il JSON Web Key Set (JWKS) del servizio, contenente la chiave pubblica RSA utilizzata 
+ per verificare la firma dei JWT interni (Access e Refresh token). 
+ Ogni chiave nel set include:
+- kty: tipo di chiave (RSA)
+- kid: identificatore univoco della chiave
+- use: uso della chiave (sig = signature)
+- alg: algoritmo di firma (RS256)
+- n: modulo della chiave pubblica codificato in base64 URL-safe
+- e: esponente pubblico codificato in base64 URL-safe
 
-
-        return {
-                "id": decoded_data.get("user_id"),
-                "email": decoded_data.get("email")
-            
-        }
-
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token non valido o scaduto")
-
+Questa chiave pubblica può essere utilizzata dai client o dai servizi interni per verificare 
+l'autenticità dei token generati dal servizio di autenticazione.
+ """   
+    return {
+        "keys": [{
+            "kty": "RSA",
+            "kid": KID,
+            "use": "sig",
+            "alg": "RS256",
+            "n": b64(NUMBERS.n),
+            "e": b64(NUMBERS.e)
+        }]
+   
+ }
 
 
 @router.delete("/remove/{email}") # PER TEST
@@ -335,3 +349,5 @@ def check_refresh():
     for u in users:
         stringa+=u["email"]+ " "
     return {"result" : stringa}
+
+

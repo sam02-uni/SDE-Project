@@ -1,6 +1,6 @@
 # endpoint per gli utenti
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
 from models import User
@@ -28,6 +28,8 @@ def get_user_by_email(user_email: str, session: Session = Depends(get_session)) 
     statement = select(User).where(User.email == user_email)
     result = session.exec(statement)
     user = result.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     return user
     
 
