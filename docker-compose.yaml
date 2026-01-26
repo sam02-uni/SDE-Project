@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data/
+      - ./fanta-data-service/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # Data Layer Service: database interface
   data-service:

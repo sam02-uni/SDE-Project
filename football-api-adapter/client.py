@@ -55,6 +55,7 @@ class FootballAPIClient:
         response_dict = response.json()
 
         first_match_started = False if response_dict['matches'][0]['status'] in ('SCHEDULED', 'TIMED') else True 
+        last_match_finished = True if response_dict['matches'][-1]['status'] == 'FINISHED' else False
         
         return {
             'currentMatchday': matchday,
@@ -62,7 +63,8 @@ class FootballAPIClient:
             'first': response_dict['resultSet']['first'],
             'last': response_dict['resultSet']['last'],
             'played': response_dict['resultSet']['played'],
-            'firstMatchStarted': first_match_started
+            'firstMatchStarted': first_match_started,
+            'lastMatchFinished': last_match_finished
         }
         
 

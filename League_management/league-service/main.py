@@ -8,7 +8,7 @@ from models import BaseLeagueModel
 tags_metadata = [ # for the Swagger documentation
     ]
 
-# TODO: define the response models and request models
+
 # TODO: implementare controlli di autenticazione e autorizzazione
 # TODO: aggiungi in data service - league endpoint per fare get di leghe per utente
 
@@ -24,6 +24,11 @@ def read_root():
 @app.get("/search")
 def get_league_by_name(name: str): # name query parameter
     # TODO: chiama il data service per cercare la lega per nome e per utente <- CHIEDI MARIANO in che modo prendo l'utente qui ??
+    pass
+
+@app.get("/by_user")
+def get_leagues_by_user():
+    # TODO depends on user_id
     pass
 
 @app.get("/{league_id}")

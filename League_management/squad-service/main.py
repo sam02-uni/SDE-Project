@@ -61,3 +61,10 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
 def add_player_to_squad():
     pass
 
+@app.get("/{squad_id}")
+def get_squad_by_id(squad_id:int):
+    response = requests.get(f"{data_service_url_base}/squads/{squad_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
+

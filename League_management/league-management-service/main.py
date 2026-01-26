@@ -53,8 +53,14 @@ def suggest_players(given_name:str):
     response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
     return response.json() # return json list of players (all fields)
 
+# informazioni per la home iniziale = le leghe a cui partecipa l'utente da mettere a sinistra
+@app.get("/info_webapp_home")
+def get_info_webapp_home():
+    # TODO: user id prendi le leghe a cui partecipa
+    pass
+
 # TODO: TEST
-@app.get("/{league_id}/info_dashboard")
+@app.get("/{league_id}/info_dashboard_league")
 def get_info_dashboard(league_id: int): # return info to display on the dashboard of the league
     dict_result = dict()
     # admin ?
