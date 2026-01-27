@@ -1,0 +1,170 @@
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    background-color: #f8fafc;
+}
+
+/* --- HEADER MINIMALE --- */
+.header-minimal {
+    padding: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.openbtn {
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #f17863;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.openbtn:hover {
+    background-color: #d35400;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    height: 100%;
+    width: 250px; /* Leggermente più larga per leggibilità */
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: -250px; 
+    background-color: #b54a1f; 
+    color: white;
+    transition: 0.3s ease;
+    padding-top: 20px;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+}
+
+.sidebar.active { left: 0; }
+
+.sidebar-header { padding: 0 25px; margin-bottom: 20px; }
+
+.sidebar-links a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #f1f5f9;
+    display: block;
+    transition: 0.2s;
+}
+
+.sidebar-links a:hover {
+    background-color: #d35400;
+    padding-left: 35px;
+}
+
+/* --- OVERLAY --- */
+.overlay {
+    display: none;
+    position: fixed;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+}
+.overlay.active { display: block; }
+
+/* --- GRID ARTICOLI --- */
+.container-articoli {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 20px; 
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.container-form {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+    min-height: 80vh;
+}
+
+.create-lega-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.create-lega-card h2 {
+    color: #1e293b;
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+}
+
+.create-lega-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+}
+
+/* --- INPUT GROUPS --- */
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #475569;
+    margin-bottom: 8px;
+    margin-left: 4px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #f1f5f9;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: 0.3s;
+    outline: none;
+    box-sizing: border-box; /* Importante per il padding */
+}
+
+.form-group input:focus {
+    border-color: #f17863;
+    background-color: #fffaf9;
+}
+
+/* --- BOTTONE --- */
+.btn-primary {
+    width: 100%;
+    background-color: #d35400;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #b54a1f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(211, 84, 0, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}

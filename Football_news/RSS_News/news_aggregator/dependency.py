@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, Header
 import httpx
 from jose import jwt, JWTError
 from datetime import datetime
+from fastapi import FastAPI, Request, Depends, HTTPException, Header
 
 app = FastAPI(title="Business Service")
-AUTH_SERVICE_URL = "http://fanta-auth-service:8000/auth"
+AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
 
 
 async def get_public_key(kid: str):

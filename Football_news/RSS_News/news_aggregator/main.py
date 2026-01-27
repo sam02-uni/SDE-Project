@@ -1,8 +1,9 @@
 import news_agg
 import os
 import httpx
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Depends
 from typing import List, Optional
+from dependency import verify_token
 
 tags_metadata = [ # per la documentazione Swagger
     {
@@ -32,3 +33,11 @@ async def get_filtered_news(tags: Optional[List[str]] = Query(None)):
         data = news_list.get("news", []) 
         filtered_data = news_agg.apply_fanta_filter(data, tags)
         return {"Filter": filtered_data}
+    
+@app.get("/compute")
+async def compute(user: dict = Depends(verify_token)):
+    """Verify token"""
+    user_id = user["user_id"]
+
+    # Qui puoi fare chiamate al data-service o logica business
+    return {"user_id": user_id, "message": "Business logic eseguita correttamente"}

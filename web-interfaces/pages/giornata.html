@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Turno - FantaNews</title>
+    <link rel="stylesheet" href="../css/style_dashboard.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <header class="header-minimal">
+        <button class="openbtn" id="openSidebar">Menu ☰</button>
+        <span class="league-title">Calcolo Risultati</span>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header"><h3>FantaNews</h3></div>
+        <nav class="sidebar-links">
+            <a href="home.html">🏠 News</a>
+            <a href="dashboard_lega.html">👤 Lega 1</a>
+            <a href="#" class="active">⚙️ Gestione Turno</a>
+            <a href="crea_lega.html">➕ Crea lega</a>
+            <hr>
+            <a href="#" id="logoutBtn">🚪 Log out</a>
+        </nav>
+    </div>
+
+    <main class="dashboard-container">
+        <section class="widget">
+            <div class="widget-header">⚡ Operazioni Giornata</div>
+            <div class="widget-content">
+                <p>Stato: <strong>In attesa di calcolo</strong></p>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                    Cliccando il pulsante, il sistema recupererà i voti ufficiali e aggiornerà la classifica.
+                </p>
+                <button id="btnCalcola" class="btn-primary">Calcola Giornata</button>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">📋 Formazione e Voti</div>
+            <div class="players-list" id="formazioneVoti">
+                <p style="text-align:center; padding:20px;">Nessun dato disponibile. Calcola per visualizzare.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/script_turno.js"></script>
+</body>
+</html>
