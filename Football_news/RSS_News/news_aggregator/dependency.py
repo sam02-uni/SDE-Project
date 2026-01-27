@@ -1,61 +1,50 @@
-from fastapi import Depends, HTTPException, Request, Response
 import httpx
+from jose import jwt, JWTError
+from datetime import datetime
+from fastapi import FastAPI, Request, Depends, HTTPException, Header
 
-AUTH_SERVICE_URL="http://auth-service:8000/auth"
+app = FastAPI(title="Business Service")
+AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
 
-async def get_access_token(request: Request, response: Response) -> str:
-    access_token = request.cookies.get("access_token")
-    refresh_token = request.cookies.get("refresh_token")
 
-    if not access_token:
-        if not refresh_token:
-            raise HTTPException(status_code=401, detail="Sessione mancante")
-
-        async with httpx.AsyncClient() as client:
-            refresh_resp = await client.post(
-                f"{AUTH_SERVICE_URL}/refresh",
-                cookies={"refresh_token": refresh_token}
-            )
-
-        if refresh_resp.status_code != 200:
-            raise HTTPException(status_code=401, detail="Refresh token non valido")
-
-        access_token = refresh_resp.json().get("access_token")
-        if not access_token:
-            raise HTTPException(status_code=401, detail="Impossibile ottenere access token")
-
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=False,
-            samesite="lax"
-        )
-
-    return access_token
-
-async def refresh_access_token(refresh_token: str, response: Response) -> str:
+async def get_public_key(kid: str):
     async with httpx.AsyncClient() as client:
-        refresh_resp = await client.post(
-            f"{AUTH_SERVICE_URL}/refresh",
-            cookies={"refresh_token": refresh_token}
+        resp = await client.get(f"{AUTH_SERVICE_URL}/jwks")
+        if resp.status_code != 200:
+            raise HTTPException(status_code=500, detail="Impossibile recuperare JWKS")
+        jwks = resp.json()
+    for key in jwks["keys"]:
+        if key["kid"] == kid:
+            return key
+    raise HTTPException(status_code=401, detail="Chiave pubblica non trovata")
+
+async def verify_token(authorization: str = Header(...)):
+   
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token mancante o malformato")
+    
+    access_token = authorization.split(" ")[1]  # prendi solo il token dopo "Bearer "
+
+    unverified_header = jwt.get_unverified_header(access_token)
+    kid = unverified_header.get("kid")
+    if not kid:
+        raise HTTPException(status_code=401, detail="Token senza kid")
+
+    public_key_jwk = await get_public_key(kid)
+
+    try:
+        payload = jwt.decode(
+            access_token,
+            public_key_jwk,
+            algorithms=["RS256"],
         )
 
-    if refresh_resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Refresh token non valido o scaduto")
+        
+    except JWTError as e:
+        print(str(e))
+        raise HTTPException(status_code=401, detail=f"Token non valido: {str(e)}")
 
-    new_access_token = refresh_resp.json().get("access_token")
-    if not new_access_token:
-        raise HTTPException(status_code=401, detail="Impossibile ottenere nuovo access token")
+    if datetime.utcnow().timestamp() > payload.get("exp", 0):
+        raise HTTPException(status_code=401, detail="Token scaduto")
 
-    # Aggiorniamo il cookie
-    response.set_cookie(
-        key="access_token",
-        value=new_access_token,
-        httponly=True,
-        secure=False,
-        samesite="lax",
-        max_age=600  # 10 minuti
-    )
-
-    return new_access_token
+    return payload
