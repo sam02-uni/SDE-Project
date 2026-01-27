@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componi Rosa - FantaNews</title>
+    <link rel="stylesheet" href="../css/style_dashboard.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <header class="header-minimal">
+        <button class="openbtn" id="openSidebar">Menu ☰</button>
+        <span class="league-title">Componi la tua Squadra</span>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header"><h3>FantaNews</h3></div>
+        <nav class="sidebar-links">
+            <a href="home.html">🏠 News</a>
+            <a href="dashboard_lega.html">👤 Lega 1</a>
+            <a href="#">📊 Lega 2</a>
+            <a href="crea_lega.html">⚙️ Crea lega</a>
+            <hr>
+            <a href="#" id="logoutBtn">🚪 Log out</a>
+        </nav>
+    </div>
+
+    <main class="dashboard-container">
+        <section class="widget">
+            <div class="widget-header">🔍 Cerca Calciatori</div>
+            <input type="text" id="searchPlayer" placeholder="Cerca cognome..." 
+                   style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px;">
+            
+            <div id="listaMercato" class="players-list">
+                <p style="text-align:center; padding:20px;">Inizia a cercare un giocatore...</p>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">🏃 La tua Rosa (<span id="countRosa">0</span>/25)</div>
+            <div id="miaRosaContenitore" class="players-list" style="background-color: #f1f5f9;">
+                <p id="emptyMsg" style="text-align:center; padding:20px; color: #94a3b8;">La tua rosa è vuota</p>
+            </div>
+            <button id="btnSalvaRosa" class="btn-primary" style="margin-top: 15px;">Conferma Rosa</button>
+        </section>
+    </main>
+
+    <script src="../js/script_rosa.js"></script>
+</body>
+</html>

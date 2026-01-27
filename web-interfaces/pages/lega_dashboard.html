@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Lega</title>
+    <link rel="stylesheet" href="../css/style_dashboard.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <header class="header-minimal">
+        <button class="openbtn" id="openSidebar">Menu ☰</button>
+        <span class="league-title" id="leagueNameDisplay">Lega 1 - Serie A</span>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Dashboard</h3>
+        </div>
+        <nav class="sidebar-links">
+            <a href="home.html">🏠 News</a>
+            <a href="#" class="active">👤 Lega 1</a>
+            <a href="#">📊 Lega 2</a>
+            <a href="crea_lega.html">⚙️ Crea lega</a>
+            <hr>
+            <a href="#" id="logoutBtn">🚪 Log out</a>
+        </nav>
+    </div>
+
+    <main class="dashboard-container">
+        
+        <section class="widget">
+            <div class="widget-header">📅 Prossimo Turno</div>
+            <div class="widget-content">
+                <span class="giornata-numero">Giornata 24</span>
+                <p style="color: #64748b; margin-bottom: 20px;">Scadenza: Sabato ore 15:00</p>
+                <button id="btnFormazione" class="btn-primary">Inserisci Formazione</button>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">📊 Classifica Generale</div>
+            <div class="widget-content">
+                <table class="classifica-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Squadra</th>
+                            <th>PT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr><td>1</td><td>🚀 Team Galacticos</td><td>58</td></tr>
+                        <tr><td>2</td><td>⚽ FantaIbra</td><td>54</td></tr>
+                        <tr><td>3</td><td>🛡️ Catenaccio FC</td><td>51</td></tr>
+                        <tr><td>4</td><td>🔥 Bomber United</td><td>48</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="modalFormazione" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2 style="margin-top: 0;">Schiera la Rosa</h2>
+            <p style="font-size: 0.9rem; color: #64748b;">Seleziona i titolari per questa giornata.</p>
+            
+            <div id="listaCalciatori" class="players-list">
+                <p style="text-align:center; padding:20px;">Caricamento giocatori...</p>
+            </div>
+
+            <button class="btn-primary" id="saveFormazione">Salva Formazione</button>
+        </div>
+    </div>
+
+    <script src="../js/script_dashboard.js"></script>
+</body>
+</html>

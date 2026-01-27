@@ -25,24 +25,27 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
     depends_on:
       - db
-  
-  # Auth Service
- # auth-service:
-  #  build: ./login_prova_oauth2
-   # container_name: fanta-auth-service
-   # restart: always
-   # depends_on:
-   #   - db
-   # ports:
-   #   - "8000:8000"
-   # environment:
-   #   - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
-   # volumes:
-   #   - ./:/app   # monta il progetto nel container
-    #  - ./login_prova_oauth2/keys:/app/keys:ro
-    #command: uvicorn login_prova_oauth2.main:app --reload --host 0.0.0.0 --port 8000
 
+  auth-process-service:
+    build:
+      context: ./Authentication-service/auth-service
+    container_name: auth-process-service
+    ports:
+      - "8000:8000"  # mappatura host:container
+    depends_on:
+      - auth-core-service
+      - data-service
+    
 
+  auth-core-service:
+    build:
+      context: ./Authentication-service/auth-core-service
+    container_name: auth-core-service
+    ports:
+      - "8010:8000"
+    volumes:
+      - ./Authentication-service/auth-core-service/keys:/app/keys:ro
+    
     # League Business Service
   #league-service:
   #  build: ./league-service
@@ -85,21 +88,21 @@ services:
       - squad-service
 
 
-  #test-service:
-  #  build: ./test_service
-  #  container_name: test-service
-  #  ports:
-  #    - "8012:8000"
-  #  depends_on:
-   #   - auth-service
+  test-service:
+    build: ./test_service
+    container_name: test-service
+    ports:
+      - "8012:8000"
+    depends_on:
+      - auth-process-service
 
-  #test-process:
-  #  build: ./process_centric_test
-  #  container_name: test-process
-   # ports:
-   #   - "8013:8000"
-   # depends_on:
-   #   - auth-service
+  test-process:
+    build: ./process_centric_test
+    container_name: test-process
+    ports:
+      - "8013:8000"
+    depends_on:
+      - auth-process-service
 
   #Adapter Football service
   adapter-football-service:
@@ -203,6 +206,11 @@ services:
       - data-service
       - grades-scraper-service
 
+  web-interface:
+    image: web-interface
+    build: ./web-interfaces
+    ports:
+      - "3000:80"
 
 volumes:
   db_data:

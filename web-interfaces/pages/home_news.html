@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FantaNews Aggregator</title>
+    <link rel="stylesheet" href="../css/style_news.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="trigger-area" id="triggerArea">
+        <button class="openbtn">Menu ☰</button>
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-wrapper">
+            <button id="filterBtn" class="filter-icon-btn">
+                Filtra Notizie <span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></span>
+            </button>
+        
+            <div id="filterMenu" class="filter-dropdown">
+                <h4>Filtra per argomento:</h4>
+                <div class="checklist" id="tagChecklist">
+                    </div>
+                <button id="applyFilters" class="apply-btn">Applica</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Dashboard</h3>
+        </div>
+        <nav class="sidebar-links">
+            <a href="#" id="homeLink">🏠 News</a>
+            <a href="#">👤 Lega 1</a>
+            <a href="#">📊 Lega 2</a>
+            <a href="#">⚙️ Crea lega</a>
+            <a href="#">⚙️ Log out</a>
+        </nav>
+    </div>
+
+    <section class="container-articoli" id="newsGrid">
+        </section>
+
+    <div class="pagination">
+        <button class="nav-btn" id="prevBtn">Precedente</button>
+        <span id="pageInfo">Pagina 1</span>
+        <button class="nav-btn" id="nextBtn">Successiva</button>
+    </div>
+
+    <script src="../js/script_news.js"></script>
+</body>
+</html>

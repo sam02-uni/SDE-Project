@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FantaNews Aggregator</title>
+    <link rel="stylesheet" href="../css/style_crea_lega.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="header-minimal">
+        <button class="openbtn" id="openSidebar">Menu ☰</button>
+    </div>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Dashboard</h3>
+        </div>
+        <nav class="sidebar-links">
+            <a href="#" id="homeLink">🏠 News</a>
+            <a href="#">👤 Lega 1</a>
+            <a href="#">📊 Lega 2</a>
+            <a href="#">⚙️ Crea lega</a>
+            <hr> <a href="#" id="logoutBtn">🚪 Log out</a>
+        </nav>
+    </div>
+
+    <section class="container-form">
+    <div class="create-lega-card">
+        <h2>🏆 Crea la tua Lega</h2>
+        <p>Inserisci i dettagli per iniziare una nuova competizione.</p>
+        
+        <div class="form-group">
+            <label for="nomeLega">Nome della Lega</label>
+            <input type="text" id="nomeLega" placeholder="Es: Lega dei Campioni" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="creditiLega">Crediti Iniziali</label>
+            <input type="number" id="creditiLega" placeholder="Es: 500" min="1">
+        </div>
+
+        <button id="btnCreaLega" class="btn-primary">Crea Lega</button>
+    </div>
+</section>
+
+    <section class="container-articoli" id="newsGrid">
+        </section>
+
+    <script src="../js/script_crea_lega.js"></script>
+</body>
+</html>
