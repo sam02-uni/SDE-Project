@@ -48,17 +48,46 @@ triggerArea.addEventListener("mouseenter", openNav);
 sidebar.addEventListener("mouseleave", closeNav);
 overlay.addEventListener("click", closeNav);
 
+// Refresh token function
+async function refreshAccessToken() {
+    try {
+        const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
+            method: 'POST',
+            credentials: 'include' // Indispensabile per inviare/ricevere cookie
+        });
+
+        if (!refreshResp.ok) {
+            throw new Error('Sessione scaduta, effettuare login');
+        }
+        return true; 
+    } catch (err) {
+        console.error('Errore refresh:', err);
+        return false;
+    }
+}
+
+
 // --- RECUPERO NEWS ---
 async function fetchNews() {
     try {
+        // Verifica della chiave
         const response = await fetch(API_URL, {credential: "includes"});
-        if (response.status == 401){
-            refresh = await fetch (TOKEN_URL, {credential: "includes"});
-            if (refresh.status != 200){
-                window.location.href = "http://localhost:8000/static/login.html"
+        if (response.status === 401) {
+            console.warn("Access token scaduto, tentativo di refresh in corso...")
+            const success = await refreshAccessToken();
+            if (success) {
+                response = await fetch(API_URL, {credentials: 'include'});
+            } else {
+                // window.location.href = '/login';
+                return;
             }
-            response = await fetch(url, {credential: "includes"});
         }
+
+        if (!response.ok) {
+            // window.location.href = '/login';
+            return;
+        }
+        
         const data = await response.json();
         console.log("Dati ricevuti dal server:", data);
         if (data.Response && data.Response.Filter) {
@@ -122,12 +151,20 @@ async function applyFilters() {
 
     try {
         const response = await fetch(url, {credential: "includes"});
-        if (response.status == 401){
-            refresh = await fetch (TOKEN_URL, {credential: "includes"});
-            if (refresh.status != 200){
-                window.location.href = "http://localhost:8000/static/login.html"
+        if (response.status === 401) {
+            console.warn("Access token scaduto, tentativo di refresh in corso...")
+            const success = await refreshAccessToken();
+            if (success) {
+                response = await fetch(url, {credentials: 'include'});
+            } else {
+                // window.location.href = '/login';
+                return;
             }
-            response = await fetch(url, {credential: "includes"});
+        }
+
+        if (!response.ok) {
+            // window.location.href = '/login';
+            return;
         }
         const data = await response.json();
         
