@@ -2,7 +2,7 @@ import processCentric
 import os
 import httpx
 import requests
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -33,21 +33,21 @@ AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
 HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
 
 @app.get("/news")
-async def takeNews():
+async def takeNews(request: Request):
     """Take the data from RSS and HTML"""
     
-    biscotto = requests.cookies.get("access_token")
-    headers = {
-        "Authorization": f"Bearer {biscotto}",
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.get(f"{TOKEN_URL}/auth/verify", headers)
-
-        if response.status_code == 401:
-            raise HTTPException(status_code=401, detail="Token scaduto o non valido")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail="Errore di comunicazione interna")
+    biscotto = request.cookies.get("access_token")
+    if not biscotto:
+        raise HTTPException(status_code=401, detail="Access token mancante")
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{AGG_URL}/compute",
+            headers={"Authorization": f"Bearer {biscotto}"}
+        )
+        
+    if resp.status_code == 401:
+        raise HTTPException(status_code=401, detail="Token non valido")        
     
     async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.get(f"{AGG_URL}/rss-fanta")
@@ -60,21 +60,21 @@ async def takeNews():
         return {"Response" : data}
 
 @app.get("/news-filter")
-async def takeFilNews(tags: Optional[List[str]] = Query(None)):
+async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
     """Take the data filtered from RSS and HTML"""
     
-    biscotto = requests.cookies.get("access_token")
-    headers = {
-        "Authorization": f"Bearer {biscotto}",
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.get(f"{TOKEN_URL}/auth/verify", headers)
-
-        if response.status_code == 401:
-            raise HTTPException(status_code=401, detail="Token scaduto o non valido")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail="Errore di comunicazione interna")
+    biscotto = request.cookies.get("access_token")
+    if not biscotto:
+        raise HTTPException(status_code=401, detail="Access token mancante")
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{AGG_URL}/compute",
+            headers={"Authorization": f"Bearer {biscotto}"}
+        )
+        
+    if resp.status_code == 401:
+        raise HTTPException(status_code=401, detail="Token non valido")
     
     async with httpx.AsyncClient(timeout=120.0) as client:
         params = {"tags": tags} if tags else {}
