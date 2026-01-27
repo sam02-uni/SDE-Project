@@ -31,3 +31,7 @@ Thumbs.db
 # Se generi PDF o file temporanei per il report
 *.bak
 *.tmp
+
+keys/
+*.key
+*.pem

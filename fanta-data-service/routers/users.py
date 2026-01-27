@@ -10,6 +10,15 @@ router = APIRouter(
     tags=["Users"]       # Utile per organizzare la documentazione Swagger
 )
 
+@router.get("/by-email", response_model=User, tags=["Users"]) 
+def get_user_by_email(user_email: str, session: Session = Depends(get_session)) -> User:
+    statement = select(User).where(User.email == user_email)
+    result = session.exec(statement)
+    user = result.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
 @router.get("/", response_model=list[User], tags=["Users"])  # GET /users
 def get_all_users(session: Session = Depends(get_session)) -> list[User]:
         statement = select(User)
@@ -23,15 +32,6 @@ def get_user(user_id: int, session: Session = Depends(get_session)) -> User:
     user = result.first()
     return user
 
-@router.get("/by-email/{user_email}", response_model=User, tags=["Users"]) 
-def get_user_by_email(user_email: str, session: Session = Depends(get_session)) -> User:
-    statement = select(User).where(User.email == user_email)
-    result = session.exec(statement)
-    user = result.first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-    
 
 @router.post("/", response_model=User, tags=["Users"]) # POST /users
 def create_user(user: User, session: Session = Depends(get_session)) -> User:

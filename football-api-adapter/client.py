@@ -74,13 +74,13 @@ class FootballAPIClient:
 99 fiorentina
 100 Roma
 102 Atalanta
-103 Bologna NO key error: 98606 Sohm sia fiorentina che bologna
+103 Bologna 
 104 Cagliari
 107 Genoa
-108 Inter Carlos Augusto messo male il cognome
+108 Inter 
 109 juventus 
 110 Lazio
-112
+112 Parma
 113
 115
 450

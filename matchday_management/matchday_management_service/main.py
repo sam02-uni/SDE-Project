@@ -15,6 +15,6 @@ def read_root():
 
 @app.get("/squad/{squad_id}/players") # get players of a squad (when inserting line up)
 def get_squad_players(squad_id: int):
-    response = req
+    response = requests.get(f"{squad_service_url_base}/")
 
 

@@ -28,34 +28,35 @@ services:
       - db
   
   # Auth Service
- # auth-service:
-  #  build: ./login_prova_oauth2
-   # container_name: fanta-auth-service
-   # restart: always
-   # depends_on:
-   #   - db
-   # ports:
-   #   - "8000:8000"
-   # environment:
-   #   - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
-   # volumes:
-   #   - ./:/app   # monta il progetto nel container
-    #  - ./login_prova_oauth2/keys:/app/keys:ro
-    #command: uvicorn login_prova_oauth2.main:app --reload --host 0.0.0.0 --port 8000
+  auth-service:
+    build: ./login_prova_oauth2
+    container_name: fanta-auth-service
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/fantacalcio_db
+    volumes:
+      - ./:/app   # monta il progetto nel container
+      - ./login_prova_oauth2/keys:/app/keys:ro
+    command: uvicorn login_prova_oauth2.main:app --reload --host 0.0.0.0 --port 8000
 
 
     # League Business Service
-  #league-service:
-  #  build: ./league-service
-  #  container_name: league-business-service
-  #  ports:
-  #    - "8004:8000" # Espone la porta 8000 del container sulla 8001 locale
-  #  volumes:
-  #    - ./league-service:/app # Mappa il codice sorgente in league-service folder dentro il container in /app
-  #  environment:
-  #    - DATA_SERVICE_URL_BASE=http://data-service:8000/
-  #  depends_on:
-  #    - data-service
+  league-service:
+    build: ./League_management/league-service
+    container_name: league-business-service
+    ports:
+      - "8004:8000" # Espone la porta 8000 del container sulla 8001 locale
+    volumes:
+      - ./League_management/league-service:/app # Mappa il codice sorgente in league-service folder dentro il container in /app
+    environment:
+      - DATA_SERVICE_URL_BASE=http://data-service:8000/
+      - FOOTBALL_ADAPTER_SERVICE_URL_BASE=http://adapter-football-service:8000/
+    depends_on:
+      - data-service
 
   #Squad Business Service
   squad-service:
@@ -82,8 +83,8 @@ services:
       - LEAGUE_SERVICE_URL_BASE=http://league-service:8000/
       - SQUAD_SERVICE_URL_BASE=http://squad-service:8000/ 
     depends_on:
-    #  - league-service
-      - squad-service
+      - league-service
+      #- squad-service
 
 
   #test-service:

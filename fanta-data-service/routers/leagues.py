@@ -1,9 +1,10 @@
 # Endpoint per le leghe
 from unittest import result
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlmodel import Session, select
 from database import get_session
 from models import League, User, Participant, LeagueUpdate, LeagueWithParticipants
+from typing import Optional, Annotated
 
 router = APIRouter(
     prefix="/leagues",     # Tutte le rotte in questo file inizieranno con /leagues
@@ -15,8 +16,11 @@ router = APIRouter(
 # con lega.participants ad esempio
 
 @router.get("/", response_model=list[League])  # GET /leagues
-def get_all_leagues(session: Session = Depends(get_session)) -> list[League]:
-    result = session.exec(select(League)).all()
+def get_all_leagues(user_id: Optional[int] = None, session: Session = Depends(get_session)) -> list[League]:
+    statement = select(League)
+    if user_id is not None:
+        statement = statement.where(League.owner_id == user_id)
+    result = session.exec(statement).all()
     return result
 
 @router.get("/{league_id}", response_model=League) # GET /leagues/{league_id}
@@ -26,7 +30,7 @@ def get_league(league_id: int, session: Session = Depends(get_session)) -> Leagu
         raise HTTPException(status_code=404, detail="League not found")
     return league
 
-@router.post("/", response_model=League) # POST /leagues
+@router.post("/", response_model=League, status_code=201) # POST /leagues
 def create_league(league: League, session: Session = Depends(get_session)):
     session.add(league)
     session.commit()
@@ -76,8 +80,8 @@ def get_league_participants(league_id: int, session: Session = Depends(get_sessi
     return league_with_participants
 
                                                           
-@router.post("/{league_id}/participants", response_model=LeagueWithParticipants,  tags=["Participants"]) # POST /leagues/{league_id}/participants
-def add_participant_to_league(league_id: int, participant_id: int, session: Session = Depends(get_session)) -> LeagueWithParticipants:
+@router.post("/{league_id}/participants", response_model=LeagueWithParticipants,  tags=["Participants"], status_code=201) # POST /leagues/{league_id}/participants
+def add_participant_to_league(league_id: int, participant_id: Annotated[int, Body()], session: Session = Depends(get_session)) -> LeagueWithParticipants:
     league = session.get(League, league_id)
     if not league:
         raise HTTPException(status_code=404, detail="League not found")

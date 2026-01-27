@@ -11,7 +11,7 @@ class Player(BaseModel):
     mean_rating: float
     
 class SquadCreate(BaseModel):
-    owner_id: int
+    owner_email: str
     league_id: int
     name: str
     players: list[Player]

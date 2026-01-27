@@ -134,7 +134,7 @@ OUTPUT:
         name = user_info.get("name")
 
 # 1️⃣ Recupera o crea l'utente
-        r = requests.get(f"{DATA_SERVICE_URL}/users/by-email/{email}")
+        r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
 
         if r.status_code == 404:
             r = requests.post(
@@ -172,7 +172,7 @@ OUTPUT:
         )
 
 # 4️⃣ Redirect
-        response = RedirectResponse(url="http://localhost:8013/static/home.html")
+        response = RedirectResponse(url="http://localhost:8007/process/league-management/static/test.html")
 
 # 5️⃣ Cookie
         cookie_params = {
@@ -326,7 +326,7 @@ l'autenticità dei token generati dal servizio di autenticazione.
 @router.delete("/remove/{email}") # PER TEST
 def remove_user(email: str):
     # Gestione sessione manuale per operazioni bulk
-    r1=requests.get(f"{DATA_SERVICE_URL}/users/by-email/{email}")
+    r1=requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
     utente=r1.json()
     user_id=utente["id"]
     r= requests.delete(f"{DATA_SERVICE_URL}/users/{user_id}")
