@@ -17,7 +17,7 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="Process Centric News", openapi_tags=tags_metadata)
 
-app.mount("/Static", StaticFiles(directory="Football_News/Static"), name="static")
+app.mount("/Static", StaticFiles(directory="Static"), name="static")
 
 # Rende accessibile il servizio anche ai file ed alle pagine esterne
 app.add_middleware(
