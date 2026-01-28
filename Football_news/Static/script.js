@@ -66,12 +66,11 @@ async function refreshAccessToken() {
     }
 }
 
-
 // --- RECUPERO NEWS ---
 async function fetchNews() {
     try {
         // Verifica della chiave
-        const response = await fetch(API_URL, {credential: "includes"});
+        let response = await fetch(API_URL, {credential: "includes"});
         if (response.status === 401) {
             console.warn("Access token scaduto, tentativo di refresh in corso...")
             const success = await refreshAccessToken();
@@ -150,7 +149,7 @@ async function applyFilters() {
     selectedTags.forEach(tag => url.searchParams.append("tags", tag));
 
     try {
-        const response = await fetch(url, {credential: "includes"});
+        let response = await fetch(url, {credential: "includes"});
         if (response.status === 401) {
             console.warn("Access token scaduto, tentativo di refresh in corso...")
             const success = await refreshAccessToken();
