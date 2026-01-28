@@ -77,6 +77,12 @@ class MatchDay(SQLModel, table=True):
     year: str 
     number: int
 
+class MatchdayStatus(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    matchday_id: int = Field(foreign_key="matchday.id", ondelete="CASCADE") # Foreign Key verso MatchDay
+    played_so_far: int = 0
+    total_matches: int = 10
+
 class PlayerRating(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("player_id", "matchday_id", name="unique_rating_constraint"),
@@ -154,6 +160,8 @@ class LineUpUpdate(SQLModel):
     players: Optional[list[PlayerInLineUp]] = None
     score: Optional[int] = None
 
+class MatchDayStatusUpdate(SQLModel):
+    played_so_far: int
 
 #REFRESH TOKEN
 class RefreshTokenBase(SQLModel):

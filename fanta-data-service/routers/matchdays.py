@@ -2,13 +2,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
-from models import MatchDay
+from models import MatchDay, MatchdayStatus, MatchDayStatusUpdate
 from typing import Optional
 
 router = APIRouter(
     prefix="/matchdays",     # Tutte le rotte in questo file inizieranno
     tags=["MatchDays"]       # Utile per organizzare la documentazione Swagger
 )
+
 
 @router.get("/", response_model=list[MatchDay])  # GET /matchdays
 def get_all_matchdays(matchday_number: Optional[int] = None, session: Session = Depends(get_session)) -> list[MatchDay]:
@@ -26,6 +27,33 @@ def get_matchday(matchday_id: int, session: Session = Depends(get_session)) -> M
     if not matchday:
         raise HTTPException(status_code=404, detail="MatchDay not found")
     return matchday
+
+@router.get("{matchday_id}/status", response_model=MatchdayStatus)
+def get_matchday_status(matchday_id: int, session: Session = Depends(get_session)) -> MatchdayStatus:
+    matchday_status = session.exec(select(MatchdayStatus).where(MatchdayStatus.matchday_id == matchday_id)).first()
+    if not matchday_status:
+        raise HTTPException(status_code=404, detail="MatchDay Status not found")
+    return matchday_status
+
+@router.post("/status", response_model=MatchdayStatus, status_code=201)
+def create_matchday_status(matchday_status: MatchdayStatus, session: Session = Depends(get_session)) -> MatchdayStatus:
+    session.add(matchday_status)
+    session.commit()
+    session.refresh(matchday_status)
+    return matchday_status
+
+@router.patch("/status/{matchday_status_id}", response_model=MatchdayStatus)
+def update_matchday_status(matchday_status_id: int, matchday_status_update: MatchDayStatusUpdate, session: Session = Depends(get_session)) -> MatchdayStatus:
+    matchday_status = session.get(MatchdayStatus, matchday_status_id)
+    if not matchday_status:
+        raise HTTPException(status_code=404, detail="MatchDay Status not found")
+    
+    matchday_status.played_so_far = matchday_status_update.played_so_far
+
+    session.add(matchday_status)
+    session.commit()
+    session.refresh(matchday_status)
+    return matchday_status
 
 @router.post("/", response_model=MatchDay)  # POST /matchdays
 def create_matchday(matchday: MatchDay, session: Session = Depends(get_session)) -> MatchDay:

@@ -1,15 +1,14 @@
 import requests
 import os
-import json
 
 class FootballAPIClient:
     def __init__(self):
         self.api_key = os.getenv("FOOTBALL_API_KEY")
         self.base_url = "http://api.football-data.org/v4" # Football api : https://v3.football.api-sports.io
         self.headers = {'X-Auth-Token': self.api_key}
+        self.competition_id = '2019' # serie A
 
     def get_players_by_team(self, team_id: int):
-        # 2019 : id della Serie A
         url = f"{self.base_url}/teams/{team_id}"
         response = requests.get(url, headers=self.headers)
 
@@ -25,7 +24,7 @@ class FootballAPIClient:
             "squad": response_dict["squad"]
         }
     
-    # TODO: TEST
+
     def get_current_matchday(self, competition_id):
         url = f"{self.base_url}/competitions/{competition_id}"
         response = requests.get(url, headers=self.headers)
@@ -37,7 +36,7 @@ class FootballAPIClient:
         
         return response.json()['currentSeason']['currentMatchday']
 
-    # TODO: TEST
+    
     def get_matchday_info(self, competiton_id):
 
         # get current matchday
@@ -67,6 +66,33 @@ class FootballAPIClient:
             'lastMatchFinished': last_match_finished
         }
         
+    def get_match_played(self):
+
+        # get current matchday
+        matchday = self.get_current_matchday(competition_id=self.competition_id)
+
+        # get infos
+        url = f"{self.base_url}/competitions/{self.competition_id}/matches?matchday={matchday}&status=FINISHED"
+        response = requests.get(url, headers=self.headers)
+
+        # Debug rapido
+        if response.status_code != 200:
+            print(f"Errore API: {response.status_code} - {response.text}")
+            return []
+        
+        matches = response.json()['matches']
+        essential_infos = list()
+
+        for match in matches:
+            essential_infos.append({'utcDate': match['utcDate'],
+                                    'homeTeam': match['homeTeam']['shortName'],
+                                    'awayTeam': match['awayTeam']['shortName'],
+                                    'score_homeTeam': match['score']['fullTime']['home'],
+                                    'score_awayTeam': match['score']['fullTime']['away']
+                                    })
+
+        return essential_infos
+
 
     
 '''
@@ -81,12 +107,13 @@ class FootballAPIClient:
 109 juventus 
 110 Lazio
 112 Parma
-113
-115
-450
-457
-471
-487
-586
-5890
-7397'''
+113 Napoli
+115 udinese
+450 hellas verona
+457 Cremonese
+471 sassuolo
+487 Pisa
+586 Torino
+5890 lecce
+7397 como
+'''
