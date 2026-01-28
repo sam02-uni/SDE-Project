@@ -200,6 +200,7 @@ services:
     environment:
       - DATA_SERVICE_URL_BASE=http://data-service:8000/
       - GRADES_SCRAPER_URL_BASE=http://grades-scraper-service:8000/
+      - FOOTBALL_ADAPTER_SERVICE_URL_BASE=http://adapter-football-service:8000/
     depends_on:
       - data-service
       - grades-scraper-service

@@ -10,7 +10,8 @@ class GradesScraper():
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/121.0"
     ]
-    url = "https://www.fantacalcio.it/voti-fantacalcio-serie-a"
+    url_current_matchday = "https://www.fantacalcio.it/voti-fantacalcio-serie-a"
+    url_matchday = "https://www.fantacalcio.it/voti-fantacalcio-serie-a/2025-26/{}"
     session = requests.Session()
 
     def scrape_grades(self) -> list:
@@ -28,7 +29,7 @@ class GradesScraper():
         #print(f"Attendo {attesa:.2f} secondi...")
         #time.sleep(attesa)
 
-        response = self.session.get(self.url, headers=headers, timeout=10)
+        response = self.session.get(self.url_current_matchday, headers=headers, timeout=10)
         response.raise_for_status()
 
         if response.status_code == 200:

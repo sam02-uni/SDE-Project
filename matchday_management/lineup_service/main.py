@@ -6,7 +6,7 @@ from models import LineUpCreate
 app = FastAPI(title= "lineup business service", root_path="/business/lineup")
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
-football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") # TODO add in Compose
+football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") 
 
 
 @app.get("/")
@@ -22,56 +22,86 @@ def insert_lineup(base_line_up: LineUpCreate):  # insert lineup for the current 
     
 
 # nell'endpoint get_voti (quelli non a fine giornata ma a fine partita se li vuole vedere l'utente)prima controlli sul db e poi se non ci sono li prendi da scraper e salvi e returni
-#@app.get("/get_grades")
-# controlla nell'attuale matchday quante partite sono concluse, controlla nel metchday API se sono conluse altre partite
-# se si chiama /update_grades che richiama lo scraper e aggiorna i voti nel data service (PlayerRating)
-# se no ritorna i voti presenti nei PlayerRating (se presente per quel giocatore) per ogni player nella lineup 
+#@app.get("/{lineup_id}/grades")
+# chiama /update_grades
+# prendi lineup con player da db
+# per ogni player prendi player rating e returnalo in un json  
 
-
+# TODO: TEST solo la parte in cui fa il taglio dei players to grade
 @app.get("/update_grades") 
 def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
-    # TODO: trovare un modo per prendere i voti solo se effettivamente potrebbe cambiare qualcosa
-    # cioè controllare sul db quante partite di matchday corrente sono state giocate (controllare MatchDayStatus.played_so_far), chiamare api football e controllare valore reale
-    # se più grande:
-    # chiama football adapter api per get_matches_played e prendi [numero partite played da api - MatchDayStatus.played_so_far] partite dalla fine della lista
-    # controlle che squadre sono: solo per giocatori di queste squadre inserisci i voti
-    response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/22")
-    players_scraped = response.json()
 
-    matchday = players_scraped['matchday']
-    response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday}")
+    # controllare sul db quante partite di matchday corrente sono state giocate (controllare MatchDayStatus.played_so_far), chiamare api football e controllare valore reale
+    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Unable to get current matchday info")
+    actual_matchday_info = response.json()
+    print("actual matchday is:", actual_matchday_info['currentMatchday'])
+
+    response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={actual_matchday_info['currentMatchday']}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Matchday not found")
     matchday_db_id = response.json()[0]['id']
 
-    players_scraped = players_scraped['grades']   # squad_name, player_surname, grade, fanta_grade
+    response = requests.get(f"{data_service_url_base}/matchdays/{matchday_db_id}/status")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Matchday status not found")
+    matchday_db_status = response.json()
 
-    # associazione dei nomi
-    for player_scraped in players_scraped:
-        response = requests.get(f"{data_service_url_base}/players?name={player_scraped['player_surname']}&serie_a_team={player_scraped['squad_name']}")
+    # se localmente sono registrate meno partite fatte del reale:
+    if matchday_db_status['played_so_far'] >= actual_matchday_info['played']:
+        return {"status": "There are no new matches whose grades has to be added"}
+    else:
+        negative_difference = int(matchday_db_status['played_so_far'] - actual_matchday_info['played'])
+        response = requests.get(f"{football_adapter_service_url_base}/finished_matches/{actual_matchday_info['currentMatchday']}")
         if response.status_code != 200:
-            continue # non carico voto
-        players_found_db = response.json()
-        if len(players_found_db) == 0:
-            print("non trovato giocatore:", player_scraped['player_surname'])
-            continue # non carico voto
-        #print("arrivato qui:", player_scraped['player_surname'])
+            raise HTTPException(status_code=response.status_code, detail="Unable to get finished matches info")
+        matches = response.json()
+        not_graded_matches = matches[negative_difference:] # last 'negative_difference' matches
 
-        # 1 o più giocatori comunque li metto lo stesso voto a tutti
-        for player_found_db in players_found_db:
-            payload = dict(
-                player_id=player_found_db['id'],
-                matchday_id=matchday_db_id,
-                real_rating=player_scraped['grade'],
-                fanta_rating=player_scraped['fanta_grade']
-            )
-            response = requests.post(f"{data_service_url_base}/players/rating", json=payload)
-            if response.status_code != 201:
-                error_detail = response.json()['detail']
-                print(f"Grade not inserted for player {player_found_db['id']} because of: {error_detail}")
-                #raise HTTPException(status_code=response.status_code, detail=f"Grade not inserted because of: {error_detail}")
-          
-    return {"message": "Grades updated successfully"}
+        # prendi che squadre sono: solo per giocatori di queste squadre inserisci i voti
+        teams = {m['homeTeam'] for m in not_graded_matches} | {m['awayTeam'] for m in not_graded_matches}
+        print(teams)
+    
+        response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/22")
+        players_scraped = response.json()
+
+        #matchday = players_scraped['matchday']
+        #response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday}")
+        #if response.status_code != 200:
+        #    raise HTTPException(status_code=response.status_code, detail="Matchday not found")
+        #matchday_db_id = response.json()[0]['id']
+
+        player_scraped_to_grade = [
+            p for p in players_scraped if any(p['squad_name'].lower() in team.lower() for team in teams)
+        ]
+
+
+        # associazione dei nomi e caricamento del rating
+        for player_scraped in players_scraped:
+            response = requests.get(f"{data_service_url_base}/players?name={player_scraped['player_surname']}&serie_a_team={player_scraped['squad_name']}")
+            if response.status_code != 200:
+                continue # non carico voto
+            players_found_db = response.json()
+            if len(players_found_db) == 0:
+                print("non trovato giocatore:", player_scraped['player_surname'])
+                continue # non carico voto
+
+            # 1 o più giocatori comunque li metto lo stesso voto a tutti
+            for player_found_db in players_found_db:
+                payload = dict(
+                    player_id=player_found_db['id'],
+                    matchday_id=matchday_db_id,
+                    real_rating=player_scraped['grade'],
+                    fanta_rating=player_scraped['fanta_grade']
+                )
+                response = requests.post(f"{data_service_url_base}/players/rating", json=payload)
+                if response.status_code != 201:
+                    error_detail = response.json()['detail']
+                    print(f"Grade not inserted for player {player_found_db['id']} because of: {error_detail}")
+                    #raise HTTPException(status_code=response.status_code, detail=f"Grade not inserted because of: {error_detail}")
+            
+        return {"message": "Grades updated successfully"}
             
 
 # calcolo punteggio per formazione

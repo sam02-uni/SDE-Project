@@ -18,4 +18,12 @@ def get_squad_players(squad_id: int):
     # TODO: restituisci alla gui la lista dei Players (attributi completi)
     response = requests.get(f"{squad_service_url_base}/")
 
+# TODO: TEST
+@app.get("/lineup/{lineup_id}/grades")
+def get_lineup_grades(lineup_id: int):
+    response =  requests.get(f"{lineup_service_url_base}/business/lineup/{lineup_id}/grades")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
+    return response.json()
+
 

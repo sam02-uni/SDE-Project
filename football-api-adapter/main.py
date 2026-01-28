@@ -80,3 +80,8 @@ def update_players(team_id: str): # team_id query param
 def get_current_matchday_info():
     info = client.get_matchday_info(competiton_id='2019')
     return info
+
+@app.get("/finished_matches/{matchday}")
+def get_finished_matches(matchday: int):
+    matches = client.get_finished_matches()
+    return matches

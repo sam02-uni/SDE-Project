@@ -66,7 +66,7 @@ class FootballAPIClient:
             'lastMatchFinished': last_match_finished
         }
         
-    def get_match_played(self):
+    def get_finished_matches(self):
 
         # get current matchday
         matchday = self.get_current_matchday(competition_id=self.competition_id)

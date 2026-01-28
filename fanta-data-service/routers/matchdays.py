@@ -28,7 +28,7 @@ def get_matchday(matchday_id: int, session: Session = Depends(get_session)) -> M
         raise HTTPException(status_code=404, detail="MatchDay not found")
     return matchday
 
-@router.get("{matchday_id}/status", response_model=MatchdayStatus)
+@router.get("/{matchday_id}/status", response_model=MatchdayStatus)
 def get_matchday_status(matchday_id: int, session: Session = Depends(get_session)) -> MatchdayStatus:
     matchday_status = session.exec(select(MatchdayStatus).where(MatchdayStatus.matchday_id == matchday_id)).first()
     if not matchday_status:
