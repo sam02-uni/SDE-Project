@@ -111,7 +111,7 @@ services:
     build: ./football-api-adapter
     container_name: footballapi-adapter-service
     ports:
-      - "8010:8000" 
+      - "8020:8000" 
     volumes:
       - ./football-api-adapter:/app # Mappa il codice sorgente dentro il container in /app
     environment:

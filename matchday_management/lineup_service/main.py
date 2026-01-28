@@ -14,7 +14,7 @@ def read_root():
     return {"Lineup Business service is running"}
 
 @app.post("/")
-def insert_lineup(base_line_up: LineUpCreate):
+def insert_lineup(base_line_up: LineUpCreate):  # insert lineup for the current user and current matchday
     # TODO: trova id user corrente
     # TODO: trova squad_id di user corrente nella lega se squad_id non presente in base_line_up
     # TODO: controlli numero giocatori e matchday
@@ -86,17 +86,7 @@ def calculate_score(lineup_id: int):
         raise HTTPException(status_code=400, detail="Matchday not finished yet")
     
     # calcolo punteggio totale della formazione
-    # TODO
+    # TODO: recupera dal data service tutti i PlayerRating per ogni Player nella lineup (titolari e panchina) e fai la somma
+    # la somma applicala allo score della LINEUP (TODO: Aggiorna DB) e della SQUAD
 
-
-
-
-'''
-class LineUp(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    squad_id: int = Field(foreign_key="squad.id", ondelete="CASCADE") # Foreign Key verso Squad
-    matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
-    starting_players: list[str] = Field(sa_column=Column(JSON)) # lista di cognomi
-    bench_players: list[str] = Field(sa_column=Column(JSON))
-
-    squad: Squad = Relationship(back_populates="lineups")'''
+    

@@ -103,6 +103,7 @@ class LineUp(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     squad_id: int = Field(foreign_key="squad.id", ondelete="CASCADE") # Foreign Key verso Squad
     matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
+    score: int = Field(default=0)
 
     players: list[PlayerLineUpLink] = Relationship(back_populates="lineup")
     squad: Squad = Relationship(back_populates="lineups")
@@ -148,6 +149,10 @@ class LineUpWithPlayers(SQLModel):
     squad_id: int
     matchday_id: int
     players: list[PlayerInLineUp] = []
+
+class LineUpUpdate(SQLModel):
+    players: Optional[list[PlayerInLineUp]] = None
+    score: Optional[int] = None
 
 
 #REFRESH TOKEN

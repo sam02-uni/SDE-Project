@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Squads"]       # Utile per organizzare la documentazione Swagger
 )
 
-@router.get("/", response_model=list[Squad])  # GET /squads
+@router.get("/", response_model=list[Squad])  # GET /squads optional filter league_id
 def get_all_squads(league_id: Optional[int] = None,session: Session = Depends(get_session)) -> list[Squad]:
     if league_id: # as query parameter filter
         result = session.exec(select(Squad).where(Squad.league_id == league_id)).all()
@@ -18,11 +18,20 @@ def get_all_squads(league_id: Optional[int] = None,session: Session = Depends(ge
         result = session.exec(select(Squad)).all()
         return result
     
-@router.get("/{squad_id}", response_model=Squad)
+@router.get("/{squad_id}", response_model=Squad) # GET /squads/{squad_id} 
 def get_squad_by_id(squad_id: int, session: Session = Depends(get_session)):
     squad_db = session.get(Squad, squad_id)
     if not squad_db:
         raise HTTPException(status_code = 404, detail = "Squad not found")
+    
+    return squad_db
+
+@router.get("/{squad_id}/with-players", response_model= SquadWithPlayers) # GET /squads/{squad_id} with-players
+def get_squad_by_id(squad_id: int,  session: Session = Depends(get_session)):
+    squad_db = session.get(Squad, squad_id)
+    if not squad_db:
+        raise HTTPException(status_code = 404, detail = "Squad not found")
+    
     return squad_db
 
 @router.post("/", response_model=Squad, status_code=201)  # POST /squads without players list
