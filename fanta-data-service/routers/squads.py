@@ -18,14 +18,21 @@ def get_all_squads(league_id: Optional[int] = None,session: Session = Depends(ge
         result = session.exec(select(Squad)).all()
         return result
     
-@router.post("/", response_model=Squad)  # POST /squads without players list
+@router.get("/{squad_id}", response_model=Squad)
+def get_squad_by_id(squad_id: int, session: Session = Depends(get_session)):
+    squad_db = session.get(Squad, squad_id)
+    if not squad_db:
+        raise HTTPException(status_code = 404, detail = "Squad not found")
+    return squad_db
+
+@router.post("/", response_model=Squad, status_code=201)  # POST /squads without players list
 def create_squad(squad: Squad, session: Session = Depends(get_session)) -> Squad:
     session.add(squad)
     session.commit()
     session.refresh(squad)
     return squad
 
-@router.post("/with_players", response_model=SquadWithPlayers)  # POST /squads/with_players with players list
+@router.post("/with_players", response_model=SquadWithPlayers, status_code=201)  # POST /squads/with_players with players list
 def create_squad_with_players(squad: SquadWithPlayers, session: Session = Depends(get_session)) -> SquadWithPlayers:
     new_squad = Squad(
         owner_id=squad.owner_id,

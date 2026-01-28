@@ -1,50 +1,74 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 import requests
 import os
-from models import BaseLeagueModel, Player, ParticipantUserWithSquad
+from models import BaseLeagueModel, ParticipantUserWithSquad
+from fastapi.staticfiles import StaticFiles
+import json
 
 app = FastAPI(title="League managament process centric service", root_path = "/process/league-management")
 
 league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") # league business
 squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000") # squad business
 
+app.mount("/static", StaticFiles(directory="static"), name="static") # TODO: rimuovere dopo i test
+
+def create_auth_headers(request: Request):
+    access_token = request.cookies.get('access_token')
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Access token mancante")
+    
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    return headers
+
 @app.get("/")
 def read_root():
     return {"League management process service is Running!"}
 
-@app.post("/init", response_model=str) # restituisce id alla gui, la gui salva id in LocalStorage
-def init_base_league(league_info: BaseLeagueModel):
+@app.post("/init", response_model=int) # restituisce id alla gui
+def init_base_league(league_info: BaseLeagueModel, request: Request):
     # crea lega con nome e max_credits inseriti dall admin nella gui
-    response = requests.post(f"{league_service_url_base}/business/leagues", json=league_info)
+
+    headers = create_auth_headers(request)
+
+    response = requests.post(f"{league_service_url_base}/business/leagues", json=league_info.model_dump(), headers=headers)
+    
     if response.status_code != 201:
         raise HTTPException(status_code=400, detail="Not Created")
     
     return response.json() # id created league
 
-# TODO: To TEST
+
 @app.post("/{league_id}/add_participant", status_code=201, response_model=str) # Add User With Their Squad to League
-def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad):
-    
-    # ENDPOINT in Business User per verificare che email esiste in db
-    #  TODO
+def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad, request: Request):
+
+    headers = create_auth_headers(request)
+
+    body_content = {
+        'email_participant': participantWithSquad.email_user
+    }
 
     # League Business service in order to add participant to league
-    response = requests.post(f"{league_service_url_base}/business/league/{league_id}/participants", json=participantWithSquad["email_user"])
+    response = requests.post(f"{league_service_url_base}/business/leagues/{league_id}/participants", json=body_content, headers=headers)
     if response.status_code != 201:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        raise HTTPException(status_code=response.status_code, detail=response.json().get('detail'))
     
     # Squad business per creare rosa di utente in lega
     response = requests.post(f"{squad_service_url_base}/business/squads", json={
-        "owner_id": "TODO", # get user id from email
+        "owner_email": participantWithSquad.email_user, 
         "league_id": league_id,
-        "name": participantWithSquad["squad_name"],
-        "players": participantWithSquad["players"]
+        "name": participantWithSquad.squad_name,
+        "players": jsonable_encoder(participantWithSquad.players)
     })
     
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail="Squad not created")
 
-    return response.json() # return squad created 
+    created_squad_id = response.json()['id']
+    return created_squad_id # return squad created id
     
 
 # usato quando utente scrive nome nella casella di testo e 'cerca' e restituisce i giocatori con quei nomi
@@ -53,27 +77,46 @@ def suggest_players(given_name:str):
     response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
     return response.json() # return json list of players (all fields)
 
-# TODO: TEST
-@app.get("/{league_id}/info_dashboard")
-def get_info_dashboard(league_id: int): # return info to display on the dashboard of the league
-    dict_result = dict()
-    # admin ?
-    # TODO
+# informazioni per la home iniziale = le leghe a cui partecipa l'utente da mettere a sinistra
+@app.get("/info_webapp_home")
+def get_info_webapp_home(request: Request):
+    headers = create_auth_headers(request)
+    response = requests.get(f"{league_service_url_base}/business/leagues/by_user", headers=headers)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Not found")
+    
+    return response.json() # list of leagues with essential info
 
+# TODO: TEST
+@app.get("/{league_id}/info_dashboard_league")
+def get_info_dashboard(league_id: int, request: Request): # return info to display on the dashboard of the league for the logged in user
+    
+    headers = create_auth_headers(request)
+
+    dict_result = dict()
+
+    # is admin ?
+    response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/logged-owner", headers=headers)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="not able to get league owner infos")
+    
+    dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
+     
     # current matchday:
-    response = requests.get(f"{league_service_url_base}/business/leaguescurrent_matchday")
+    response = requests.get(f"{league_service_url_base}/business/leagues/current_matchday")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get current matchday infos")
 
     response_dict = response.json()
     dict_result.update({'currentMatchday':response_dict['currentMatchday'], 'firstMatchStarted': response_dict['firstMatchStarted']})
 
-    # squad of the user
-    # TODO
-
     # standing:
     response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/table")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get standing infos")
     
-    dict_result.update({'standing': response.json()})
+    dict_result.update({'table': response.json()})
+
+    return dict_result
+
+    

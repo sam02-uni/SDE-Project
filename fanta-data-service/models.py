@@ -90,15 +90,23 @@ class PlayerRating(SQLModel, table=True):
     # comodità
     player: Player = Relationship()
     matchday: MatchDay = Relationship()
-    
+
+class PlayerLineUpLink(SQLModel, table=True):
+    player_id: int = Field(foreign_key="player.id", primary_key=True, ondelete="RESTRICT") # do not delete player before delete this
+    lineup_id: int = Field(foreign_key="lineup.id", primary_key=True, ondelete="CASCADE") # delete this if lineup is deleted
+    is_starting: bool  # starting or bench  
+
+    lineup: "LineUp" = Relationship(back_populates="players")  # no link model così otteniamo anche is_starting da lineup
+    player: Player = Relationship()
+
 class LineUp(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     squad_id: int = Field(foreign_key="squad.id", ondelete="CASCADE") # Foreign Key verso Squad
     matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
-    starting_players: list[str] = Field(sa_column=Column(JSON)) # lista di cognomi
-    bench_players: list[str] = Field(sa_column=Column(JSON))
 
+    players: list[PlayerLineUpLink] = Relationship(back_populates="lineup")
     squad: Squad = Relationship(back_populates="lineups")
+
 
 
 
@@ -130,6 +138,17 @@ class SquadWithPlayers(SQLModel):
     name: str
     score: int = 0
     players: list[Player] = []
+
+class PlayerInLineUp(SQLModel):
+    is_starting: bool
+    player: Player
+
+class LineUpWithPlayers(SQLModel):
+    id: Optional[int] = None
+    squad_id: int
+    matchday_id: int
+    players: list[PlayerInLineUp] = []
+
 
 #REFRESH TOKEN
 class RefreshTokenBase(SQLModel):

@@ -1,7 +1,7 @@
 import news_agg
 import os
 import httpx
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Depends
 from typing import List, Optional
 from dependency import verify_token
 

@@ -3,12 +3,16 @@ from sqlmodel import Session, select, func, or_, delete
 from database import get_session
 from models import Player, PlayerRating, MatchDay
 from typing import Optional
-
+#from unidecode import unidecode
 
 router = APIRouter(
     prefix="/players",
     tags=["Players"]
 )
+
+#def normalize_name(name:str):
+    # Trasforma "Luka Modrić" in "luka modric"
+    #return unidecode(name).lower().strip()
 
 # Players Endpoints
 
@@ -54,10 +58,10 @@ def get_players(name: Optional[str] = None, serie_a_team: Optional[str] = None, 
     if name:
         search_term = name.lower()
         
-        # Creiamo la combinazione "nome cognome" e "cognome nome"
-        full_name = func.lower(Player.name + " " + Player.surname)
-        reverse_name = func.lower(Player.surname + " " + Player.name)
-        
+        # Creiamo la combinazione "nome cognome" e "cognome nome" e senza accenti
+        full_name = func.unaccent(func.lower(Player.name + " " + Player.surname))
+        reverse_name = func.unaccent(func.lower(Player.surname + " " + Player.name))
+
         statement = statement.where(
             or_(
                 full_name.contains(search_term),
@@ -66,7 +70,7 @@ def get_players(name: Optional[str] = None, serie_a_team: Optional[str] = None, 
         )
     
     # Aggiungiamo anche un ordinamento per rendere la lista leggibile
-    statement = statement.order_by(Player.surname)
+    statement = statement.order_by(Player.serie_a_team) #TODO cambia in surname
     
     if serie_a_team:
         statement = statement.where(

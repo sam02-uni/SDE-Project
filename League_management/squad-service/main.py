@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.encoders import jsonable_encoder
 import requests
 import os
 from models import SquadCreate 
@@ -12,7 +13,7 @@ def read_root():
     return {"squad business service is running"}
 
 # creazione di una rosa associata ad una lega e ad un utente
-@app.post("/", status_code=201)
+@app.post("/", status_code=201) # POST /business/squads
 def create_squad(info: SquadCreate):
     # minimum number of players check
     '''players = info.players
@@ -35,9 +36,19 @@ def create_squad(info: SquadCreate):
     if g < 3 or d < 6 or m < 6 or a < 6:
         raise HTTPException(status_code = 400, detail="Not enough players in squad")
     '''
+    response = requests.get(f"{data_service_url_base}/users/by-email?user_email={info.owner_email}") # id dell owner della squadra
+    if response.status_code != 200:
+        raise HTTPException(status_code = 404, detail="Owner user not found")
+    
+    info_to_add = {
+        "owner_id": response.json()["id"],
+        "league_id": info.league_id,
+        "name": info.name,
+        "players": jsonable_encoder(info.players)
+    }
 
     # call data service to create squad
-    response = requests.post(f"{data_service_url_base}/squads/with_players", json=info.model_dump())
+    response = requests.post(f"{data_service_url_base}/squads/with_players", json=info_to_add)
     if response.status_code != 201:
         raise HTTPException(status_code = response.status_code, detail=response.text)
     
@@ -60,4 +71,11 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
 @app.patch("/{squad_id}/add_player")
 def add_player_to_squad():
     pass
+
+@app.get("/{squad_id}")
+def get_squad_by_id(squad_id:int):
+    response = requests.get(f"{data_service_url_base}/squads/{squad_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
 

@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 import requests
 import os
-from models import BaseLineUp
+from models import LineUpCreate
 
 app = FastAPI(title= "lineup business service", root_path="/business/lineup")
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
+football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") # TODO add in Compose
 
 
 @app.get("/")
@@ -13,15 +14,15 @@ def read_root():
     return {"Lineup Business service is running"}
 
 @app.post("/")
-def insert_lineup(base_line_up: BaseLineUp):
+def insert_lineup(base_line_up: LineUpCreate):
     # TODO: trova id user corrente
     # TODO: trova squad_id di user corrente nella lega se squad_id non presente in base_line_up
     # TODO: controlli numero giocatori e matchday
     pass
     
 
-# nell'endpoint get_voti prima controlli sul db e poi se non ci sono li prendi da scraper e salvi e returni
-# @app.get("/get_grades")
+# nell'endpoint get_voti (quelli non a fine giornata ma a fine partita se li vuole vedere l'utente)prima controlli sul db e poi se non ci sono li prendi da scraper e salvi e returni
+#@app.get("/get_grades")
 
 
 @app.get("/update_grades")
@@ -63,9 +64,32 @@ def update_grades():
     return {"message": "Grades updated successfully"}
             
 
+# calcolo punteggio per formazione
+@app.get("/{lineup_id}/calculate_score")
+def calculate_score(lineup_id: int):
+
+    response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="LineUp not found")
+    lineup = response.json()
+    
+    # il matchday è concluso?
+    response = requests.get(f"{data_service_url_base}/matchdays/{lineup['matchday_id']}")
+    matchday = response.json()
+
+    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Unable to get current matchday info")
+    
+    matchday_info = response.json()
+    if not matchday_info['lastMatchFinished']:
+        raise HTTPException(status_code=400, detail="Matchday not finished yet")
+    
+    # calcolo punteggio totale della formazione
+    # TODO
 
 
-# calcolo punteggio per formazione e giocatori ?
+
 
 '''
 class LineUp(SQLModel, table=True):

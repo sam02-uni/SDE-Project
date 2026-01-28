@@ -10,8 +10,7 @@ load_dotenv()
 
 app = FastAPI(title="Auth Process Service")
 
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+HOME_URL="http://localhost:8005"
 
 # Configurazione CORS
 app.add_middleware(
@@ -28,7 +27,7 @@ CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 DATA_SERVICE_URL = "http://fanta-data-service:8000"
 AUTH_CORE_URL = "http://auth-core-service:8000"  
-HOME_URL="http://localhost:8013"
+
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -115,7 +114,7 @@ def auth_callback(code: str):
     })
 
     #  Imposta cookie e redirect
-    response = RedirectResponse(url=HOME_URL)
+    response = RedirectResponse(url="http://localhost:8005/Static/home.html")
     cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
     response.set_cookie("access_token", internal_jwt, max_age=600, **cookie_params)
     response.set_cookie("refresh_token", refresh_token, max_age=60*60*24*30, **cookie_params)
@@ -177,7 +176,7 @@ def logout(request: Request):
     response.delete_cookie("refresh_token", path="/")
     return response
 
-@app.get("/jwks")
+@app.get("/auth/jwks")
 def core_jwks():
     """
     Description: Utility endpoint for public key distribution.
