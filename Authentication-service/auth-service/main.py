@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 import os, requests
 from dotenv import load_dotenv
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from jose import jwt, JWTError
 
 
 load_dotenv()
@@ -31,9 +31,17 @@ AUTH_CORE_URL = "http://auth-core-service:8000"
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 
 SCOPES = "openid email profile"
 
+jwks = requests.get(GOOGLE_JWKS_URL).json()
+
+def get_google_public_key(kid: str):
+    for key in jwks["keys"]:
+        if key["kid"] == kid:
+            return key
+    return None
 
 @app.get("/auth/login")
 def login():
@@ -81,15 +89,37 @@ def auth_callback(code: str):
     token_data = token_resp.json()
     id_token = token_data.get("id_token")
 
-    #  Recupera dati utente dal data service
-    email = requests.get("https://www.googleapis.com/oauth2/v3/userinfo", 
-                         headers={"Authorization": f"Bearer {token_data['access_token']}"}
-                        ).json().get("email")
+    id_token = token_data.get("id_token")
+    access_token = token_data.get("access_token")
+
+    unverified_header = jwt.get_unverified_header(id_token)
+    kid = unverified_header.get("kid")
+    if not kid:
+        raise HTTPException(status_code=400, detail="Invalid ID token header")
+        
+    public_key = get_google_public_key(kid)
+    if not public_key:
+        raise HTTPException(status_code=400, detail="Public key not found")
+
+    try:
+        user_info = jwt.decode(
+            id_token,
+            public_key,
+            algorithms=["RS256"],
+            audience=CLIENT_ID,
+            issuer=["accounts.google.com", "https://accounts.google.com"],
+            access_token=access_token
+        )
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid ID token: {str(e)}")
+
+    email = user_info.get("email")
+    name = user_info.get("name")
 
     # Controlla se l'utente esiste, altrimenti crea
     r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
     if r.status_code == 404:
-        r = requests.post(f"{DATA_SERVICE_URL}/users", json={"email": email})
+        r = requests.post(f"{DATA_SERVICE_URL}/users", json={"email": email, "username": name})
     r.raise_for_status()
     user = r.json()
 
@@ -185,3 +215,29 @@ def core_jwks():
     """
     return requests.get(f"{AUTH_CORE_URL}/core/jwks").json()
 
+@app.delete("/remove/{email}") # PER TEST
+def remove_user(email: str):
+    # Gestione sessione manuale per operazioni bulk
+    r1=requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
+    utente=r1.json()
+    user_id=utente["id"]
+    r= requests.delete(f"{DATA_SERVICE_URL}/users/{user_id}")
+    if r.status_code==404:
+        print ("NESSUNO ELIMINATO")
+        return   
+    
+    print("UTENTE ELIMINATO")
+    return
+
+@app.get("/check_utenti") #PER TEST
+def check_refresh():
+    r= requests.get(f"{DATA_SERVICE_URL}/users")
+    if r.status_code==404:
+        print("NON CI SONO UTENTI")
+        return
+    
+    users=r.json()
+    stringa=""
+    for u in users:
+        stringa+=u["email"]+ " "
+    return {"result" : stringa}
