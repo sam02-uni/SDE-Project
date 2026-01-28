@@ -17,6 +17,7 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="Process Centric News", openapi_tags=tags_metadata)
 
+# Monta i file statici per il servizio
 app.mount("/Static", StaticFiles(directory="Static"), name="static")
 
 # Rende accessibile il servizio anche ai file ed alle pagine esterne
@@ -28,18 +29,25 @@ app.add_middleware(
     allow_headers=["*"], # Permette tutti gli header
 )
 
+# Recupero URL necessari al servizio
 TOKEN_URL = os.getenv("TOKEN_URL", "http://localhost:8000")
 AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
 HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
 
+@app.get("/")
+def read_root():
+    """Return if the service is running or not"""
+    return {"Lineup Business service is running"}
+
 @app.get("/news")
 async def takeNews(request: Request):
-    """Take the data from RSS and HTML"""
-    
+    """Take and return the data from RSS and HTML"""
+    # Recurpero i dati per la verifica dell'accesso
     biscotto = request.cookies.get("access_token")
     if not biscotto:
         raise HTTPException(status_code=401, detail="Access token mancante")
     
+    # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"{AGG_URL}/compute",
@@ -49,6 +57,7 @@ async def takeNews(request: Request):
     if resp.status_code == 401:
         raise HTTPException(status_code=401, detail="Token non valido")        
     
+    # Recupero delle informazioni riguardo alle news
     async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.get(f"{AGG_URL}/rss-fanta")
         RSSdata = response.json()
@@ -61,12 +70,12 @@ async def takeNews(request: Request):
 
 @app.get("/news-filter")
 async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
-    """Take the data filtered from RSS and HTML"""
-    
+    """Take and return the data filtered from RSS and HTML"""
+    # Recurper i dati per la verifica dell'accesso
     biscotto = request.cookies.get("access_token")
     if not biscotto:
         raise HTTPException(status_code=401, detail="Access token mancante")
-    
+    # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"{AGG_URL}/compute",
@@ -76,10 +85,10 @@ async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None))
     if resp.status_code == 401:
         raise HTTPException(status_code=401, detail="Token non valido")
     
+    # Recupero delle informazioni riguardo alle news
     async with httpx.AsyncClient(timeout=120.0) as client:
         params = {"tags": tags} if tags else {}
         try:
-            # Invio della richiesta all'aggregatore
             response = await client.get(f"{AGG_URL}/filter-news", params=params, timeout=10.0)
             response.raise_for_status()
             RSSdata = response.json()
