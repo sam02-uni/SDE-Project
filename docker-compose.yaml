@@ -89,22 +89,21 @@ services:
       - league-service
       #- squad-service
 
+  #test-service:
+    #build: ./test_service
+    #container_name: test-service
+    #ports:
+      #- "8012:8000"
+    #depends_on:
+      #- auth-process-service
 
-  test-service:
-    build: ./test_service
-    container_name: test-service
-    ports:
-      - "8012:8000"
-    depends_on:
-      - auth-process-service
-
-  test-process:
-    build: ./process_centric_test
-    container_name: test-process
-    ports:
-      - "8013:8000"
-    depends_on:
-      - auth-process-service
+  #test-process:
+    #build: ./process_centric_test
+    #container_name: test-process
+    #ports:
+      #- "8013:8000"
+    #depends_on:
+      #- auth-process-service
 
   #Adapter Football service
   adapter-football-service:

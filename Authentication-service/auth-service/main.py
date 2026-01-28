@@ -87,7 +87,7 @@ def auth_callback(code: str):
                         ).json().get("email")
 
     # Controlla se l'utente esiste, altrimenti crea
-    r = requests.get(f"{DATA_SERVICE_URL}/users/by-email/{email}")
+    r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
     if r.status_code == 404:
         r = requests.post(f"{DATA_SERVICE_URL}/users", json={"email": email})
     r.raise_for_status()
