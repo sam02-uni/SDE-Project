@@ -38,7 +38,6 @@ async def verify_token(authorization: str = Header(...)):
             public_key_jwk,
             algorithms=["RS256"],
         )
-
         
     except JWTError as e:
         print(str(e))
