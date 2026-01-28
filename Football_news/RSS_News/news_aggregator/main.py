@@ -14,6 +14,7 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="RSS Aggregator", openapi_tags=tags_metadata)
 
+# Prende gli URL dei servizi necessari al funzionamento
 RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
 
 @app.get("/rss-fanta")
@@ -38,6 +39,4 @@ async def get_filtered_news(tags: Optional[List[str]] = Query(None)):
 async def compute(user: dict = Depends(verify_token)):
     """Verify token"""
     user_id = user["user_id"]
-
-    # Qui puoi fare chiamate al data-service o logica business
     return {"user_id": user_id, "message": "Business logic eseguita correttamente"}

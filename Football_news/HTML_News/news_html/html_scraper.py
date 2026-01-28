@@ -10,15 +10,18 @@ SOURCES = {
     "Gazzetta": "https://www.gazzetta.it/calcio/serie-a/"
 }
 
+# Header per non sembrare dei bot
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
 }
 
 def grab_news():
+    """Retrieve all the data needed for our application from html pages"""
     all_news = [] 
     
     for name, url in SOURCES.items():
         try:
+            # Recuperiamo la pagina HTML
             response = requests.get(url, headers=headers, timeout=5)
             soup = BeautifulSoup(response.text, 'html.parser')
             
@@ -33,6 +36,7 @@ def grab_news():
                 if link_tag and link_tag.has_attr('href'):
                     link = link_tag['href']
                 
+                # Recuperiamo tutte le informazioni necessarie all'applicazione
                 if len(text) > 20:
                     full_link = link
                     if link and not link.startswith('http'):
@@ -55,6 +59,7 @@ def grab_news():
                         except Exception as e:
                             print(f"Errore scraping articolo {full_link}: {e}")
 
+                    # Creiamo la lista da ritornare
                     all_news.append({
                         "fonte": name,
                         "titolo": text,
@@ -67,7 +72,3 @@ def grab_news():
             print(f"Errore su {name}: {e}")
 
     return all_news
-
-# risultato_json = grab_news()
-# print(risultato_json)
-
