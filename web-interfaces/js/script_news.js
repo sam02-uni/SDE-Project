@@ -1,4 +1,4 @@
-// --- CONFIGURAZIONE ---
+// Configuration variables
 const API_URL = "http://localhost:8005/news";
 const FILTER_URL = "http://localhost:8005/news-filter";
 const TOKEN_URL = "http://localhost:8000/auth/refresh";
@@ -9,7 +9,7 @@ let filteredNews = [];
 let selectedTags = [];
 let currentPage = 1;
 
-// --- ELEMENTI DOM ---
+// Dom elements
 const sidebar = document.getElementById("mySidebar");
 const overlay = document.getElementById("overlay");
 const triggerArea = document.getElementById("triggerArea");
@@ -23,24 +23,24 @@ const filterMenu = document.getElementById("filterMenu");
 const tagChecklist = document.getElementById("tagChecklist");
 const applyBtn = document.getElementById("applyFilters");
 
-// --- GENERAZIONE CHECKLIST ---
+// Checklist generation
 tags.forEach(tag => {
     const label = document.createElement("label");
     label.innerHTML = `<input type="checkbox" value="${tag}"> ${tag.charAt(0).toUpperCase() + tag.slice(1)}`;
     tagChecklist.appendChild(label);
 });
 
-// --- LOGICA FILTRO ---
+// Filter logic
 filterBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     filterMenu.classList.toggle("active");
 });
 
-// Chiude il menu se clicchi fuori
+// Close menu if outside click
 document.addEventListener("click", () => filterMenu.classList.remove("active"));
 filterMenu.addEventListener("click", (e) => e.stopPropagation());
 
-// --- LOGICA SIDEBAR ---
+// Sidebar logic
 const openNav = () => { sidebar.classList.add("active"); overlay.classList.add("active"); };
 const closeNav = () => { sidebar.classList.remove("active"); overlay.classList.remove("active"); };
 
@@ -53,7 +53,7 @@ async function refreshAccessToken() {
     try {
         const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
             method: 'POST',
-            credentials: 'include' // Indispensabile per inviare/ricevere cookie
+            credentials: 'include' 
         });
 
         if (!refreshResp.ok) {
@@ -66,11 +66,10 @@ async function refreshAccessToken() {
     }
 }
 
-
-// --- RECUPERO NEWS ---
+// Retrieve the news from process centric service
 async function fetchNews() {
     try {
-        // Verifica della chiave
+        // Token verify
         const response = await fetch(API_URL, {credential: "includes"});
         if (response.status === 401) {
             console.warn("Access token scaduto, tentativo di refresh in corso...")
@@ -93,11 +92,9 @@ async function fetchNews() {
         if (data.Response && data.Response.Filter) {
             allNews = data.Response.Filter; 
         } 
-        // Se invece restituisce {"Response": [...]}
         else if (data.Response) {
             allNews = data.Response;
         }
-        // Se invece restituisce direttamente la lista
         else if (Array.isArray(data)) {
             allNews = data;
         }
@@ -110,7 +107,7 @@ async function fetchNews() {
     }
 }
 
-// --- RENDERING ---
+// Rendering
 function renderPage() {
     newsGrid.innerHTML = "";
     
@@ -140,16 +137,17 @@ function renderPage() {
     nextBtn.disabled = end >= filteredNews.length;
 }
 
-// Funzione aggiornata per applicare i filtri chiamando il backend
+// Filter function
 async function applyFilters() {
     const checkboxes = tagChecklist.querySelectorAll("input:checked");
     const selectedTags = Array.from(checkboxes).map(cb => cb.value);
     
-    // Costruiamo la query string: ?tags=infortunio&tags=stop...
+    // Build the query string
     let url = new URL(FILTER_URL);
     selectedTags.forEach(tag => url.searchParams.append("tags", tag));
 
     try {
+        // Verify token
         const response = await fetch(url, {credential: "includes"});
         if (response.status === 401) {
             console.warn("Access token scaduto, tentativo di refresh in corso...")
@@ -166,9 +164,9 @@ async function applyFilters() {
             // window.location.href = '/login';
             return;
         }
+
+        // Retrieve data
         const data = await response.json();
-        
-        // Python ora ci restituisce già la lista filtrata
         allNews = data.Response.Filter || [];
         filteredNews = allNews;
         
@@ -180,9 +178,9 @@ async function applyFilters() {
     }
 }
 
-// Collega il pulsante "Applica" alla nuova funzione
 applyBtn.addEventListener("click", applyFilters);
-// --- NAVIGAZIONE ---
+
+// Navigation between pages
 function changePage(direction) {
     currentPage += direction;
     renderPage();
@@ -192,5 +190,5 @@ function changePage(direction) {
 prevBtn.addEventListener("click", () => changePage(-1));
 nextBtn.addEventListener("click", () => changePage(1));
 
-// --- AVVIO ---
+// Start
 fetchNews();
