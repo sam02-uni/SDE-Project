@@ -10,14 +10,19 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[Squad])  # GET /squads optional filter league_id
-def get_all_squads(league_id: Optional[int] = None,session: Session = Depends(get_session)) -> list[Squad]:
+def get_all_squads(league_id: Optional[int] = None, user_id: Optional[int] = None,session: Session = Depends(get_session)) -> list[Squad]:
+    stmt = select(Squad)
     if league_id: # as query parameter filter
-        result = session.exec(select(Squad).where(Squad.league_id == league_id)).all()
-        return result
-    else:
-        result = session.exec(select(Squad)).all()
-        return result
+        stmt = stmt.where(Squad.league_id == league_id)
     
+    if user_id:
+        stmt = stmt.where(Squad.owner_id == user_id)    
+    
+    result = session.exec(stmt).all()
+    return result
+        
+
+
 @router.get("/{squad_id}", response_model=Squad) # GET /squads/{squad_id} 
 def get_squad_by_id(squad_id: int, session: Session = Depends(get_session)):
     squad_db = session.get(Squad, squad_id)
