@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import requests
 import os
+import httpx
 from models import LineUpCreate
 from dependency import verify_token
 
@@ -14,11 +15,69 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
-@app.post("/")
-def insert_lineup(base_line_up: LineUpCreate):  # insert lineup for the current user and current matchday
-    # TODO: trova id user corrente
-    # TODO: trova squad_id di user corrente nella lega se squad_id non presente in base_line_up
-    # TODO: controlli numero giocatori e matchday
+@app.post("/insert-lineup", status_code = 201)
+def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and current matchday
+    # Recupero id dell'utente di sessione
+    logged_user_id = user['user_id']
+
+    # Chiamata al db se ho squad_id
+    if base_line_up.squad_id != None:
+        response = requests.get(f"{data_service_url_base}/squads/{base_line_up.squad_id}/with-players")
+    
+    # Chiamata al db se ho league_id
+    if base_line_up.league_id != None and base_line_up.squad_id == None:
+        response = requests.get(f"{data_service_url_base}/squads?league_id={base_line_up.league_id}&user_id={logged_user_id}")
+
+    # Sollevo eccezione per Bad request
+    if base_line_up.league_id == None and base_line_up.squad_id == None:
+        raise HTTPException(status_code = 400, detail = "Bad request")
+
+    squad = response.json()[0]
+    # Verifica che l'utente di sessione sia il proprietario della squadra
+    if logged_user_id == squad['owner_id']:
+        response = requests.get(f"{data_service_url_base}/matchdays/{base_line_up.matchday_id}")
+        # Verifica che il matchday sia lo stesso
+        if response:
+            # Verifica sul numero di giocatori inseriti per la formazione
+            if base_line_up.starting_ids.count == 11 and base_line_up.bench_ids.count == 7:
+                lineup = set(base_line_up.starting_ids+base_line_up.bench_ids)
+                squad_set = set(squad['players'])
+                # Verifica che tutti i giocatori appartengono alla squadra
+                if (lineup.issubset(squad_set)):
+                    # Creazione del dict da mandare al db
+                    lineUpPlayer = {
+                        'squad_id': squad['id'],
+                        'matchday_id': base_line_up.matchday_id,
+                        'players': [] 
+                    }
+
+                    for playerId in base_line_up.starting_ids:
+                        response = requests.get(f"{data_service_url_base}/players/{playerId}")
+                        player = response.json()
+                        lineUpPlayer["players"].append({
+                            'is_starting': True, 
+                            'player': player
+                        })
+                    
+                    for playerId in base_line_up.bench_ids:
+                        response = requests.get(f"{data_service_url_base}/players/{playerId}")
+                        player = response.json()
+                        lineUpPlayer["players"].append({
+                            'is_starting': False, 
+                            'player': player
+                        })
+                    # Richiesta di inserimento al db
+                    postResponse = requests.post(f"{data_service_url_base}/lineups?lineup={lineUpPlayer}")
+                    return postResponse
+
+                else:
+                    raise HTTPException(status_code = 400, detail = "Bad request")
+            else:
+                raise HTTPException(status_code = 400, detail = "Bad request")    
+        else:
+            raise HTTPException(status_code = 400, detail = "Bad request")
+    else:
+        raise HTTPException(status_code = 403, detail = "User is not the owner")
     pass
     
 
