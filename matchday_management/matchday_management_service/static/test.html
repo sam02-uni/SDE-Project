@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <div id="dashboard">Caricamento...</div>
+
+    <script>
+       async function refreshAccessToken() {
+            try {
+                const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
+                    method: 'POST',
+                    credentials: 'include' // Indispensabile per inviare/ricevere cookie
+                });
+
+                if (!refreshResp.ok) {
+                    throw new Error('Sessione scaduta, effettuare login');
+                }
+
+                // Se il server ha risposto 200 OK, il browser ha già aggiornato 
+                // il cookie "access_token" grazie all'header Set-Cookie.
+                return true; 
+            } catch (err) {
+                console.error('Errore refresh:', err);
+                return false;
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                let response = await fetch('http://localhost:8007/2/info_dashboard_league', {
+                    method: 'GET',
+                    credentials: 'include',
+                    /*headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({email_user:'lorbaldacci02@gmail.com', squad_name: 'SquadraProvaBalda', players: [
+                        {
+                            "name": "Mike",
+                            "surname": "Maignan",
+                            "serie_a_team": "AC Milan",
+                            "role": "G",
+                            "id": 8390,
+                            "mean_rating": 0
+                        },
+                        {
+                            "name": "Lorenzo",
+                            "surname": "Torriani",
+                            "serie_a_team": "AC Milan",
+                            "role": "G",
+                            "id": 251128,
+                            "mean_rating": 0
+                        }
+                    ]})*/
+                });
+
+                // 1. Se riceviamo 401, proviamo il recupero tramite refresh
+                if (response.status === 401) {
+                    console.warn("Access token scaduto, tentativo di refresh in corso...");
+                    
+                    // Chiamiamo la funzione che aggiorna il cookie
+                    const success = await refreshAccessToken();
+
+                    if (success) {
+                        // 2. RETRY: Se il refresh è riuscito, il cookie è ora aggiornato nel browser.
+                        // Ripetiamo la chiamata originale.
+
+                    
+                        response = await fetch('http://localhost:8007/init', {
+                            credentials: 'include'
+                        });
+                    } else {
+                        // Se il refresh fallisce (es. anche il refresh token è scaduto)
+                        document.getElementById('dashboard').innerText = 'Sessione scaduta, effettua nuovamente il login.';
+                        // Opzionale: window.location.href = '/login';
+                        return;
+                    }
+                }
+
+                // 3. Gestione errori diversi dal 401 (es. 500, 404)
+                if (!response.ok) {
+                    document.getElementById('dashboard').innerText = 'Errore nel caricamento dati: ' + response.status;
+                    return;
+                }
+
+                // 4. Successo: mostriamo i dati
+                const data = await response.json();
+                document.getElementById('dashboard').innerText = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                document.getElementById('dashboard').innerText = 'Errore di comunicazione con il server';
+                console.error('Network Error:', err);
+            }
+        }
+
+
+        loadDashboard(); 
+    </script>
+</body>
+</html>

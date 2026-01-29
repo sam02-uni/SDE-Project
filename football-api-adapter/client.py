@@ -1,5 +1,6 @@
 import requests
 import os
+from typing import Optional
 
 class FootballAPIClient:
     def __init__(self):
@@ -37,13 +38,14 @@ class FootballAPIClient:
         return response.json()['currentSeason']['currentMatchday']
 
     
-    def get_matchday_info(self, competiton_id):
+    def get_matchday_info(self, competiton_id, matchday_number: Optional[int] = None):
 
-        # get current matchday
-        matchday = self.get_current_matchday(competition_id=competiton_id)
+        if not matchday_number: 
+            # get current matchday
+            matchday_number = self.get_current_matchday(competition_id=self.competition_id)
 
         # get infos
-        url = f"{self.base_url}/competitions/{competiton_id}/matches?matchday={matchday}"
+        url = f"{self.base_url}/competitions/{competiton_id}/matches?matchday={matchday_number}"
         response = requests.get(url, headers=self.headers)
 
         # Debug rapido
@@ -57,7 +59,7 @@ class FootballAPIClient:
         last_match_finished = True if response_dict['matches'][-1]['status'] == 'FINISHED' else False
         
         return {
-            'currentMatchday': matchday,
+            'currentMatchday': matchday_number,
             'count' : response_dict['resultSet']['count'],
             'first': response_dict['resultSet']['first'],
             'last': response_dict['resultSet']['last'],
@@ -66,13 +68,14 @@ class FootballAPIClient:
             'lastMatchFinished': last_match_finished
         }
         
-    def get_finished_matches(self):
+    def get_finished_matches(self, matchday_number: Optional[int] = None):
 
-        # get current matchday
-        matchday = self.get_current_matchday(competition_id=self.competition_id)
+        if not matchday_number: 
+            # get current matchday
+            matchday_number = self.get_current_matchday(competition_id=self.competition_id)
 
         # get infos
-        url = f"{self.base_url}/competitions/{self.competition_id}/matches?matchday={matchday}&status=FINISHED"
+        url = f"{self.base_url}/competitions/{self.competition_id}/matches?matchday={matchday_number}&status=FINISHED"
         response = requests.get(url, headers=self.headers)
 
         # Debug rapido

@@ -71,12 +71,20 @@ def create_squad_with_players(squad: SquadWithPlayers, session: Session = Depend
 
 
 @router.patch("/{squad_id}", response_model=Squad)  # PATCH /squads/{squad_id} , name and score are the only modifiable attributes
-def update_squad(squad_id: int, updated_squad: SquadUpdate, session: Session = Depends(get_session)) -> Squad:
+def update_squad(squad_id: int, updated_squad: SquadUpdate, add_score: Optional[bool] = None, session: Session = Depends(get_session)) -> Squad:
     db_squad = session.get(Squad, squad_id)
     if not db_squad:
             raise HTTPException(status_code=404, detail="Squad not found")
-    squad_data = updated_squad.model_dump(exclude_unset=True)
-    db_squad.sqlmodel_update(squad_data)
+    if add_score :
+        if updated_squad.score is None:
+            raise HTTPException(status_code=400, detail="Score to add must be provided")
+        db_squad.score += updated_squad.score
+        if updated_squad.name is not None:
+            db_squad.name = updated_squad.name
+    else:
+        squad_data = updated_squad.model_dump(exclude_unset=True)
+        db_squad.sqlmodel_update(squad_data)
+
     session.add(db_squad)
     session.commit()
     session.refresh(db_squad)

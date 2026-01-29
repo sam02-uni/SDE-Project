@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 import requests
 import os
 from models import LineUpCreate
+from dependency import verify_token
 
 app = FastAPI(title= "lineup business service", root_path="/business/lineup")
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
@@ -21,18 +22,43 @@ def insert_lineup(base_line_up: LineUpCreate):  # insert lineup for the current 
     pass
     
 
-# nell'endpoint get_voti (quelli non a fine giornata ma a fine partita se li vuole vedere l'utente)prima controlli sul db e poi se non ci sono li prendi da scraper e salvi e returni
-#@app.get("/{lineup_id}/grades")
-# chiama /update_grades
-# prendi lineup con player da db
-# per ogni player prendi player rating e returnalo in un json  
+@app.get("/{lineup_id}/grades")
+def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the given lineup
+    update_grades()  # update in back
+
+    # get lineup from data service
+    response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="LineUp not found")
+    lineup_with_players = response.json()  
+    players = lineup_with_players['players'] # list of {is_starting: bool, player: Player}
+
+    result = []
+    # for each player get his rating for that matchday
+    for player_in_lineup in players:
+        print(player_in_lineup)
+        response = requests.get(f"{data_service_url_base}/players/rating?matchday_id={lineup_with_players['matchday_id']}&player_id={player_in_lineup['player']['id']}")
+        if response.status_code != 200: # player rating not in the db
+            result.append({'is_starting':player_in_lineup['is_starting'], 'player': player_in_lineup['player'], 
+                           'real_rating': None, 'fanta_rating': None})
+            continue
+
+        player_rating = response.json()[0] # is a list
+
+        result.append({'is_starting':player_in_lineup['is_starting'], 'player': player_in_lineup['player'], 
+                       'real_rating': player_rating['real_rating'], 'fanta_rating': player_rating['fanta_rating']})
+        
+    return result
+
+             
+
 
 # TODO: TEST solo la parte in cui fa il taglio dei players to grade
 @app.get("/update_grades") 
 def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
-
-    # controllare sul db quante partite di matchday corrente sono state giocate (controllare MatchDayStatus.played_so_far), chiamare api football e controllare valore reale
-    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+ 
+    # check how many matches of the current matchday have been played so far online
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Unable to get current matchday info")
     actual_matchday_info = response.json()
@@ -43,12 +69,13 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
         raise HTTPException(status_code=response.status_code, detail="Matchday not found")
     matchday_db_id = response.json()[0]['id']
 
+    # get how many matches have been registered and graded in local db so far
     response = requests.get(f"{data_service_url_base}/matchdays/{matchday_db_id}/status")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Matchday status not found")
     matchday_db_status = response.json()
 
-    # se localmente sono registrate meno partite fatte del reale:
+    # if the local value is lower than the actual value, get the new matches (teams):
     if matchday_db_status['played_so_far'] >= actual_matchday_info['played']:
         return {"status": "There are no new matches whose grades has to be added"}
     else:
@@ -57,13 +84,18 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Unable to get finished matches info")
         matches = response.json()
-        not_graded_matches = matches[negative_difference:] # last 'negative_difference' matches
+        not_graded_matches = matches[negative_difference:] # new matches whose teams players have to be graded
+        print("not graded matches:", not_graded_matches)
 
         # prendi che squadre sono: solo per giocatori di queste squadre inserisci i voti
         teams = {m['homeTeam'] for m in not_graded_matches} | {m['awayTeam'] for m in not_graded_matches}
         print(teams)
     
-        response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/22")
+        response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/{actual_matchday_info['currentMatchday']}")
+        if response.status_code != 200:
+            error = response.json()
+            raise HTTPException(status_code=response.status_code, detail=f"Unable to scrape grades: {error.get('detail', 'Server error')}")
+        
         players_scraped = response.json()
 
         #matchday = players_scraped['matchday']
@@ -100,9 +132,13 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
                     error_detail = response.json()['detail']
                     print(f"Grade not inserted for player {player_found_db['id']} because of: {error_detail}")
                     #raise HTTPException(status_code=response.status_code, detail=f"Grade not inserted because of: {error_detail}")
-            
-        return {"message": "Grades updated successfully"}
-            
+        
+        # update the matchday status:
+        response = requests.patch(f"{data_service_url_base}/matchdays/{matchday_db_id}", json={"played_so_far": actual_matchday_info['played']})
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Unable to update matchday status")
+        
+        return {"status": "Grades updated successfully"}
 
 # calcolo punteggio per formazione
 @app.get("/{lineup_id}/calculate_score")
@@ -111,22 +147,53 @@ def calculate_score(lineup_id: int):
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="LineUp not found")
-    lineup = response.json()
+    lineup_with_players = response.json()
     
     # il matchday è concluso?
-    response = requests.get(f"{data_service_url_base}/matchdays/{lineup['matchday_id']}")
+    response = requests.get(f"{data_service_url_base}/matchdays/{lineup_with_players['matchday_id']}")
     matchday = response.json()
-
-    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info?matchday={matchday['number']}")
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Unable to get current matchday info")
+        raise HTTPException(status_code=response.status_code, detail="Unable to get matchday info")
     
     matchday_info = response.json()
     if not matchday_info['lastMatchFinished']:
         raise HTTPException(status_code=400, detail="Matchday not finished yet")
     
-    # calcolo punteggio totale della formazione
-    # TODO: recupera dal data service tutti i PlayerRating per ogni Player nella lineup (titolari e panchina) e fai la somma
-    # la somma applicala allo score della LINEUP (TODO: Aggiorna DB) e della SQUAD
+    # calcolo punteggio totale della formazione , TODO: calcolo anche panchinari
+    score = 0
+    players_in_lineup = lineup_with_players['players']
+    for player in players_in_lineup:
+        if player['is_starting']: # titolare
+            actual_player = player['player']
+            response = requests.get(f"{data_service_url_base}/players/rating?matchday_id={lineup_with_players['matchday_id']}&player_id={actual_player['id']}")
+            if response.status_code != 200: # player rating not in the db = non ha giocato
+                continue
+
+            # fantavoto lo ha ? 
+            rating = response.json()[0]
+            if not( rating['fanta_rating'] > 0):
+                # non lo ha : ha giocato troppo poco 
+                # TODO cambia qui sotto per regola fanta dello scambio con panchinaro
+                continue
+
+            score += rating['fanta_rating']
+
+    # update lineup score in db
+    response = requests.patch(f"{data_service_url_base}/lineups/{lineup_with_players['id']}", json={"score": score, "players": None})
+    if response.status_code != 200:
+        print(response.json())
+        raise HTTPException(status_code = response.status_code, detail = "Not able to update score of the lineup")
+    
+    # update squad score in db
+    response = requests.patch(f"{data_service_url_base}/squads/{lineup_with_players['squad_id']}?add_score=true", json={"score": score, "name": None})
+    if response.status_code != 200:
+        print(response.json())
+        raise HTTPException(status_code = response.status_code, detail = "Not able to update score of the squad")
+    
+    return {'score_lineup': score}
+ 
+
+        
 
     

@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
-from models import User, Squad, PlayerSquadLink, Player, LineUp, LineUpWithPlayers, PlayerLineUpLink
+from models import LineUp, LineUpWithPlayers, PlayerLineUpLink, LineUpUpdate
 
 router = APIRouter(
     prefix="/lineups",     # Tutte le rotte in questo file inizieranno con /lineups
@@ -83,7 +83,7 @@ def delete_lineup(lineup_id: int, session: Session = Depends(get_session)) -> di
     return {"ok":True}
 
 @router.patch("/{lineup_id}", response_model=LineUp)  # PATCH /lineups/{lineup_id}
-def update_lineup(lineup_id: int, lineup: LineUpWithPlayers, session: Session = Depends(get_session)) -> LineUp:
+def update_lineup(lineup_id: int, lineup: LineUpUpdate, session: Session = Depends(get_session)) -> LineUp:
     lineup_db = session.get(LineUp, lineup_id)
     if not lineup_db:
         raise HTTPException(status_code=404, detail="LineUp Not found")
@@ -107,8 +107,8 @@ def update_lineup(lineup_id: int, lineup: LineUpWithPlayers, session: Session = 
             )
             session.add(link)
 
-        session.commit()
-        session.refresh(lineup_db)
-        return lineup_db
+    session.commit()
+    session.refresh(lineup_db)
+    return lineup_db
 
 

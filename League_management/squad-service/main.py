@@ -73,8 +73,12 @@ def add_player_to_squad():
     pass
 
 @app.get("/{squad_id}")
-def get_squad_by_id(squad_id:int):
-    response = requests.get(f"{data_service_url_base}/squads/{squad_id}")
+def get_squad_by_id(squad_id:int, with_players: bool=False):
+    if with_players:
+        response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players")
+    else:
+        response = requests.get(f"{data_service_url_base}/squads/{squad_id}")
+    
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()

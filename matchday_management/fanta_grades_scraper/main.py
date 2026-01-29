@@ -24,11 +24,11 @@ def read_root():
 
 @app.get("/scrape_grades/{matchday_number}")
 def scrape_fanta_grades(matchday_number: Optional[int] = None):
-    # TODO vedere per matchday different: 2025-26/{matchday_number}
-    grades = gradeScraper.scrape_grades()
+    
+    grades = gradeScraper.scrape_grades(matchday_number=matchday_number)
     if not grades:
-        raise HTTPException(status_code=500, detail="Error scraping grades")   
-         
+        raise HTTPException(status_code=500, detail="No grades found for this matchday. Error scraping grades")   
+    
     # normalizzazione:
     for grade in grades:
         # mappa per nomi speciali:

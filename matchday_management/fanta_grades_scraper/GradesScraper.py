@@ -14,7 +14,7 @@ class GradesScraper():
     url_matchday = "https://www.fantacalcio.it/voti-fantacalcio-serie-a/2025-26/{}"
     session = requests.Session()
 
-    def scrape_grades(self) -> list:
+    def scrape_grades(self, matchday_number: int) -> list:
 
         grades_list = []
         headers = {
@@ -29,13 +29,20 @@ class GradesScraper():
         #print(f"Attendo {attesa:.2f} secondi...")
         #time.sleep(attesa)
 
-        response = self.session.get(self.url_current_matchday, headers=headers, timeout=10)
+        response = self.session.get(self.url_matchday.format(matchday_number), headers=headers, timeout=10)
         response.raise_for_status()
 
         if response.status_code == 200:
+
             soup = BeautifulSoup(response.text, 'html.parser')
             
             tabelle = soup.find_all('table', class_='grades-table')
+
+            # check if at least one table is present:
+            if len(tabelle) <= 0:
+                print("Nessuna tabella dei voti trovata nella pagina.")
+                return grades_list
+
             for tabella in tabelle:
                 # squad name:
                 squad_name = tabella.find('thead').select_one('a.team-name.team-link').get_text(strip=True)

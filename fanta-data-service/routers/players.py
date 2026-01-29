@@ -16,7 +16,7 @@ router = APIRouter(
 
 # Players Endpoints
 
-@router.get("/rating", response_model=list[PlayerRating]) # GET /players/{player_id}/rating
+@router.get("/rating", response_model=list[PlayerRating]) # GET /players/rating?matchday_id&player_id
 def get_player_rating(matchday_id:int, player_id:Optional[int] = None, session: Session = Depends(get_session)) -> list[PlayerRating]: # matchday_id query param
     statement = select(PlayerRating)
     if player_id:
