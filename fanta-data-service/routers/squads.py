@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Squads"]       # Utile per organizzare la documentazione Swagger
 )
 
-@router.get("/", response_model=list[Squad])  # GET /squads optional filter league_id
+@router.get("/", response_model=list[Squad])  # GET /squads optional filter league_id and user_id
 def get_all_squads(league_id: Optional[int] = None, user_id: Optional[int] = None,session: Session = Depends(get_session)) -> list[Squad]:
     stmt = select(Squad)
     if league_id: # as query parameter filter
@@ -20,8 +20,6 @@ def get_all_squads(league_id: Optional[int] = None, user_id: Optional[int] = Non
     
     result = session.exec(stmt).all()
     return result
-        
-
 
 @router.get("/{squad_id}", response_model=Squad) # GET /squads/{squad_id} 
 def get_squad_by_id(squad_id: int, session: Session = Depends(get_session)):

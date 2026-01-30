@@ -24,9 +24,22 @@ def get_squad_players(squad_id: int):
 # TODO: TEST
 @app.get("/lineup/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int):
+    # TODO: prendere il matchday info e controllare che la giornata non sia conlusa
+    # se conclusa chiamare calcualte_score in lineup service e PENSARE A COME AGGIORNARE PER LA GUI
     response =  requests.get(f"{lineup_service_url_base}/business/lineup/{lineup_id}/grades")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
     return response.json()
+
+
+@app.post("/lineup/", status_code=201)
+def create_lineup(lineup: dict):
+    # TODO
+    pass
+
+@app.get("/{squad_id}last_score")
+def get_last_score_of_squad():
+    # TODO: magari quando l'utente sulla home vuole vedere ultimo risultato
+    pass
 
 
