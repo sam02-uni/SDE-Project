@@ -10,7 +10,7 @@ load_dotenv()
 
 app = FastAPI(title="Auth Process Service")
 
-HOME_URL="http://localhost:8005"
+HOME_URL="http://localhost:3000"
 
 # Configurazione CORS
 app.add_middleware(
@@ -144,9 +144,11 @@ def auth_callback(code: str):
     })
 
     #  Imposta cookie e redirect
-    response = RedirectResponse(url="http://localhost:8005/Static/home.html")
+    redirect_url = f"http://localhost:3000/pages/home_news.html?token={internal_jwt}"
+    response = RedirectResponse(url=redirect_url)
+   # response = RedirectResponse(url="http://localhost:3000/pages/home_news.html")
     cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
-    response.set_cookie("access_token", internal_jwt, max_age=600, **cookie_params)
+    #response.set_cookie("access_token", internal_jwt, max_age=600, domain="localhost", **cookie_params)
     response.set_cookie("refresh_token", refresh_token, max_age=60*60*24*30, **cookie_params)
     return response
 
@@ -179,11 +181,13 @@ def refresh_token_endpoint(request: Request):
     })
     new_jwt = new_jwt_resp.json()["token"]
 
-    response = JSONResponse({"message": "Token rinnovato con successo"})
-    print("Token rinnovato con successo")
-    cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
-    response.set_cookie("access_token", new_jwt, max_age=600, **cookie_params)
-    return response
+    #response = JSONResponse({"message": "Token rinnovato con successo"})
+    #cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
+    #response.set_cookie("access_token", new_jwt, max_age=600, **cookie_params)
+    return {
+        "access_token": new_jwt,
+        "message": "Token rinnovato"
+    }
 
 
 @app.post("/auth/logout")
@@ -198,7 +202,8 @@ def logout(request: Request):
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token:
         try:
-            requests.delete(f"{DATA_SERVICE_URL}/refresh/revoke/{refresh_token}")
+            payload={"token": refresh_token}
+            response = requests.post(f"{DATA_SERVICE_URL}/refresh/revoke", json=payload)
         except Exception:
             pass
     response = JSONResponse({"detail": "Logout effettuato con successo"})
@@ -229,7 +234,7 @@ def remove_user(email: str):
     print("UTENTE ELIMINATO")
     return
 
-@app.get("/check_utenti") #PER TEST
+@app.get("/check_utenti") # PER TEST
 def check_refresh():
     r= requests.get(f"{DATA_SERVICE_URL}/users")
     if r.status_code==404:

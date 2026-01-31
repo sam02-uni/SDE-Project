@@ -1,7 +1,8 @@
 import httpx
 from jose import jwt, JWTError
 from datetime import datetime
-from fastapi import FastAPI, Request, Depends, HTTPException, Header
+from cryptography.exceptions import InvalidKey
+from fastapi import FastAPI, HTTPException, Header
 
 app = FastAPI(title="Business Service")
 AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
@@ -40,8 +41,7 @@ async def verify_token(authorization: str = Header(...)):
         )
 
         
-    except JWTError as e:
-        print(str(e))
+    except (JWTError, ValueError, InvalidKey) as e:
         raise HTTPException(status_code=401, detail=f"Token non valido: {str(e)}")
 
     if datetime.utcnow().timestamp() > payload.get("exp", 0):

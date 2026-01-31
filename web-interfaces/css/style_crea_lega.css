@@ -168,3 +168,28 @@ body {
 .btn-primary:active {
     transform: translateY(0);
 }
+
+.logout-form {
+    margin: 0;
+    padding: 0;
+}
+
+.logout-btn {
+    width: 100%; /* Occupa tutta la larghezza della sidebar */
+    background: none;
+    border: none;
+    padding: 15px 25px; 
+    text-align: left; /* Allinea a sinistra come i link */
+    font-family: inherit; /* Usa lo stesso font (Inter) */
+    font-size: 16px;
+    color: #f1f5f9;
+    cursor: pointer;
+    display: block;
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #d35400;
+    padding-left: 35px;
+    color: white;
+}

@@ -4,22 +4,31 @@ import requests
 import os
 from models import BaseLeagueModel, ParticipantUserWithSquad
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import json
 
 app = FastAPI(title="League managament process centric service", root_path = "/process/league-management")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],   # QUESTO abilita OPTIONS
+    allow_headers=["*"],   # QUESTO abilita Authorization
+)
 
 league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") # league business
 squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000") # squad business
 
 app.mount("/static", StaticFiles(directory="static"), name="static") # TODO: rimuovere dopo i test
 
-def create_auth_headers(request: Request):
-    access_token = request.cookies.get('access_token')
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Access token mancante")
+def check_auth_headers(request: Request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Access token mancante o malformato")
     
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": auth_header,
         "Content-Type": "application/json"
     }
     return headers
@@ -32,7 +41,7 @@ def read_root():
 def init_base_league(league_info: BaseLeagueModel, request: Request):
     # crea lega con nome e max_credits inseriti dall admin nella gui
 
-    headers = create_auth_headers(request)
+    headers = check_auth_headers(request)
 
     response = requests.post(f"{league_service_url_base}/business/leagues", json=league_info.model_dump(), headers=headers)
     
@@ -45,7 +54,7 @@ def init_base_league(league_info: BaseLeagueModel, request: Request):
 @app.post("/{league_id}/add_participant", status_code=201, response_model=str) # Add User With Their Squad to League
 def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad, request: Request):
 
-    headers = create_auth_headers(request)
+    headers = check_auth_headers(request)
 
     body_content = {
         'email_participant': participantWithSquad.email_user
@@ -80,7 +89,7 @@ def suggest_players(given_name:str):
 # informazioni per la home iniziale = le leghe a cui partecipa l'utente da mettere a sinistra
 @app.get("/info_webapp_home")
 def get_info_webapp_home(request: Request):
-    headers = create_auth_headers(request)
+    headers = check_auth_headers(request)
     response = requests.get(f"{league_service_url_base}/business/leagues/by_user", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
@@ -91,7 +100,7 @@ def get_info_webapp_home(request: Request):
 @app.get("/{league_id}/info_dashboard_league")
 def get_info_dashboard(league_id: int, request: Request): # return info to display on the dashboard of the league for the logged in user
     
-    headers = create_auth_headers(request)
+    headers = check_auth_headers(request)
 
     dict_result = dict()
 

@@ -307,3 +307,28 @@ body {
 .vote-high { background-color: #dcfce7; color: #166534; }
 .vote-low { background-color: #fee2e2; color: #991b1b; }
 .vote-neutral { background-color: #f1f5f9; color: #475569; }
+
+.logout-form {
+    margin: 0;
+    padding: 0;
+}
+
+.logout-btn {
+    width: 100%; /* Occupa tutta la larghezza della sidebar */
+    background: none;
+    border: none;
+    padding: 15px 25px; 
+    text-align: left; /* Allinea a sinistra come i link */
+    font-family: inherit; /* Usa lo stesso font (Inter) */
+    font-size: 16px;
+    color: #f1f5f9;
+    cursor: pointer;
+    display: block;
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #d35400;
+    padding-left: 35px;
+    color: white;
+}

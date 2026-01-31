@@ -33,14 +33,16 @@
         <div class="sidebar-header">
             <h3>Dashboard</h3>
         </div>
-        <nav class="sidebar-links">
-            <a href="#" id="homeLink">🏠 News</a>
-            <a href="#">👤 Lega 1</a>
-            <a href="#">📊 Lega 2</a>
-            <a href="#">⚙️ Crea lega</a>
-            <a href="#">⚙️ Log out</a>
+        <nav class="sidebar-links" id="sidebarNav">
+            <a href="home_news.html" id="homeLink">🏠 News</a>
+            <div id="userLeagues"></div> 
+    
+            <hr> <a href="/pages/crea_lega.html">➕ Crea lega</a>
+            <form id="logoutForm" action="http://localhost:8000/auth/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-btn">🚪 Logout</button>
+        </form>
         </nav>
-    </div>
+   </div>
 
     <section class="container-articoli" id="newsGrid">
         </section>

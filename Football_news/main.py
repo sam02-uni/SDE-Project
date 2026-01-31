@@ -29,10 +29,19 @@ app.add_middleware(
     allow_headers=["*"], # Permette tutti gli header
 )
 
+
 # Recupero URL necessari al servizio
 TOKEN_URL = os.getenv("TOKEN_URL", "http://localhost:8000")
 AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
 HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
+
+def check_auth_headers(request: Request):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Access token mancante o malformato")
+    
+    return auth_header
 
 @app.get("/")
 def read_root():
@@ -43,15 +52,13 @@ def read_root():
 async def takeNews(request: Request):
     """Take and return the data from RSS and HTML"""
     # Recurpero i dati per la verifica dell'accesso
-    biscotto = request.cookies.get("access_token")
-    if not biscotto:
-        raise HTTPException(status_code=401, detail="Access token mancante")
+    header = check_auth_headers(request)
     
     # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"{AGG_URL}/compute",
-            headers={"Authorization": f"Bearer {biscotto}"}
+            headers={"Authorization": header}
         )
         
     if resp.status_code == 401:
@@ -72,14 +79,12 @@ async def takeNews(request: Request):
 async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
     """Take and return the data filtered from RSS and HTML"""
     # Recurper i dati per la verifica dell'accesso
-    biscotto = request.cookies.get("access_token")
-    if not biscotto:
-        raise HTTPException(status_code=401, detail="Access token mancante")
+    header = check_auth_headers(request)
     # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"{AGG_URL}/compute",
-            headers={"Authorization": f"Bearer {biscotto}"}
+            headers={"Authorization": f"{header}"}
         )
         
     if resp.status_code == 401:

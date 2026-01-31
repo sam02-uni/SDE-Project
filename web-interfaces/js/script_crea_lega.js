@@ -2,6 +2,8 @@
  * FantaNews - Gestione Creazione Lega e Sidebar Hover
  */
 
+LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
+
 document.addEventListener("DOMContentLoaded", () => {
     // --- ELEMENTI DOM ---
     const sidebar = document.getElementById("mySidebar");
@@ -9,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const openBtn = document.getElementById("openSidebar"); // Il trigger
     const btnCrea = document.getElementById("btnCreaLega");
     const logoutBtn = document.getElementById("logoutBtn");
+    const logoutForm = document.getElementById('logoutForm');
+    const containerLeagues = document.getElementById("userLeagues");
 
     // --- LOGICA SIDEBAR (HOVER) ---
 
@@ -31,44 +35,184 @@ document.addEventListener("DOMContentLoaded", () => {
     // Chiude se si clicca sull'oscuramento (overlay)
     overlay.addEventListener("click", closeNav);
 
+// Refresh token function
+async function refreshAccessToken() {
+    try {
+        const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
+            method: 'POST',
+            credentials: 'include' // Invia il cookie refresh_token alla 8000
+        });
+
+        if (!refreshResp.ok) throw new Error('Sessione scaduta');
+
+        const data = await refreshResp.json();
+        // Salvo il nuovo access token il local storage
+        localStorage.setItem('access_token', data.access_token); 
+        return true; 
+    } catch (err) {
+        console.error('Errore refresh:', err);
+        return false;
+    }
+}
+    
+    // User and leagues loading
+
+async function caricaLeghe() {
+    let url=new URL(LEGHE_URL);
+    try {
+        const token = localStorage.getItem('access_token');
+        let response = await fetch(url, {
+            method: 'GET', 
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        // Gestione del token scaduto
+        if (response.status === 401) {
+            console.log("MI HA DATO L'ERRORE (401 intercettato)");
+            console.log("E ANDATO L'ERRORE")
+            const success = await refreshAccessToken();
+            console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
+            if (success) {
+                const newToken = localStorage.getItem('access_token');
+                response= await fetch(url, {
+                method: 'GET', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${newToken}`
+                }
+        });
+            } else {
+                window.location.href = "login.html";
+                return;
+            }
+        }
+
+        const leghe = await response.json();
+        
+        // 2. Pulisci il div dedicato alle leghe
+        containerLeagues.innerHTML = ""; 
+
+        leghe.forEach(lega => {
+            const link = document.createElement('a');
+            link.href = "lega_dashboard.html";
+            link.className = 'lega-link';
+            link.dataset.id=lega.id
+            link.innerHTML = `🏆 ${lega.name}`;
+            
+            link.onclick = (e) => {
+                e.preventDefault();
+                // SE DOVESSE SERVIRE PER IL FRONTEND
+                localStorage.setItem('selected_league_id', lega.id);
+                window.location.href = "lega_dashboard.html";
+            };
+
+            // 3. Aggiungi al contenitore specifico tra News e Logout
+            containerLeagues.appendChild(link);
+        });
+    } catch (error) {
+        console.error("Errore nel caricamento leghe:", error);
+    }
+}
+
+
+// Chiamata al logout
+if (logoutForm) {
+    logoutForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Blocca l'invio normale che fallirebbe
+
+        try {
+            // Facciamo la chiamata alla porta del backend
+            let response = await fetch('http://localhost:8000/auth/logout', {
+                method: 'POST',
+                credentials: 'include', 
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            // Se il logout ha successo sul server (porta 8000)
+            if (response.ok) {
+                // Puliamo i dati locali sulla porta 3000
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Spostiamo l'utente alla pagina di login (stessa porta del frontend)
+                window.location.href = "/pages/login.html"; 
+            } else {
+                alert("Errore durante il logout. Riprova.");
+            }
+        } catch (error) {
+            console.error("Errore di rete o CORS:", error);
+            // In caso di errore CORS, spesso il logout avviene comunque sul server,
+            // quindi forziamo il ritorno al login per sicurezza.
+            window.location.href = "/pages/login.html";
+        }
+    });
+}
 
     // --- LOGICA DI BUSINESS: CREAZIONE LEGA ---
-
     if (btnCrea) {
         btnCrea.addEventListener("click", async () => {
-            const nome = document.getElementById("nomeLega").value;
+            // Recupera il token PIÙ RECENTE qui dentro
+            let currentToken = localStorage.getItem('access_token');
+            const nome = document.getElementById("nomeLega").value.trim();
             const crediti = document.getElementById("creditiLega").value;
 
             if (!nome || !crediti) {
-                alert("⚠️ Per favore, compila tutti i campi!");
+                alert("Per favore, compila tutti i campi!");
                 return;
             }
 
-            // Simulazione chiamata al Data Service (Business Layer)
-            console.log("Inviando dati al server:", { nome, crediti });
-            
-            // Qui andrà la tua fetch verso il data-service
-            alert(`✅ Lega "${nome}" creata con successo!`);
-        });
-    }
+            btnCrea.disabled = true;
+            btnCrea.textContent = "Creazione in corso...";
 
-    // --- LOGICA DI BUSINESS: LOGOUT ---
+            try {
+                let response = await fetch("http://localhost:8007/process/league-management/init", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}` 
+                    },
+                    body: JSON.stringify({ "name": nome, "max_credits": crediti })
+                });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async (e) => {
-            e.preventDefault();
-            if (confirm("Vuoi davvero uscire?")) {
-                try {
-                    const response = await fetch("http://localhost:8000/auth/logout", {
-                        method: "POST"
-                    });
-                    if (response.ok) {
-                        window.location.href = "/static/login.html";
+                // Gestione Token Scaduto anche qui
+                if (response.status === 401) {
+                    const success = await refreshAccessToken();
+                    if (success) {
+                        currentToken = localStorage.getItem('access_token');
+                        // Riprova la POST
+                        response = await fetch("http://localhost:8007/process/league-management/init", {
+                            method: "POST",
+                            headers: { 
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${currentToken}` 
+                            },
+                            body: JSON.stringify({ "name": nome, "max_credits": crediti })
+                        });
                     }
-                } catch (err) {
-                    console.error("Errore logout:", err);
                 }
+
+                if (response.ok) {
+                    alert(`Lega "${nome}" creata con successo!`);
+                    window.location.href = "lega_dashboard.html";
+                } else {
+                    const errorData = await response.json();
+                    alert("Impossibile creare la lega: " + (errorData.detail || "Errore sconosciuto"));
+                }
+            } catch (err) {
+                console.error("Errore di rete:", err);
+                alert("Errore di connessione al server.");
+            } finally {
+                btnCrea.disabled = false;
+                btnCrea.textContent = "Crea Lega";
             }
         });
     }
+
+    // Carica le leghe 
+    caricaLeghe();
 });
