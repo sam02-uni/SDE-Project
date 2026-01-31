@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from database import get_session
-from models import User, Squad, PlayerSquadLink, Player, LineUp, LineUpWithPlayers, PlayerLineUpLink
+from models import LineUp, LineUpWithPlayers, PlayerLineUpLink, LineUpUpdate
 
 router = APIRouter(
     prefix="/lineups",     # Tutte le rotte in questo file inizieranno con /lineups
@@ -27,7 +27,7 @@ def getLineUps(squad_id: Optional[int] = None, matchDay_id: Optional[int] = None
             result = session.exec(select(LineUp).where((LineUp.squad_id == squad_id) & (LineUp.matchday_id == matchDay_id))).all()
             return result
         
-@router.get("/with_players", response_model = LineUpWithPlayers) # GET /lineups/with_players?squad_id=x&giornata_id=y
+@router.get("/with_players", response_model = list[LineUpWithPlayers]) # GET /lineups/with_players?squad_id=x&giornata_id=y
 def getLineUps_with_players(squad_id: Optional[int] = None, matchDay_id: Optional[int] = None, session: Session = Depends(get_session)) -> list[LineUpWithPlayers]:
     match(squad_id, matchDay_id):
         case (None, None): # get ALL lineups in the db 
@@ -81,5 +81,34 @@ def delete_lineup(lineup_id: int, session: Session = Depends(get_session)) -> di
     session.delete(lineup_db)
     session.commit()
     return {"ok":True}
+
+@router.patch("/{lineup_id}", response_model=LineUp)  # PATCH /lineups/{lineup_id}
+def update_lineup(lineup_id: int, lineup: LineUpUpdate, session: Session = Depends(get_session)) -> LineUp:
+    lineup_db = session.get(LineUp, lineup_id)
+    if not lineup_db:
+        raise HTTPException(status_code=404, detail="LineUp Not found")
+    
+    if lineup.score:  # score aggiornato
+        lineup_db.score = lineup.score
+
+    if lineup.players:  # cambio players formazione
+        # elimina i link esistenti
+        existing_links = session.exec(select(PlayerLineUpLink).where(PlayerLineUpLink.lineup_id == lineup_id)).all()
+        for link in existing_links:
+            session.delete(link)
+        session.flush()
+
+        # aggiungi i nuovi link
+        for player_in_lineup in lineup.players:
+            link = PlayerLineUpLink(
+                player_id=player_in_lineup.player.id,
+                lineup_id=lineup_id,
+                is_starting=player_in_lineup.is_starting
+            )
+            session.add(link)
+
+    session.commit()
+    session.refresh(lineup_db)
+    return lineup_db
 
 

@@ -64,22 +64,33 @@ async def takeNews(request: Request):
     if resp.status_code == 401:
         raise HTTPException(status_code=401, detail="Token non valido")        
     
+    if resp.status_code == 200:
     # Recupero delle informazioni riguardo alle news
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.get(f"{AGG_URL}/rss-fanta")
-        RSSdata = response.json()
-        rss_list = RSSdata.get("news", RSSdata) if isinstance(RSSdata, dict) else RSSdata
-        response = await client.get(f"{HTML_URL}/html-fanta")
-        HTMLdata = response.json()
-        html_list = HTMLdata.get("news", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
-        data = processCentric.merge_and_sort_news(rss_list, html_list)
-        return {"Response" : data}
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.get(f"{AGG_URL}/rss-fanta")
+            RSSdata = response.json()
+            rss_list = RSSdata.get("news", RSSdata) if isinstance(RSSdata, dict) else RSSdata
+            response = await client.get(f"{HTML_URL}/html-fanta")
+            HTMLdata = response.json()
+            html_list = HTMLdata.get("news", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
+            data = processCentric.merge_and_sort_news(rss_list, html_list)
+            # print (data)
+            return {"Response" : data}
+    else:
+        raise HTTPException(status_code=resp.status_code, detail="Internal error")
 
 @app.get("/news-filter")
 async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
     """Take and return the data filtered from RSS and HTML"""
+<<<<<<< HEAD
     # Recurper i dati per la verifica dell'accesso
     header = check_auth_headers(request)
+=======
+    # Recurpero i dati per la verifica dell'accesso
+    biscotto = request.cookies.get("access_token")
+    if not biscotto:
+        raise HTTPException(status_code=401, detail="Access token mancante")
+>>>>>>> b8fc2a76348faec157f029df39aba529659c57f1
     # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -90,28 +101,31 @@ async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None))
     if resp.status_code == 401:
         raise HTTPException(status_code=401, detail="Token non valido")
     
+    if resp.status_code == 200:
     # Recupero delle informazioni riguardo alle news
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        params = {"tags": tags} if tags else {}
-        try:
-            response = await client.get(f"{AGG_URL}/filter-news", params=params, timeout=10.0)
-            response.raise_for_status()
-            RSSdata = response.json()
-            rss_list = RSSdata.get("Filter", RSSdata) if isinstance(RSSdata, dict) else RSSdata
-            response = await client.get(f"{HTML_URL}/html-filter-news", params=params, timeout=10.0)
-            response.raise_for_status()
-            HTMLdata = response.json()
-            html_list = HTMLdata.get("Filter", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
-            data = processCentric.merge_and_sort_news(rss_list, html_list)
-            return JSONResponse(content={"Response": data})
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            params = {"tags": tags} if tags else {}
+            try:
+                response = await client.get(f"{AGG_URL}/filter-news", params=params, timeout=10.0)
+                response.raise_for_status()
+                RSSdata = response.json()
+                rss_list = RSSdata.get("Filter", RSSdata) if isinstance(RSSdata, dict) else RSSdata
+                response = await client.get(f"{HTML_URL}/html-filter-news", params=params, timeout=10.0)
+                response.raise_for_status()
+                HTMLdata = response.json()
+                html_list = HTMLdata.get("Filter", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
+                data = processCentric.merge_and_sort_news(rss_list, html_list)
+                return JSONResponse(content={"Response": data})
 
-        except httpx.HTTPStatusError as exc:
-            return JSONResponse(
-                status_code=exc.response.status_code,
-                content={"error": "L'aggregatore ha restituito un errore", "details": str(exc)}
-            )
-        except httpx.RequestError as exc:
-            return JSONResponse(
-                status_code=503,
-                content={"error": "Aggregatore non raggiungibile", "details": str(exc)}
-            )
+            except httpx.HTTPStatusError as exc:
+                return JSONResponse(
+                    status_code=exc.response.status_code,
+                    content={"error": "L'aggregatore ha restituito un errore", "details": str(exc)}
+                )
+            except httpx.RequestError as exc:
+                return JSONResponse(
+                    status_code=503,
+                    content={"error": "Aggregatore non raggiungibile", "details": str(exc)}
+                )
+    else:
+        raise HTTPException(status_code=resp.status_code, detail="Internal error")

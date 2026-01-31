@@ -1,11 +1,10 @@
+from fastapi import FastAPI, Request, Depends, HTTPException, Header
 import httpx
 from jose import jwt, JWTError
 from datetime import datetime
-from cryptography.exceptions import InvalidKey
-from fastapi import FastAPI, HTTPException, Header
 
 app = FastAPI(title="Business Service")
-AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
+AUTH_SERVICE_URL = "http://fanta-auth-service:8000/auth"
 
 
 async def get_public_key(kid: str):
@@ -39,8 +38,10 @@ async def verify_token(authorization: str = Header(...)):
             public_key_jwk,
             algorithms=["RS256"],
         )
+
         
-    except (JWTError, ValueError, InvalidKey) as e:
+    except JWTError as e:
+        print(str(e))
         raise HTTPException(status_code=401, detail=f"Token non valido: {str(e)}")
 
     if datetime.utcnow().timestamp() > payload.get("exp", 0):

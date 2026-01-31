@@ -56,7 +56,7 @@ class Squad(SQLModel, table=True):
     owner_id: int = Field(foreign_key="user.id", ondelete="CASCADE") # Foreign Key verso User
     league_id: int = Field(foreign_key="league.id", ondelete="CASCADE") # Foreign Key verso
     name: str = Field(index=True)
-    score: int = Field(default=0)
+    score: float = Field(default=0)
 
     # comodità
     owner: User = Relationship() # user che possiede la rosa
@@ -76,6 +76,12 @@ class MatchDay(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     year: str 
     number: int
+
+class MatchdayStatus(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    matchday_id: int = Field(foreign_key="matchday.id", ondelete="CASCADE") # Foreign Key verso MatchDay
+    played_so_far: int = 0
+    total_matches: int = 10
 
 class PlayerRating(SQLModel, table=True):
     __table_args__ = (
@@ -103,6 +109,7 @@ class LineUp(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     squad_id: int = Field(foreign_key="squad.id", ondelete="CASCADE") # Foreign Key verso Squad
     matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
+    score: float = Field(default=0)
 
     players: list[PlayerLineUpLink] = Relationship(back_populates="lineup")
     squad: Squad = Relationship(back_populates="lineups")
@@ -119,7 +126,7 @@ class LeagueUpdate(SQLModel):
 
 class SquadUpdate(SQLModel):
     name: Optional[str] = None
-    score: Optional[int] = None
+    score: Optional[float] = None
     
 class LeagueWithParticipants(SQLModel):
     id: Optional[int] = None
@@ -136,7 +143,7 @@ class SquadWithPlayers(SQLModel):
     owner_id: int
     league_id: int
     name: str
-    score: int = 0
+    score: float = 0.0
     players: list[Player] = []
 
 class PlayerInLineUp(SQLModel):
@@ -149,6 +156,12 @@ class LineUpWithPlayers(SQLModel):
     matchday_id: int
     players: list[PlayerInLineUp] = []
 
+class LineUpUpdate(SQLModel):
+    players: Optional[list[PlayerInLineUp]] = None
+    score: Optional[float] = None
+
+class MatchDayStatusUpdate(SQLModel):
+    played_so_far: int
 
 #REFRESH TOKEN
 class RefreshTokenBase(SQLModel):

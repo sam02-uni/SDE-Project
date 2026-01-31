@@ -96,7 +96,7 @@ def get_info_webapp_home(request: Request):
     
     return response.json() # list of leagues with essential info
 
-# TODO: TEST
+
 @app.get("/{league_id}/info_dashboard_league")
 def get_info_dashboard(league_id: int, request: Request): # return info to display on the dashboard of the league for the logged in user
     

@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException
 import os
 from client import FootballAPIClient
 import requests
+from typing import Optional
 
 class Player():
     id: int 
@@ -76,7 +77,12 @@ def update_players(team_id: str): # team_id query param
         raise HTTPException(status_code=500, detail=f"data service error:{response.text}")
     return {'ok':True}
 
-@app.get("/current_matchday_info")
-def get_current_matchday_info():
-    info = client.get_matchday_info(competiton_id='2019')
+@app.get("/matchday_info")
+def get_matchday_info(matchday: Optional[int] = None):
+    info = client.get_matchday_info(competiton_id='2019', matchday_number=matchday)
     return info
+
+@app.get("/finished_matches/{matchday}")
+def get_finished_matches(matchday: int):
+    matches = client.get_finished_matches(matchday)
+    return matches

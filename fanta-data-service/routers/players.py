@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select, func, or_, delete
+from sqlmodel import Session, select, func, or_, delete, insert
 from database import get_session
 from models import Player, PlayerRating, MatchDay
 from typing import Optional
@@ -16,7 +16,7 @@ router = APIRouter(
 
 # Players Endpoints
 
-@router.get("/rating", response_model=list[PlayerRating]) # GET /players/{player_id}/rating
+@router.get("/rating", response_model=list[PlayerRating]) # GET /players/rating?matchday_id&player_id
 def get_player_rating(matchday_id:int, player_id:Optional[int] = None, session: Session = Depends(get_session)) -> list[PlayerRating]: # matchday_id query param
     statement = select(PlayerRating)
     if player_id:
@@ -56,7 +56,8 @@ def get_players(name: Optional[str] = None, serie_a_team: Optional[str] = None, 
     statement = select(Player)
     
     if name:
-        search_term = name.lower()
+        lower_name = name.lower()
+        search_term = func.unaccent(lower_name)
         
         # Creiamo la combinazione "nome cognome" e "cognome nome" e senza accenti
         full_name = func.unaccent(func.lower(Player.name + " " + Player.surname))
@@ -106,6 +107,33 @@ def delete_player(player_id:int, session: Session = Depends(get_session)):
 # players ratings endpoints
 # voti presi solo a fine partita quindi non cambiano, quindi no patch/put
 
+def logica_upsert(rating: PlayerRating, session: Session):
+    data = rating.model_dump()
+    
+    stmt = insert(PlayerRating).values(data)
+    
+    # Definiamo cosa fare in caso di conflitto sulle chiavi
+    stmt = stmt.on_conflict_do_update(
+        index_elements=['player_id', 'matchday_id'], # I campi che causano il duplicato
+        set_={
+            "fanta_rating": stmt.excluded.fanta_rating,
+            "real_rating": stmt.excluded.real_rating,
+        }
+    )
+
+    session.exec(stmt)
+    session.commit()
+
+    updated_rating = session.exec(
+        select(PlayerRating).where(
+            PlayerRating.player_id == rating.player_id,
+            PlayerRating.matchday_id == rating.matchday_id
+        )
+    ).first()
+
+    return updated_rating
+
+# TODO: forse aggiungi un query param UPSERT logic
 @router.post("/rating", response_model=PlayerRating, status_code=201) # POST /players/rating
 def add_player_rating(rating: PlayerRating,  session: Session = Depends(get_session)) -> PlayerRating:
     player = session.get(Player, rating.player_id)
@@ -115,9 +143,22 @@ def add_player_rating(rating: PlayerRating,  session: Session = Depends(get_sess
     matchday = session.get(MatchDay, rating.matchday_id)
     if not matchday:
         raise HTTPException(status_code=404, detail="MatchDay not found")
+
+    # UPSERT logic:
+    #return logica_upsert(rating)
     
-    session.add(rating)
-    session.commit()
+    # No update logic:
+    try:
+        with session.begin_nested():
+            session.add(PlayerRating(**rating))
+            session.commit()
+    except Exception: # Se esiste già, passa oltre
+        session.rollback()
+        raise HTTPException(status_code=409, detail='Player rating alraedy exists')
+    
+     
+    #session.add(rating)
+    #session.commit()
     session.refresh(rating)
     return rating
 
