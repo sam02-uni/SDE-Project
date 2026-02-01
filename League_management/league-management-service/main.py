@@ -42,8 +42,8 @@ def init_base_league(league_info: BaseLeagueModel, request: Request):
     # crea lega con nome e max_credits inseriti dall admin nella gui
 
     headers = check_auth_headers(request)
-
-    response = requests.post(f"{league_service_url_base}/business/leagues", json=league_info.model_dump(), headers=headers)
+    print (league_service_url_base)
+    response = requests.post(f"{league_service_url_base}", json=league_info.model_dump(), headers=headers)
     
     if response.status_code != 201:
         raise HTTPException(status_code=400, detail="Not Created")
@@ -90,7 +90,7 @@ def suggest_players(given_name:str):
 @app.get("/info_webapp_home")
 def get_info_webapp_home(request: Request):
     headers = check_auth_headers(request)
-    response = requests.get(f"{league_service_url_base}/business/leagues/by_user", headers=headers)
+    response = requests.get(f"{league_service_url_base}by_user", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
     

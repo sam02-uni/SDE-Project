@@ -94,7 +94,7 @@ async function caricaLeghe() {
         
         // 2. Pulisci il div dedicato alle leghe
         containerLeagues.innerHTML = ""; 
-
+        
         leghe.forEach(lega => {
             const link = document.createElement('a');
             link.href = "lega_dashboard.html";
@@ -159,7 +159,7 @@ if (logoutForm) {
             // Recupera il token PIÙ RECENTE qui dentro
             let currentToken = localStorage.getItem('access_token');
             const nome = document.getElementById("nomeLega").value.trim();
-            const crediti = document.getElementById("creditiLega").value;
+            const crediti = parseInt(document.getElementById("creditiLega").value);
 
             if (!nome || !crediti) {
                 alert("Per favore, compila tutti i campi!");

@@ -29,12 +29,12 @@ def get_league_by_name(name: str, user: dict = Depends(verify_token)): # name qu
 @app.get("/by_user", response_model=list[EssentialLeagueInfo])
 def get_leagues_by_user(not_logged_user_id: Optional[int] = None, user: dict = Depends(verify_token)):
     if not_logged_user_id:
-        response = requests.get(f"{data_service_url_base}/leagues/?user_id={not_logged_user_id}")
+        response = requests.get(f"{data_service_url_base}leagues/?user_id={not_logged_user_id}")
     else:
         logged_user_id = user['user_id']
-        response = requests.get(f"{data_service_url_base}/leagues/?user_id={logged_user_id}")
+        response = requests.get(f"{data_service_url_base}leagues/?user_id={logged_user_id}")
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Not found")
+        raise HTTPException(status_code=response.status_code, detail="Not found PIPPO")
     return response.json()
 
 @app.get("/current_matchday")
