@@ -288,10 +288,7 @@ async function caricaLeghe() {
             }
         }
 
-        const leghe = await response.json();
-        console.log(leghe);
-        alert(`Variabile leghe dice: "${leghe}"`);
-        
+        const leghe = await response.json();        
         // 2. Pulisci il div dedicato alle leghe
         containerLeagues.innerHTML = ""; 
 

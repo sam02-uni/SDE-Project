@@ -19,12 +19,15 @@ async def get_public_key(kid: str):
             return key
     raise HTTPException(status_code=401, detail="Chiave pubblica non trovata")
 
+   
 async def verify_token(authorization: str = Header(...)):
    
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token mancante o malformato")
     
     access_token = authorization.split(" ")[1]  # prendi solo il token dopo "Bearer "
+    if access_token=="null":
+        raise HTTPException(status_code=401, detail="Token mancante")
 
     unverified_header = jwt.get_unverified_header(access_token)
     kid = unverified_header.get("kid")
@@ -39,8 +42,9 @@ async def verify_token(authorization: str = Header(...)):
             public_key_jwk,
             algorithms=["RS256"],
         )
-        
-    except (JWTError, ValueError, InvalidKey) as e:
+
+    except JWTError as e:
+        print(str(e))
         raise HTTPException(status_code=401, detail=f"Token non valido: {str(e)}")
 
     if datetime.utcnow().timestamp() > payload.get("exp", 0):
