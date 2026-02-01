@@ -14,7 +14,7 @@ tags_metadata = [ # per la documentazione Swagger
 app = FastAPI(title="HTML Aggregator", openapi_tags=tags_metadata)
 
 # Prende gli URL dei servizi necessari al funzionamento
-SCRAPE_URL = os.getenv("SCRAPE_URL", "http://localhost:8004")
+SCRAPE_URL = os.getenv("SCRAPE_URL", "http://localhost:8034")
 
 @app.get("/html-fanta")
 async def call_HTML():

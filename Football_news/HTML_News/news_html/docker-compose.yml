@@ -3,6 +3,6 @@ services: # Data Layer Service: database interface
     build: .
     container_name: html_scraper_container
     ports:
-      - "8004:8000" # Espone la porta 8000 del container sulla 8004 locale
+      - "8034:8000" # Espone la porta 8000 del container sulla 8004 locale
     volumes:
       - .:/app # Mappa il codice sorgente in fanta-data-service folder dentro il container in /app

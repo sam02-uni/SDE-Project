@@ -129,7 +129,7 @@ services:
     build: ./Football_News/HTML_News/news_html
     container_name: html_scraper_container
     ports:
-      - "8004:8000" 
+      - "8034:8000" 
     volumes:
       - ./Football_News/HTML_News/news_html:/app 
   

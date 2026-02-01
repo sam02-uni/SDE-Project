@@ -82,15 +82,9 @@ async def takeNews(request: Request):
 @app.get("/news-filter")
 async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
     """Take and return the data filtered from RSS and HTML"""
-<<<<<<< HEAD
-    # Recurper i dati per la verifica dell'accesso
-    header = check_auth_headers(request)
-=======
     # Recurpero i dati per la verifica dell'accesso
-    biscotto = request.cookies.get("access_token")
-    if not biscotto:
-        raise HTTPException(status_code=401, detail="Access token mancante")
->>>>>>> b8fc2a76348faec157f029df39aba529659c57f1
+    header = check_auth_headers(request)
+    
     # Chiamo il servizio di verifica a livello business
     async with httpx.AsyncClient() as client:
         resp = await client.get(
