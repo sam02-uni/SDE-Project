@@ -88,6 +88,7 @@ def getAllPlayers():
 
 # aggiunta di un giocatore ad una rosa
 # TODO: test
+# Optional se vogliamo
 @app.patch("/{squad_id}/add_player")
 def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = Depends(verify_token)):
     user_id = logged_user["user_id"]

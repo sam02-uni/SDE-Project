@@ -4,7 +4,7 @@ import os
 from models import LineUpCreate
 from dependency import verify_token
 
-app = FastAPI(title= "lineup business service", root_path="/business/lineup")
+app = FastAPI(title= "lineup business service", root_path="/business/lineups")
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
 football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") 
@@ -89,7 +89,6 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
 
 @app.get("/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the given lineup
-    update_grades()  # update in back
 
     # get lineup from data service
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
@@ -117,8 +116,6 @@ def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the g
 
              
 
-
-# TODO: TEST solo la parte in cui fa il taglio dei players to grade
 @app.get("/update_grades") 
 def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
  
@@ -133,6 +130,7 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Matchday not found")
     matchday_db_id = response.json()[0]['id']
+    print(matchday_db_id)
 
     # get how many matches have been registered and graded in local db so far
     response = requests.get(f"{data_service_url_base}/matchdays/{matchday_db_id}/status")
@@ -144,24 +142,25 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
     if matchday_db_status['played_so_far'] >= actual_matchday_info['played']:
         return {"status": "There are no new matches whose grades has to be added"}
     else:
+        print("there are new matches to be graded")
         negative_difference = int(matchday_db_status['played_so_far'] - actual_matchday_info['played'])
         response = requests.get(f"{football_adapter_service_url_base}/finished_matches/{actual_matchday_info['currentMatchday']}")
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Unable to get finished matches info")
         matches = response.json()
         not_graded_matches = matches[negative_difference:] # new matches whose teams players have to be graded
-        print("not graded matches:", not_graded_matches)
+        #print("not graded matches:", not_graded_matches)
 
         # prendi che squadre sono: solo per giocatori di queste squadre inserisci i voti
         teams = {m['homeTeam'] for m in not_graded_matches} | {m['awayTeam'] for m in not_graded_matches}
-        print(teams)
+        print("Not graded teams: ",teams)
     
         response = requests.get(f"{grades_scraper_service_url_base}/scrape_grades/{actual_matchday_info['currentMatchday']}")
         if response.status_code != 200:
             error = response.json()
             raise HTTPException(status_code=response.status_code, detail=f"Unable to scrape grades: {error.get('detail', 'Server error')}")
         
-        players_scraped = response.json()
+        players_scraped = response.json()['grades']
 
         #matchday = players_scraped['matchday']
         #response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday}")
@@ -169,13 +168,13 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
         #    raise HTTPException(status_code=response.status_code, detail="Matchday not found")
         #matchday_db_id = response.json()[0]['id']
 
-        player_scraped_to_grade = [
+        players_scraped_to_grade = [
             p for p in players_scraped if any(p['squad_name'].lower() in team.lower() for team in teams)
         ]
 
 
         # associazione dei nomi e caricamento del rating
-        for player_scraped in players_scraped:
+        for player_scraped in players_scraped_to_grade:
             response = requests.get(f"{data_service_url_base}/players?name={player_scraped['player_surname']}&serie_a_team={player_scraped['squad_name']}")
             if response.status_code != 200:
                 continue # non carico voto
@@ -199,7 +198,7 @@ def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
                     #raise HTTPException(status_code=response.status_code, detail=f"Grade not inserted because of: {error_detail}")
         
         # update the matchday status:
-        response = requests.patch(f"{data_service_url_base}/matchdays/{matchday_db_id}", json={"played_so_far": actual_matchday_info['played']})
+        response = requests.patch(f"{data_service_url_base}/matchdays/status/{matchday_db_id}", json={"played_so_far": actual_matchday_info['played']})
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Unable to update matchday status")
         

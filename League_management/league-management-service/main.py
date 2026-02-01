@@ -123,7 +123,10 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
         raise HTTPException(status_code=response.status_code, detail="not able to get current matchday infos")
 
     response_dict = response.json()
-    dict_result.update({'currentMatchday':response_dict['currentMatchday'], 'firstMatchStarted': response_dict['firstMatchStarted']})
+    dict_result.update({'currentMatchday':response_dict['currentMatchday'], 
+                        'firstMatchStarted': response_dict['firstMatchStarted'], 
+                        'lastMatchFinished': response_dict('lastMatchFinished')}) # GUI controllerà questo e dovrà chiamare process centric 
+                                                                                  # matchday management /calculate_score
 
     # standing:
     response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/table")

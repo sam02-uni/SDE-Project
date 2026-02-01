@@ -39,6 +39,17 @@ mapping_position = {
     "right winger": "A"
 }
 
+'''
+non trovato giocatore: Maldini
+lineup-business-service      | non trovato giocatore: Stojilkovic                                                                                                   
+lineup-business-service      | non trovato giocatore: Marianucci                                                                                                    
+lineup-business-service      | non trovato giocatore: Prati
+lineup-business-service      | non trovato giocatore: Kulenovic                                                                                                     
+lineup-business-service      | non trovato giocatore: Lovric                                                                                                        
+lineup-business-service      | non trovato giocatore: Al-Musrati
+
+'''
+
 @app.get("/")
 def read_root():
     return {"Adapter service for football data is running"}

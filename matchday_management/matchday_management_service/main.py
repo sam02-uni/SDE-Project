@@ -12,9 +12,8 @@ squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-servi
 def read_root():  
     return {"message": "MatchDay Management Process Centric service is running"}
 
-
 # TODO: TEST
-@app.get("/squad/{squad_id}/players") # get players of a squad (when inserting line up)
+@app.get("/squads/{squad_id}/players") # get players of a squad (when inserting line up)
 def get_squad_players(squad_id: int):
     response = requests.get(f"{squad_service_url_base}/business/squads/{squad_id}/with-players")
     if response.status_code != 200:
@@ -22,22 +21,43 @@ def get_squad_players(squad_id: int):
     return response.json()["players"]
 
 # TODO: TEST
-@app.get("/lineup/{lineup_id}/grades")
+@app.get("/lineups/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int):
-    # TODO: prendere il matchday info e controllare che la giornata non sia conlusa
-    # se conclusa chiamare calcualte_score in lineup service e PENSARE A COME AGGIORNARE PER LA GUI
-    response =  requests.get(f"{lineup_service_url_base}/business/lineup/{lineup_id}/grades")
+    
+    # update grades locally:
+    response = requests.get(f"{lineup_service_url_base}/business/lineups/update_grades")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Unable to Update grades'))
+    
+    # get grades for given lineup
+    response =  requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_id}/grades")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
     return response.json()
 
+@app.get("lineups/calculate_scores") # calcuate scores for all lineups and update in back
+def calculate_scores(): 
+    # TODO: decidere cosa far passare qui da GuI
+    # 1: league_id (ce l'ha) e matchday (ce l'ha)
+    # 2: (scelta più service oriented) una serie di id di lineups che la gui deve avere
+    
+    # Poi chiamare il lineup business con {lineup_id}/calculate_score per ognuna e returna per ogni linuep_id lo score alla gui
+    lineup_ids = [] # fake TODO
+    scores = []
+    for lineup_id in lineup_ids:
+        response = requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_id}/calculate_score")
+        if response.status_code != 200:
+            raise HTTPException(status_code = response.status_code, detail = "Unable to calculate score for a lineup")
+        scores.append({'lineup_id': lineup_id, 'score': scores})
+    
+    return scores
 
-@app.post("/lineup/", status_code=201)
+@app.post("/lineups/", status_code=201)
 def create_lineup(lineup: dict):
     # TODO
     pass
 
-@app.get("/{squad_id}last_score")
+@app.get("/{squad_id}/last_score")
 def get_last_score_of_squad():
     # TODO: magari quando l'utente sulla home vuole vedere ultimo risultato
     pass
