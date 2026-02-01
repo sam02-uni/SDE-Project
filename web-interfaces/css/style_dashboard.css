@@ -332,3 +332,9 @@ body {
     padding-left: 35px;
     color: white;
 }
+
+.button-group {
+    display: flex;
+    gap: 15px; 
+    flex-wrap: wrap;
+}

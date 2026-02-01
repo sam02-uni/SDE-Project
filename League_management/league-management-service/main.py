@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],   # QUESTO abilita OPTIONS
+    allow_methods=["GET", "POST", "OPTIONS", "PATCH", "PUT"],   # QUESTO abilita OPTIONS
     allow_headers=["*"],   # QUESTO abilita Authorization
 )
 
@@ -50,6 +50,12 @@ def init_base_league(league_info: BaseLeagueModel, request: Request):
     
     return response.json() # id created league
 
+@app.get("/allPlayers")
+def get_all_players():
+    response = requests.get(f"{squad_service_url_base}allPlayers")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
 
 @app.post("/{league_id}/add_participant", status_code=201, response_model=str) # Add User With Their Squad to League
 def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad, request: Request):
@@ -61,7 +67,7 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
     }
 
     # League Business service in order to add participant to league
-    response = requests.post(f"{league_service_url_base}/business/leagues/{league_id}/participants", json=body_content, headers=headers)
+    response = requests.post(f"{league_service_url_base}{league_id}/participants", json=body_content, headers=headers)
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail=response.json().get('detail'))
     
@@ -127,5 +133,3 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     dict_result.update({'table': response.json()})
 
     return dict_result
-
-    

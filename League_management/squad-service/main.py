@@ -79,6 +79,13 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
     suggested_players = response.json()
     return suggested_players if suggested_players else []
 
+@app.get("/allPlayers")
+def getAllPlayers():
+    response = requests.get(f"{data_service_url_base}/players/")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
+
 # aggiunta di un giocatore ad una rosa
 # TODO: test
 @app.patch("/{squad_id}/add_player")
@@ -108,4 +115,3 @@ def get_squad_by_id(squad_id:int, with_players: bool=False):
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
-

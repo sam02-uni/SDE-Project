@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const modal = document.getElementById("modalFormazione");
     const btnFormazione = document.getElementById("btnFormazione");
+    const btnInserisciSquadra = document.getElementById("btnInserisciSquadra");
     const closeModal = document.getElementById("closeModal");
     const saveBtn = document.getElementById("saveFormazione");
     const containerLeagues = document.getElementById("userLeagues");
@@ -41,7 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "none"; // Chiude anche la modal se aperta
     });
 
-
+    btnInserisciSquadra.addEventListener("click", () => {
+        window.location.href="rosa_dashboard.html"
+    });
+    
     // --- 2. LOGICA MODAL FORMAZIONE ---
     if (btnFormazione) {
         btnFormazione.addEventListener("click", () => {
@@ -214,7 +218,16 @@ async function caricaLeghe() {
     }
 }
 
+/* Funzione che mostra un button solo se l'utente è l'owner o meno
+// Esempio: userIdLogged lo prendi dal JWT o sessione, ownerId dal dato della lega/oggetto
+if (userIdLogged === ownerId) {
+    document.getElementById('tuo-bottone-id').style.display = 'block';
+} else {
+    document.getElementById('tuo-bottone-id').style.display = 'none';
+}
+*/
+
 //Carico le leghe
-caricaLeghe()
+caricaLeghe();
 
 });

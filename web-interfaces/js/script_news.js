@@ -199,8 +199,8 @@ async function applyFilters() {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-    }
-});
+        }
+    });
 
     if (response.status === 401) {
         console.warn("Access token scaduto, tentativo di refresh in corso...");
@@ -219,12 +219,12 @@ async function applyFilters() {
                     'Content-Type': 'application/json'
                 }
             });
-    }   else {
+        }else {
             console.error("Refresh fallito, reindirizzamento al login.");
             window.location.href = 'login.html';
             return;
+        }
     }
-}
 
         if (!response.ok) {
             window.location.href = 'login.html';
@@ -314,8 +314,6 @@ async function caricaLeghe() {
     }
 }
 
-
-
 // Chiamata al logout
 if (logoutForm) {
     logoutForm.addEventListener('submit', async (e) => {
@@ -349,6 +347,6 @@ if (logoutForm) {
 }
 
 //Carico le leghe
-caricaLeghe()
+caricaLeghe();
 // Start
 fetchNews();

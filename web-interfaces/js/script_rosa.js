@@ -1,3 +1,6 @@
+const LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
+const PLAYERS_URL="http://localhost:8007/process/league-management/allPlayers"
+
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById("mySidebar");
     const overlay = document.getElementById("overlay");
@@ -6,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const listaMercato = document.getElementById("listaMercato");
     const miaRosaContenitore = document.getElementById("miaRosaContenitore");
     const countRosa = document.getElementById("countRosa");
+    const containerLeagues = document.getElementById("userLeagues");
 
     let miaRosa = [];
 
@@ -13,51 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
     openBtn.addEventListener("mouseenter", () => { sidebar.classList.add("active"); overlay.classList.add("active"); });
     sidebar.addEventListener("mouseleave", () => { sidebar.classList.remove("active"); overlay.classList.remove("active"); });
 
-    // --- SIMULAZIONE DATI MERCATO ---
-    const databaseCalciatori = [
-        { id: 10, nome: "Dybala", ruolo: "A" },
-        { id: 11, nome: "Vlahovic", ruolo: "A" },
-        { id: 12, nome: "Dyrella", ruolo: "C" },
-        { id: 13, nome: "Dylhanoglu", ruolo: "C" },
-        { id: 14, nome: "Dy Lorenzo", ruolo: "D" },
-        { id: 15, nome: "Dyignan", ruolo: "P" },
-        { id: 15, nome: "Dyignan", ruolo: "P" },
-        { id: 15, nome: "Dyignan", ruolo: "P" },
-        { id: 15, nome: "Dyignan", ruolo: "P" },
-        { id: 15, nome: "Dyignan", ruolo: "P" }
-    ];
-
-    // --- FUNZIONE RICERCA ---
-    searchInput.addEventListener("input", (e) => {
-        const query = e.target.value.toLowerCase();
-        if (query.length < 2) return;
-
-        const filtrati = databaseCalciatori.filter(p => p.nome.toLowerCase().includes(query));
-        renderMercato(filtrati);
-    });
-
-    function renderMercato(calciatori) {
-        listaMercato.innerHTML = "";
-        calciatori.forEach(p => {
-            const row = document.createElement("div");
-            row.className = "player-row";
-            row.innerHTML = `
-                <div class="player-info">
-                    <span class="player-role">${p.ruolo}</span>
-                    <span class="player-name">${p.nome}</span>
-                </div>
-                <button class="btn-add" onclick="aggiungiGiocatore(${p.id}, '${p.nome}', '${p.ruolo}')">Aggiungi</button>
-            `;
-            listaMercato.appendChild(row);
-        });
-    }
-
     // --- GESTIONE ROSA LOCALE ---
-    window.aggiungiGiocatore = (id, nome, ruolo) => {
+    window.aggiungiGiocatore = (id, surname, role) => {
         if (miaRosa.find(p => p.id === id)) return alert("Giocatore già in rosa!");
         if (miaRosa.length >= 25) return alert("Rosa completa!");
 
-        miaRosa.push({ id, nome, ruolo });
+        miaRosa.push({ id, surname, role });  
         aggiornaRosaUI();
     };
 
@@ -75,8 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
             row.className = "player-row";
             row.innerHTML = `
                 <div class="player-info">
-                    <span class="player-role">${p.ruolo}</span>
-                    <span class="player-name">${p.nome}</span>
+                    <span class="player-role">${p.role}</span>
+                    <span class="player-name">${p.surname}</span>
                 </div>
                 <button class="btn-remove" onclick="rimuoviGiocatore(${p.id})">X</button>
             `;
@@ -84,4 +49,137 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         countRosa.innerText = miaRosa.length;
     }
+
+    // Refresh token function
+    async function refreshAccessToken() {
+        try {
+            const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
+                method: 'POST',
+                credentials: 'include' // Invia il cookie refresh_token alla 8000
+            });
+
+            if (!refreshResp.ok) throw new Error('Sessione scaduta');
+
+            const data = await refreshResp.json();
+            // Salvo il nuovo access token il local storage
+            localStorage.setItem('access_token', data.access_token); 
+            return true; 
+        } catch (err) {
+            console.error('Errore refresh:', err);
+            return false;
+        }
+    }
+    // Caricamento dinamico delle leghe
+    async function caricaLeghe() {
+        let url=new URL(LEGHE_URL);
+        try {
+            const token = localStorage.getItem('access_token');
+            let response = await fetch(url, {
+                method: 'GET', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+        // Gestione del token scaduto
+            if (response.status === 401) {
+                const success = await refreshAccessToken();
+                if (success) {
+                    const newToken = localStorage.getItem('access_token');
+                    response= await fetch(url, {
+                    method: 'GET', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${newToken}`
+                    }
+                    });
+                } else {
+                    window.location.href = "login.html";
+                    return;
+                }
+            }
+
+            const leghe = await response.json();        
+            // 2. Pulisci il div dedicato alle leghe
+            containerLeagues.innerHTML = ""; 
+
+            leghe.forEach(lega => {
+                const link = document.createElement('a');
+                link.href = "lega_dashboard.html";
+                link.className = 'lega-link';
+                link.dataset.id=lega.id
+                link.innerHTML = `🏆 ${lega.name}`;
+            
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    // SE DOVESSE SERVIRE PER IL FRONTEND
+                    localStorage.setItem('selected_league_id', lega.id);
+                    window.location.href = "lega_dashboard.html";
+                };
+
+            // Aggiungi al contenitore specifico tra News e Logout
+                containerLeagues.appendChild(link);
+            });
+        } catch (error) {
+            console.error("Errore nel caricamento leghe:", error);
+        }
+    }
+
+    // TODO: Fare funzione che farà in POST l'inserimento della rosa
+    async function inserisciSquadra(){
+        
+    }
+
+    // Funzioni necessarie al recupero delle informazioni, ricerca e gestione dei calciatori
+    let databaseCalciatori;
+
+    async function recuperoGiocatori(){        
+        let url=new URL(PLAYERS_URL);
+        try {
+        // Chiamata senza header Authorization
+            let response = await fetch(url, {
+                method: 'GET'
+            });
+
+            if (response.status === 200) {
+                databaseCalciatori = await response.json();
+                console.log("Giocatori caricati senza token:", databaseCalciatori);
+            } else {
+                console.error("Il server ha risposto con errore:", response.status);
+            }
+        } catch (error) {
+            console.error("Errore durante la fetch:", error);
+        }
+    }
+
+    // --- FUNZIONE RICERCA ---
+    searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+        if (query.length < 2) return;
+
+        const filtrati = databaseCalciatori.filter(p => p.surname.toLowerCase().includes(query));
+        renderMercato(filtrati);
+    });
+
+    // Mostra i giocatori nello spazio sottostante
+    function renderMercato(calciatori) {
+        listaMercato.innerHTML = "";
+        calciatori.forEach(p => {
+            const row = document.createElement("div");
+            row.className = "player-row";
+            row.innerHTML = `
+                <div class="player-info">
+                    <span class="player-role">${p.role}</span>
+                    <span class="player-name">${p.surname}</span>
+                </div>
+                <button class="btn-add" onclick="aggiungiGiocatore(${p.id}, '${p.surname}', '${p.role}')">Aggiungi</button>
+            `;
+            listaMercato.appendChild(row);
+        });
+    }
+
+    // Invocazione delle funzioni necessarie al primo caricamento
+    caricaLeghe();
+    recuperoGiocatori(); 
 });

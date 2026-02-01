@@ -18,12 +18,13 @@
     <div id="mySidebar" class="sidebar">
         <div class="sidebar-header"><h3>FantaNews</h3></div>
         <nav class="sidebar-links">
-            <a href="home.html">🏠 News</a>
-            <a href="dashboard_lega.html">👤 Lega 1</a>
-            <a href="#">📊 Lega 2</a>
-            <a href="crea_lega.html">⚙️ Crea lega</a>
-            <hr>
-            <a href="#" id="logoutBtn">🚪 Log out</a>
+            <a href="home_news.html">🏠 News</a>
+            <div id="userLeagues"></div> 
+    
+            <hr> <a href="/pages/crea_lega.html">➕ Crea lega</a>
+            <form id="logoutForm" action="http://localhost:8000/auth/logout" method="POST" class="logout-form">
+                <button type="submit" class="logout-btn">🚪 Logout</button>
+            </form>
         </nav>
     </div>
 
@@ -39,7 +40,10 @@
         </section>
 
         <section class="widget">
-            <div class="widget-header">🏃 La tua Rosa (<span id="countRosa">0</span>/25)</div>
+            <div class="widget-header">👤 Partecipante: </div>
+            <input type="text" id="partecipant" placeholder="Inserisci la mail..." 
+                   style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px;">
+            <div class="widget-header">🏃 Rosa: (<span id="countRosa">0</span>/25)</div>
             <div id="miaRosaContenitore" class="players-list" style="background-color: #f1f5f9;">
                 <p id="emptyMsg" style="text-align:center; padding:20px; color: #94a3b8;">La tua rosa è vuota</p>
             </div>
