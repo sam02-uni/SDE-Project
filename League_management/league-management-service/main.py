@@ -70,6 +70,7 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
     response = requests.post(f"{league_service_url_base}{league_id}/participants", json=body_content, headers=headers)
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail=response.json().get('detail'))
+    print("league created:", response.json())
     
     # Squad business per creare rosa di utente in lega
     response = requests.post(f"{squad_service_url_base}", json={
@@ -125,7 +126,7 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     response_dict = response.json()
     dict_result.update({'currentMatchday':response_dict['currentMatchday'], 
                         'firstMatchStarted': response_dict['firstMatchStarted'], 
-                        'lastMatchFinished': response_dict('lastMatchFinished')}) # GUI controllerà questo e dovrà chiamare process centric 
+                        'lastMatchFinished': response_dict['lastMatchFinished']}) # GUI controllerà questo e dovrà chiamare process centric 
                                                                                   # matchday management /calculate_score
 
     # standing:

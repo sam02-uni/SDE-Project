@@ -87,7 +87,7 @@ services:
       - SQUAD_SERVICE_URL_BASE=http://squad-service:8000/business/squads/
     depends_on:
       - league-service
-      #- squad-service
+      - squad-service
 
   #Adapter Football service
   adapter-football-service:

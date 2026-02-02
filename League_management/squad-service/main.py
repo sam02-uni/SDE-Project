@@ -14,14 +14,13 @@ def read_root():
     return {"squad business service is running"}
 
 # creazione di una rosa associata ad una lega e ad un utente
-# TODO: TEST authorization part
 @app.post("/", status_code=201) # POST /business/squads
 def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
 
     user_id = logged_user['user_id']
     # minimum number of players check
     '''players = info.players
-    g, d, m, a = 0
+    g, d, m, a = 0,0,0,0
     for player in players:
         match player.role:
             case "G":

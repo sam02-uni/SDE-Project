@@ -31,13 +31,13 @@
 
         async function loadDashboard() {
             try {
-                let response = await fetch('http://localhost:8007/2/info_dashboard_league', {
-                    method: 'GET',
+                let response = await fetch('http://localhost:8007/5/add_participant', {
+                    method: 'POST',
                     credentials: 'include',
-                    /*headers: {
+                    headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({email_user:'lorbaldacci02@gmail.com', squad_name: 'SquadraProvaBalda', players: [
+                    body: JSON.stringify({email_user:'prova@gmail.com', squad_name: 'TestUtente_Prova', players: [
                         {
                             "name": "Mike",
                             "surname": "Maignan",
@@ -53,8 +53,16 @@
                             "role": "G",
                             "id": 251128,
                             "mean_rating": 0
+                        },
+                        {
+                            "serie_a_team": "ACF Fiorentina",
+                            "name": "Eddy",
+                            "surname": "Kouadio",
+                            "id": 267944,
+                            "role": "D",
+                            "mean_rating": 0
                         }
-                    ]})*/
+                    ]})
                 });
 
                 // 1. Se riceviamo 401, proviamo il recupero tramite refresh
