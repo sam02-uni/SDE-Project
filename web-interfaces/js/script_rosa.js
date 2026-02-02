@@ -1,5 +1,6 @@
 const LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
 const PLAYERS_URL="http://localhost:8007/process/league-management/allPlayers"
+const SQUAD_URL="http://localhost:8007/process/league-management"
 
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById("mySidebar");
@@ -10,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const miaRosaContenitore = document.getElementById("miaRosaContenitore");
     const countRosa = document.getElementById("countRosa");
     const containerLeagues = document.getElementById("userLeagues");
+    const saveSquad = document.getElementById("btnSalvaRosa");
+    const selectedLegaId = localStorage.getItem('selected_league_id');
 
     let miaRosa = [];
 
@@ -125,12 +128,63 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Errore nel caricamento leghe:", error);
         }
     }
+    
+    // Funzione che controlla che ci sia la lega
+    function controlloLega(){
+        if (!selectedLegaId) {
+            console.error("Nessuna lega selezionata! Torno alla home.");
+            window.location.href = "login.html"; // Opzionale: rimanda indietro se manca l'ID
+            return;
+        }
 
-    // TODO: Fare funzione che farà in POST l'inserimento della rosa
-    async function inserisciSquadra(){
-        
+        console.log("Stai visualizzando la lega con ID:", selectedLegaId);
     }
 
+    // Funzione che fa in POST l'inserimento della rosa
+    async function inserisciSquadra(){
+        const partecipant = document.getElementById("partecipant").value.trim();
+        const squadName = document.getElementById("squadName").value.trim();
+        
+        if (partecipant && squadName){
+            if (miaRosa.length == 25){
+                const squad  = miaRosa.map(playerInRosa => {
+                    return databaseCalciatori.find(c => c.id === playerInRosa.id);
+                }); // Per ogni elemento in miaRosa, cerchiamo il corrispettivo nel database
+                
+                // Chiamata POST per inserire la squadra
+                let url_completo = `${SQUAD_URL}/${selectedLegaId}/add_participant`;
+                let url = new URL(url_completo);
+                let response = await fetch(url, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}` 
+                    },
+                    body: JSON.stringify({ 
+                        "league_id": selectedLegaId, 
+                        "participantWithSquad": {
+                            "email_user":partecipant,
+                            "squad_name":squadName,
+                            "players": squad
+                        } 
+                    })
+                });
+                if (response.status != 200){
+                    alert("Errore imprevisto nell'inserimento della squadra.");
+                    console.log(response.status);
+                } else {
+                    alert("Inserimento avvenuto con successo!");
+                    location.reload();
+                }
+            } else {
+                alert("Numero di giocatori insufficienti, completare la rosa con 25 giocatori.");
+            }
+        } else {
+            alert("Inserire un partecipante o un nome squadra valido.");
+        }
+    }
+
+    saveSquad.addEventListener("click", inserisciSquadra);
     // Funzioni necessarie al recupero delle informazioni, ricerca e gestione dei calciatori
     let databaseCalciatori;
 
@@ -180,6 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Invocazione delle funzioni necessarie al primo caricamento
+    controlloLega();
     caricaLeghe();
     recuperoGiocatori(); 
 });

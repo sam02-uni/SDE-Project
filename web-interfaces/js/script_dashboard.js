@@ -218,6 +218,7 @@ async function caricaLeghe() {
     }
 }
 
+// TODO: Funzione che mostra solo al creatore della lega il button
 /* Funzione che mostra un button solo se l'utente è l'owner o meno
 // Esempio: userIdLogged lo prendi dal JWT o sessione, ownerId dal dato della lega/oggetto
 if (userIdLogged === ownerId) {
