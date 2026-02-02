@@ -42,9 +42,10 @@ def create_matchday_status(matchday_status: MatchdayStatus, session: Session = D
     session.refresh(matchday_status)
     return matchday_status
 
-@router.patch("/status/{matchday_status_id}", response_model=MatchdayStatus)
-def update_matchday_status(matchday_status_id: int, matchday_status_update: MatchDayStatusUpdate, session: Session = Depends(get_session)) -> MatchdayStatus:
-    matchday_status = session.get(MatchdayStatus, matchday_status_id)
+@router.patch("/status/{matchday_id}", response_model=MatchdayStatus) # Update matchday status providing the id of the matchday
+def update_matchday_status(matchday_id: int, matchday_status_update: MatchDayStatusUpdate, session: Session = Depends(get_session)) -> MatchdayStatus:
+    matchday_status = session.exec(select(MatchdayStatus).where(MatchdayStatus.matchday_id == matchday_id)).first()
+    #matchday_status = session.get(MatchdayStatus, matchday_id)
     if not matchday_status:
         raise HTTPException(status_code=404, detail="MatchDay Status not found")
     

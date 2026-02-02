@@ -39,7 +39,7 @@ def get_leagues_by_user(not_logged_user_id: Optional[int] = None, user: dict = D
 
 @app.get("/current_matchday")
 def get_current_matchday_info():
-    response = requests.get(f"{football_adapter_service_url_base}/current_matchday_info")
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info")
     if response.status_code != 200:
         return {"error": "unable to fetch current matchday info"}
     

@@ -150,11 +150,15 @@ def add_player_rating(rating: PlayerRating,  session: Session = Depends(get_sess
     # No update logic:
     try:
         with session.begin_nested():
-            session.add(PlayerRating(**rating))
+            session.add(rating)
             session.commit()
-    except Exception: # Se esiste già, passa oltre
+    except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=409, detail='Player rating alraedy exists')
+        print(f"ERRORE REALE: {type(e).__name__} - {e}") # Questo ti dirà la verità
+        raise HTTPException(status_code=409, detail=f"Errore: {str(e)}")    
+    #except Exception: # Se esiste già, passa oltre
+    #    session.rollback()
+    #    raise HTTPException(status_code=409, detail='Player rating alraedy exists')
     
      
     #session.add(rating)
