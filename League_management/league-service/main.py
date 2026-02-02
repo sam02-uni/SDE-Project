@@ -47,7 +47,7 @@ def get_current_matchday_info():
 
 @app.get("/{league_id}", response_model=League)
 def get_league_details(league_id: int):
-    league_data = requests.get(f"{data_service_url_base}/leagues/{league_id}").json()
+    league_data = requests.get(f"{data_service_url_base}leagues/{league_id}").json()
     return league_data
 
 @app.post("/", response_model=int, status_code=201) # response model è l'id della lega creata 
@@ -56,7 +56,7 @@ def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_toke
     user_id = user['user_id']
     print(user_id)
     payload = dict(name=league_data.name, max_credits=league_data.max_credits, owner_id=user_id) 
-    response = requests.post(f"{data_service_url_base}/leagues", json=payload)
+    response = requests.post(f"{data_service_url_base}leagues", json=payload)
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail="Not created")
     new_league = response.json()
@@ -74,7 +74,7 @@ def update_league(league_id: int):
 @app.get("/{league_id}/logged-owner", response_model=dict) # is the logged user the owner of the league?
 def is_logged_user_league_owner(league_id: int, user: dict = Depends(verify_token)):
     logged_user_id = user['user_id']
-    response = requests.get(f"{data_service_url_base}/leagues/{league_id}")
+    response = requests.get(f"{data_service_url_base}leagues/{league_id}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="League not found")
     if response.json()['owner_id'] == logged_user_id:
@@ -83,7 +83,7 @@ def is_logged_user_league_owner(league_id: int, user: dict = Depends(verify_toke
 
 @app.get("/{league_id}/table", response_model=list[TableSquadInfo]) # classifica della lega
 def get_league_table(league_id: int):
-    squads_data = requests.get(f"{data_service_url_base}/squads?league_id={league_id}").json()
+    squads_data = requests.get(f"{data_service_url_base}squads?league_id={league_id}").json()
     print(squads_data)
     sortered_squad_dict = sorted(squads_data, key=lambda x: x['score'], reverse=True) # sort per scores in descending
     return sortered_squad_dict
@@ -93,19 +93,19 @@ def add_league_participant(league_id: int, email_participant: emailParticipant, 
 
     # logged user is an admin of the league?
     user_id = user['user_id']
-    league_info = requests.get(f"{data_service_url_base}/leagues/{league_id}").json()
+    league_info = requests.get(f"{data_service_url_base}leagues/{league_id}").json()
     if league_info['owner_id'] != user_id:
         raise HTTPException(status_code=403, detail="The logged user is not the admin of this league")
     
     # get participant id
-    response = requests.get(f"{data_service_url_base}/users/by-email?user_email={email_participant.email_participant}")
+    response = requests.get(f"{data_service_url_base}users/by-email?user_email={email_participant.email_participant}")
     if response.status_code != 200:
         print(response.json())
         raise HTTPException(status_code=response.status_code, detail="User with this email not found")
     participant = response.json()
     
     # al league data service passare id_lega e id_partecipante
-    response = requests.post(f"{data_service_url_base}/leagues/{league_id}/participants", json=participant['id'])
+    response = requests.post(f"{data_service_url_base}leagues/{league_id}/participants", json=participant['id'])
     if response.status_code !=201:
         raise HTTPException(status_code=response.status_code, detail="User not added as participant")
     

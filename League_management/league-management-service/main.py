@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "PATCH", "PUT"],   # QUESTO abilita OPTIONS
+    allow_methods=["*"],   # QUESTO abilita OPTIONS
     allow_headers=["*"],   # QUESTO abilita Authorization
 )
 
@@ -111,14 +111,14 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     dict_result = dict()
 
     # is admin ?
-    response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/logged-owner", headers=headers)
+    response = requests.get(f"{league_service_url_base}{league_id}/logged-owner", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get league owner infos")
     
     dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
      
     # current matchday:
-    response = requests.get(f"{league_service_url_base}/business/leagues/current_matchday")
+    response = requests.get(f"{league_service_url_base}current_matchday")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get current matchday infos")
 
@@ -129,7 +129,7 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
                                                                                   # matchday management /calculate_score
 
     # standing:
-    response = requests.get(f"{league_service_url_base}/business/leagues/{league_id}/table")
+    response = requests.get(f"{league_service_url_base}{league_id}/table")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get standing infos")
     
