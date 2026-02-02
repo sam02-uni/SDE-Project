@@ -144,34 +144,36 @@ document.addEventListener("DOMContentLoaded", () => {
     async function inserisciSquadra(){
         const partecipant = document.getElementById("partecipant").value.trim();
         const squadName = document.getElementById("squadName").value.trim();
-        
+        const token = localStorage.getItem('access_token');
         if (partecipant && squadName){
             if (miaRosa.length == 25){
                 const squad  = miaRosa.map(playerInRosa => {
                     return databaseCalciatori.find(c => c.id === playerInRosa.id);
                 }); // Per ogni elemento in miaRosa, cerchiamo il corrispettivo nel database
-                
+                console.log(squad);
                 // Chiamata POST per inserire la squadra
                 let url_completo = `${SQUAD_URL}/${selectedLegaId}/add_participant`;
                 let url = new URL(url_completo);
+                console.log(JSON.stringify({ 
+                        "email_user":partecipant,
+                        "squad_name":squadName,
+                        "players": squad
+                    }));
                 let response = await fetch(url, {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${currentToken}` 
+                        "Authorization": `Bearer ${token}` 
                     },
-                    body: JSON.stringify({ 
-                        "league_id": selectedLegaId, 
-                        "participantWithSquad": {
-                            "email_user":partecipant,
-                            "squad_name":squadName,
-                            "players": squad
-                        } 
+                    body: JSON.stringify({  
+                        "email_user":partecipant,
+                        "squad_name":squadName,
+                        "players": squad
                     })
                 });
-                if (response.status != 200){
+                if (response.status != 201){
                     alert("Errore imprevisto nell'inserimento della squadra.");
-                    console.log(response.status);
+                    console.log(response.status, response.body);
                 } else {
                     alert("Inserimento avvenuto con successo!");
                     location.reload();

@@ -72,12 +72,12 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
         raise HTTPException(status_code=response.status_code, detail=response.json().get('detail'))
     
     # Squad business per creare rosa di utente in lega
-    response = requests.post(f"{squad_service_url_base}/business/squads", json={
+    response = requests.post(f"{squad_service_url_base}", json={
         "owner_email": participantWithSquad.email_user, 
         "league_id": league_id,
         "name": participantWithSquad.squad_name,
         "players": jsonable_encoder(participantWithSquad.players)
-    })
+    }, headers=headers)
     
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail="Squad not created")
