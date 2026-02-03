@@ -106,6 +106,7 @@ async function caricaLeghe() {
                 e.preventDefault();
                 // SE DOVESSE SERVIRE PER IL FRONTEND
                 localStorage.setItem('selected_league_id', lega.id);
+                localStorage.setItem('nome_lega', lega.name);
                 window.location.href = "lega_dashboard.html";
             };
 
@@ -197,7 +198,10 @@ if (logoutForm) {
                 }
 
                 if (response.ok) {
+                    let legaId = await response.json();
                     alert(`Lega "${nome}" creata con successo!`);
+                    localStorage.setItem('selected_league_id', legaId);
+                    localStorage.setItem('nome_lega', nome);
                     window.location.href = "lega_dashboard.html";
                 } else {
                     const errorData = await response.json();

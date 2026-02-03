@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const containerLeagues = document.getElementById("userLeagues");
     const logoutForm = document.getElementById('logoutForm');
     const leagueId = localStorage.getItem("selected_league_id");
+    const numeroGiornata = document.getElementById("numeroGiornata");
+    const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
+    const leagueName = document.getElementById("leagueNameDisplay");
 
     // --- 1. LOGICA SIDEBAR (TENDINA A SFIORAMENTO) ---
     const openNav = () => {
@@ -64,37 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- 3. POPOLAMENTO GIOCATORI (SIMULAZIONE DATI) ---
-    function caricaCalciatori() {
-        const lista = document.getElementById("listaCalciatori");
-        
-        // Dati di esempio (questi arriveranno dal tuo Business Layer)
-        const miaRosa = [
-            { id: 1, nome: "Maignan", ruolo: "POR" },
-            { id: 2, nome: "Theo Hernandez", ruolo: "D" },
-            { id: 3, nome: "Bastoni", ruolo: "D" },
-            { id: 4, nome: "Barella", ruolo: "C" },
-            { id: 5, nome: "Pulisic", ruolo: "C" },
-            { id: 6, nome: "Lautaro Martinez", ruolo: "A" }
-        ];
-
-        lista.innerHTML = ""; // Svuota la lista precedente
-
-        miaRosa.forEach(player => {
-            const row = document.createElement("div");
-            row.className = "player-row";
-            row.innerHTML = `
-                <div class="player-info">
-                    <span class="player-role">${player.ruolo}</span>
-                    <span class="player-name">${player.nome}</span>
-                </div>
-                <input type="checkbox" class="player-checkbox" value="${player.id}">
-            `;
-            lista.appendChild(row);
-        });
-    }
-
     // --- 4. SALVATAGGIO FORMAZIONE ---
+    // TODO: cambiare in modo tale che salvi la formazione nel db
     if (saveBtn) {
         saveBtn.addEventListener("click", () => {
             const selezionati = Array.from(document.querySelectorAll('.player-checkbox:checked'))
@@ -209,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     e.preventDefault();
                     // SE DOVESSE SERVIRE PER IL FRONTEND
                     localStorage.setItem('selected_league_id', lega.id);
+                    localStorage.setItem('nome_lega', lega.name);
                     window.location.href = "lega_dashboard.html";
                 };
 
@@ -231,15 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Stai visualizzando la lega con ID:", leagueId);
     }
-    // TODO: Funzione che mostra solo al creatore della lega il button
-    /* Funzione che mostra un button solo se l'utente è l'owner o meno
-    // Esempio: userIdLogged lo prendi dal JWT o sessione, ownerId dal dato della lega/oggetto
-    if (userIdLogged === ownerId) {
-        document.getElementById('tuo-bottone-id').style.display = 'block';
-    } else {
-        document.getElementById('tuo-bottone-id').style.display = 'none';
-    }
-    */
+
     // Recupero le informazioni riguardo alla lega
     async function infoLega(){
         let url_completo = `${PROCESS_BASE_URL}/${leagueId}/info_dashboard_league`;
@@ -273,13 +240,104 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = "login.html";
                     return;
                 }
-
-                const infoLega = await response.json();
-                console.log(infoLega);
             }
+            const infoLega = await response.json();
+            console.log(infoLega);
+            
+            // Display dei vari pulsanti in base ad alcune info
+            if (infoLega.isAdmin){
+                btnInserisciSquadra.style.display = 'block';
+                if (infoLega.lastMatchFinished){
+                    btnCalcoloGiornata.style.display = 'block';
+                } else {
+                    btnCalcoloGiornata.style.display = 'none';
+                }
+            } else {
+                btnInserisciSquadra.style.display = 'none';
+            }
+
+            if (infoLega.firstMatchStarted){
+                btnFormazione.style.display = 'none';
+            } else {
+                btnFormazione.style.display = 'block';
+            }
+            // Display del numero di giornata
+            numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
+            let nome_lega = localStorage.getItem('nome_lega');
+            leagueName.textContent = `${nome_lega} - Serie A`;
+
         } catch(error){
             console.error("Errore nel caricamento delle informazioni della lega:", error);
         }
+    }
+
+    // --- 3. POPOLAMENTO GIOCATORI (SIMULAZIONE DATI) ---
+    async function caricaCalciatori() {
+        const lista = document.getElementById("listaCalciatori");
+        
+        // TODO: fare chiamata per recuperare la rosa dell'utente
+        
+        let url_completo = `${PROCESS_BASE_URL}/${leagueId}/info_dashboard_league`;
+        let url = new URL(url_completo);
+        try{
+            const token = localStorage.getItem('access_token');
+            let response = await fetch(url, {
+                method: 'GET', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Gestione del token scaduto
+            if (response.status === 401) {
+                console.log("MI HA DATO L'ERRORE (401 intercettato)");
+                console.log("E ANDATO L'ERRORE")
+                const success = await refreshAccessToken();
+                console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
+                if (success) {
+                    const newToken = localStorage.getItem('access_token');
+                    response= await fetch(url, {
+                        method: 'GET', 
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${newToken}`
+                        }
+                    });
+                } else {
+                    window.location.href = "login.html";
+                    return;
+                }
+            }
+            const infoLega = await response.json();
+        
+        } catch(error){
+            console.error("Errore nel caricamento delle informazioni della lega:", error);
+        }
+        // Dati di esempio (questi arriveranno dal tuo Business Layer)
+        const miaRosa = [
+            { id: 1, nome: "Maignan", ruolo: "POR" },
+            { id: 2, nome: "Theo Hernandez", ruolo: "D" },
+            { id: 3, nome: "Bastoni", ruolo: "D" },
+            { id: 4, nome: "Barella", ruolo: "C" },
+            { id: 5, nome: "Pulisic", ruolo: "C" },
+            { id: 6, nome: "Lautaro Martinez", ruolo: "A" }
+        ];
+
+        lista.innerHTML = ""; // Svuota la lista precedente
+
+        miaRosa.forEach(player => {
+            const row = document.createElement("div");
+            row.className = "player-row";
+            row.innerHTML = `
+                <div class="player-info">
+                    <span class="player-role">${player.ruolo}</span>
+                    <span class="player-name">${player.nome}</span>
+                </div>
+                <input type="checkbox" class="player-checkbox" value="${player.id}">
+            `;
+            lista.appendChild(row);
+        });
     }
 
     //Carico le leghe
