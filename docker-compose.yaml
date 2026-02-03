@@ -206,6 +206,8 @@ services:
   web-interface:
     image: web-interface
     build: ./web-interfaces
+    volumes:
+      - ./web-interfaces:/usr/share/nginx/html
     ports:
       - "3000:80"
 

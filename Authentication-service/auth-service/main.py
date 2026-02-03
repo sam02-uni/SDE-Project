@@ -144,7 +144,7 @@ def auth_callback(code: str):
     })
 
     #  Imposta cookie e redirect
-    redirect_url = f"http://localhost:3000/pages/home_news.html?token={internal_jwt}"
+    redirect_url = f"http://localhost:3000/pages/save_token.html?token={internal_jwt}"
     response = RedirectResponse(url=redirect_url)
    # response = RedirectResponse(url="http://localhost:3000/pages/home_news.html")
     cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
 
@@ -7,6 +8,14 @@ app = FastAPI(title = "Matchday Management Service", root_path="/process/matchda
 lineup_service_url_base = os.getenv("LINEUP_SERVICE_URL_BASE", "http://lineup-service:8000") # TODO add in Compose
 #league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") # TODO add in Compose
 squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000") # TODO add in Compose
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],   # QUESTO abilita OPTIONS
+    allow_headers=["*"],   # QUESTO abilita Authorization
+)
 
 @app.get("/")
 def read_root():  

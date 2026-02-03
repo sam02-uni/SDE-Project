@@ -13,15 +13,14 @@
             try {
                 const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
                     method: 'POST',
-                    credentials: 'include' // Indispensabile per inviare/ricevere cookie
+                    credentials: 'include' // Invia il cookie refresh_token alla 8000
                 });
 
-                if (!refreshResp.ok) {
-                    throw new Error('Sessione scaduta, effettuare login');
-                }
+                if (!refreshResp.ok) throw new Error('Sessione scaduta');
 
-                // Se il server ha risposto 200 OK, il browser ha già aggiornato 
-                // il cookie "access_token" grazie all'header Set-Cookie.
+                const data = await refreshResp.json();
+                // Salvo il nuovo access token il local storage
+                localStorage.setItem('access_token', data.access_token); 
                 return true; 
             } catch (err) {
                 console.error('Errore refresh:', err);

@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from datetime import datetime
 
 app = FastAPI(title="Business Service")
-AUTH_SERVICE_URL = "http://fanta-auth-service:8000/auth"
+AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
 
 
 async def get_public_key(kid: str):
@@ -24,6 +24,8 @@ async def verify_token(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Token mancante o malformato")
     
     access_token = authorization.split(" ")[1]  # prendi solo il token dopo "Bearer "
+    if access_token=="null":
+        raise HTTPException(status_code=401, detail="Token mancante")
 
     unverified_header = jwt.get_unverified_header(access_token)
     kid = unverified_header.get("kid")

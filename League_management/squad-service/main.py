@@ -16,7 +16,7 @@ def read_root():
 # creazione di una rosa associata ad una lega e ad un utente
 @app.post("/", status_code=201) # POST /business/squads
 def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
-
+    print("AISFSJDGJSDGJSJDGJDSFGJ")
     user_id = logged_user['user_id']
     # minimum number of players check
     '''players = info.players
@@ -36,7 +36,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
                 a=+1
                 continue
 
-    if g < 3 or d < 6 or m < 6 or a < 6:
+    if g < 3 or d < 6 or m < 6 or a < 6: # 21 giocatori
         raise HTTPException(status_code = 400, detail="Not enough players in squad")
     '''
     # authorization : user loggato è admin della lega ?
@@ -45,7 +45,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
         raise HTTPException(status_code = 400, detail="Bad Request: the squad league does not exists")
     if user_id != response.json()['owner_id']:
         raise HTTPException(status_code = 403, detail="Action is Forbidden for the logged user")
-
+    print("authorization passed")
 
     response = requests.get(f"{data_service_url_base}/users/by-email?user_email={info.owner_email}") # id dell owner della squadra
     if response.status_code != 200:

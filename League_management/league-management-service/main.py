@@ -57,7 +57,7 @@ def get_all_players():
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
 
-@app.post("/{league_id}/add_participant", status_code=201, response_model=str) # Add User With Their Squad to League
+@app.post("/{league_id}/add_participant", status_code=201, response_model=int) # Add User With Their Squad to League
 def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantUserWithSquad, request: Request):
 
     headers = check_auth_headers(request)
@@ -70,7 +70,7 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
     response = requests.post(f"{league_service_url_base}{league_id}/participants", json=body_content, headers=headers)
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail=response.json().get('detail'))
-    print("league created:", response.json())
+    print("participant added:", response.json())
     
     # Squad business per creare rosa di utente in lega
     response = requests.post(f"{squad_service_url_base}", json={
