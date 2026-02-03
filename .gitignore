@@ -35,3 +35,6 @@ Thumbs.db
 keys/
 *.key
 *.pem
+
+# Lorenzo testing:
+*test.html

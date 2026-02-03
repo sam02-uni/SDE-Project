@@ -89,6 +89,9 @@ def add_participant_to_league(league_id: int, participant_id: Annotated[int, Bod
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    if user in league.participants:
+        raise HTTPException(status_code = 409, detail = "User already partecipating in this league")
+    
     league.participants.append(user)  # aggiungo l'utente alla lista dei partecipanti della lega tramite RELATIONSHIP
     session.add(league)
     session.commit()
