@@ -137,3 +137,13 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     dict_result.update({'table': response.json()})
 
     return dict_result
+
+@app.get("/take_squad/{league_id}")
+def get_all_players(league_id: int, request: Request):
+    headers = check_auth_headers(request)
+    response = requests.get(f"{squad_service_url_base}take_squad/{league_id}", headers=headers)
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
+
+
