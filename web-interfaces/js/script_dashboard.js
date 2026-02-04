@@ -4,6 +4,63 @@
  */
 LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
 PROCESS_BASE_URL="http://localhost:8007/process/league-management"
+MATCHDAY_URL="http://localhost:8017/process/matchday-management"
+
+let formazione = {
+    titolari: [], // Max 11
+    panchina: []  // Max 7
+};
+
+function selectRole(element, playerId, tipo) {
+    // Invece di getElementById, cerchiamo il genitore comune
+    const container = element.closest('.formation-controls');
+    
+    if (!container) {
+        console.error("Errore: contenitore .formation-controls non trovato!");
+        return;
+    }
+
+    const isAlreadySelected = element.classList.contains('selected-t') || element.classList.contains('selected-p');
+
+    if (isAlreadySelected) {
+        // 1. Rimuoviamo graficamente il colore
+        element.classList.remove('selected-t', 'selected-p');
+        
+        // 2. Rimuoviamo l'ID dagli array
+        formazione.titolari = formazione.titolari.filter(id => id !== playerId);
+        formazione.panchina = formazione.panchina.filter(id => id !== playerId);
+        
+        console.log(`Rimosso giocatore ${playerId}. Titolari: ${formazione.titolari.length}, Panchina: ${formazione.panchina.length}`);
+        return; // Usciamo dalla funzione, il lavoro è finito!
+    }
+
+    // Ora che abbiamo il container, troviamo i bottoni al suo INTERNO
+    const buttons = container.querySelectorAll('.btn-sel');
+
+    // 1. Reset grafico per questa riga
+    buttons.forEach(btn => btn.classList.remove('selected-t', 'selected-p'));
+
+    // 2. Logica di aggiornamento (Rimuovi da entrambi per evitare duplicati)
+    formazione.titolari = formazione.titolari.filter(id => id !== playerId);
+    formazione.panchina = formazione.panchina.filter(id => id !== playerId);
+
+    // 3. Aggiunta e colore
+    if (tipo === 't') {
+        if (formazione.titolari.length < 11) {
+            formazione.titolari.push(parseInt(playerId));
+            element.classList.add('selected-t');
+        } else {
+            alert("Hai già 11 titolari!");
+        }
+    } else if (tipo === 'p') {
+        if (formazione.panchina.length < 7) {
+            formazione.panchina.push(parseInt(playerId));
+            element.classList.add('selected-p');
+        } else {
+            alert("La panchina è piena (max 7)!");
+        }
+    }
+}
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -56,6 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
         btnFormazione.addEventListener("click", () => {
             modal.style.display = "block";
             overlay.classList.add("active"); // Mostra l'overlay anche per la modal
+            formazione.titolari = [];
+            formazione.panchina = [];
             caricaCalciatori();
         });
     }
@@ -66,29 +125,44 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.classList.remove("active");
         });
     }
+    async function saveFormation(){            
+        console.log("Salvataggio formazione, ID selezionati:  T:", formazione.titolari, " P:", formazione.panchina);
+        let squadId = localStorage.getItem("squad_id");
+        let current = localStorage.getItem("current_matchday");
+        modal.style.display = "none";
+        overlay.classList.remove("active");
+        
+        // Chiamata al process per inserire la formazione
+        try{
+            const token = localStorage.getItem('access_token');
+            let url_completo = `${MATCHDAY_URL}/lineups`;
+            let url = new URL(url_completo);
+            let response = await fetch(url, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` 
+                },
+                body: JSON.stringify({  
+                    "squad_id" : parseInt(squadId),
+                    "matchday_number" : parseInt(current),
+                    "starting_ids" : formazione.titolari,
+                    "bench_ids" : formazione.panchina
+                })
+            });
 
-    // --- 4. SALVATAGGIO FORMAZIONE ---
-    // TODO: cambiare in modo tale che salvi la formazione nel db
-    if (saveBtn) {
-        saveBtn.addEventListener("click", () => {
-            const selezionati = Array.from(document.querySelectorAll('.player-checkbox:checked'))
-                                     .map(cb => cb.value);
-            
-            console.log("Salvataggio formazione, ID selezionati:", selezionati);
-            alert("Formazione salvata con successo!");
-            let squadId = localStorage.getItem("squad_id");
-            modal.style.display = "none";
-            overlay.classList.remove("active");
-
-            // Chiamata al process per inserire la formazione
-            try{
-
-            } catch (error){
-                console.error('Unexpected error', error);
+            if (response.status != 201){
+                alert("Errore imprevisto nel salvataggio della formazione");
+            } else {
+                alert("Formazione salvata correttamente");
             }
 
-        });
+        } catch (error){
+            console.error('Unexpected error', error);
+        }
     }
+    // --- 4. SALVATAGGIO FORMAZIONE ---
+    saveBtn.addEventListener("click", saveFormation);
 
     // --- 5. LOGOUT (PROCESS CENTRIC) ---
     // Chiamata al logout
@@ -272,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Display del numero di giornata
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
             let nome_lega = localStorage.getItem('nome_lega');
+            localStorage.setItem("current_matchday", infoLega.currentMatchday)
             leagueName.textContent = `${nome_lega} - Serie A`;
 
         } catch(error){
@@ -334,16 +409,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="player-info">
                     <span class="player-role">${player.role} - ${player.serie_a_team}</span>
                     <span class="player-name">${player.name} ${player.surname}</span>
+                <div class="formation-controls">
+                    <button type="button" class="btn-sel t-btn" onclick="selectRole(this, '${player.id}', 't')">T</button>
+                    <button type="button" class="btn-sel p-btn" onclick="selectRole(this, '${player.id}', 'p')">P</button>
                 </div>
-                <input type="checkbox" class="player-checkbox" value="${player.id}">
             `;
             lista.appendChild(row);
         });
     }
 
-    //Carico le leghe
+    //Carico le informazioni necessarie per la paginasave
     caricaLeghe();
     infoLega();
     controlloLega();
-    // caricaCalciatori();
 });

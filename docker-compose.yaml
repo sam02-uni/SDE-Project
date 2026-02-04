@@ -199,7 +199,7 @@ services:
       - ./matchday_management/matchday_management_service:/app 
     environment:
       - SQUAD_SERVICE_URL_BASE=http://squad-service:8000/business/squads/
-      - LINEUP_SERVICE_URL_BASE=http://lineup-service:8000/business/lineups/
+      - LINEUP_SERVICE_URL_BASE=http://lineup-service:8000/business/lineups
       - LEAGUE_SERVICE_URL_BASE=http://league-service:8000/business/leagues/
     depends_on:
       - squad-service

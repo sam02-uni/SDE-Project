@@ -76,7 +76,7 @@ def calculate_scores():
     return scores
 
 
-@app.post("/lineups/", status_code=201)
+@app.post("/lineups", status_code=201)
 def create_lineup(lineup: LineUpCreate, request: Request):
 
     headers = check_auth_headers(request)

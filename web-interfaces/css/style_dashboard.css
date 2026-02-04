@@ -338,3 +338,52 @@ body {
     gap: 15px; 
     flex-wrap: wrap;
 }
+
+.formation-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-sel {
+    border: 1px solid #ccc;
+    background: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+/* Classe da aggiungere via JS quando il bottone è attivo */
+.btn-sel.active-t { background-color: #28a745; color: white; border-color: #1e7e34; }
+.btn-sel.active-p { background-color: #ffc107; color: black; border-color: #d39e00; }
+
+/* Stile base dei pulsanti */
+.btn-sel {
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+/* Classe per il Titolare selezionato */
+.selected-t {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-color: #1e7e34 !important;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+/* Classe per il Panchinaro selezionato */
+.selected-p {
+    background-color: #fd7e14 !important;
+    color: white !important;
+    border-color: #d35400 !important;
+    box-shadow: 0 0 5px rgba(253, 126, 20, 0.5);
+}
+
+.selected-t:hover, .selected-p:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
