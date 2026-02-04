@@ -69,10 +69,6 @@ def create_squad_with_players(squad: SquadWithPlayers, session: Session = Depend
 
     return new_squad
 
-
-
-
-
 @router.patch("/{squad_id}", response_model=Squad)  # PATCH /squads/{squad_id} , name and score are the only modifiable attributes
 def update_squad(squad_id: int, updated_squad: SquadUpdate, add_score: Optional[bool] = None, session: Session = Depends(get_session)) -> Squad:
     db_squad = session.get(Squad, squad_id)

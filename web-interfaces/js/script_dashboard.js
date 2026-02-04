@@ -76,8 +76,17 @@ document.addEventListener("DOMContentLoaded", () => {
             
             console.log("Salvataggio formazione, ID selezionati:", selezionati);
             alert("Formazione salvata con successo!");
+            let squadId = localStorage.getItem("squad_id");
             modal.style.display = "none";
             overlay.classList.remove("active");
+
+            // Chiamata al process per inserire la formazione
+            try{
+
+            } catch (error){
+                console.error('Unexpected error', error);
+            }
+
         });
     }
 
@@ -113,6 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
     // Refresh token function
     async function refreshAccessToken() {
         try {
@@ -168,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const leghe = await response.json();
-        
             // 2. Pulisci il div dedicato alle leghe
             containerLeagues.innerHTML = ""; 
 
@@ -243,7 +252,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const infoLega = await response.json();
             console.log(infoLega);
-            
             // Display dei vari pulsanti in base ad alcune info
             if (infoLega.isAdmin){
                 btnInserisciSquadra.style.display = 'block';
@@ -257,9 +265,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (infoLega.firstMatchStarted){
-                btnFormazione.style.display = 'none';
+                // btnFormazione.style.display = 'none';
             } else {
-                btnFormazione.style.display = 'block';
+                // btnFormazione.style.display = 'block';
             }
             // Display del numero di giornata
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
@@ -274,10 +282,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- 3. POPOLAMENTO GIOCATORI (SIMULAZIONE DATI) ---
     async function caricaCalciatori() {
         const lista = document.getElementById("listaCalciatori");
-        
+        let playerSquad;
         // TODO: fare chiamata per recuperare la rosa dell'utente
         
-        let url_completo = `${PROCESS_BASE_URL}/${leagueId}/info_dashboard_league`;
+        let url_completo = `${PROCESS_BASE_URL}/take_squad/${leagueId}`;
         let url = new URL(url_completo);
         try{
             const token = localStorage.getItem('access_token');
@@ -309,30 +317,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
             }
-            const infoLega = await response.json();
-        
+            playerSquad = await response.json();
+            localStorage.setItem('squad_id', playerSquad.id);
         } catch(error){
             console.error("Errore nel caricamento delle informazioni della lega:", error);
         }
         // Dati di esempio (questi arriveranno dal tuo Business Layer)
-        const miaRosa = [
-            { id: 1, nome: "Maignan", ruolo: "POR" },
-            { id: 2, nome: "Theo Hernandez", ruolo: "D" },
-            { id: 3, nome: "Bastoni", ruolo: "D" },
-            { id: 4, nome: "Barella", ruolo: "C" },
-            { id: 5, nome: "Pulisic", ruolo: "C" },
-            { id: 6, nome: "Lautaro Martinez", ruolo: "A" }
-        ];
+        const miaRosa = playerSquad.players;
 
         lista.innerHTML = ""; // Svuota la lista precedente
 
-        miaRosa.forEach(player => {
+        Object.entries(miaRosa).forEach(([id, player]) => {
             const row = document.createElement("div");
             row.className = "player-row";
             row.innerHTML = `
                 <div class="player-info">
-                    <span class="player-role">${player.ruolo}</span>
-                    <span class="player-name">${player.nome}</span>
+                    <span class="player-role">${player.role} - ${player.serie_a_team}</span>
+                    <span class="player-name">${player.name} ${player.surname}</span>
                 </div>
                 <input type="checkbox" class="player-checkbox" value="${player.id}">
             `;
@@ -344,5 +345,5 @@ document.addEventListener("DOMContentLoaded", () => {
     caricaLeghe();
     infoLega();
     controlloLega();
-
+    // caricaCalciatori();
 });

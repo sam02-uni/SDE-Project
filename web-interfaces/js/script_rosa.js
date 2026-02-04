@@ -227,8 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
             row.className = "player-row";
             row.innerHTML = `
                 <div class="player-info">
-                    <span class="player-role">${p.role}</span>
-                    <span class="player-name">${p.surname}</span>
+                    <span class="player-role">${p.role} - ${p.serie_a_team}</span>
+                    <span class="player-name">${p.name} ${p.surname}</span>
                 </div>
                 <button class="btn-add" onclick="aggiungiGiocatore(${p.id}, '${p.surname}', '${p.role}')">Aggiungi</button>
             `;
