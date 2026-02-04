@@ -188,7 +188,7 @@ services:
       - FOOTBALL_ADAPTER_SERVICE_URL_BASE=http://adapter-football-service:8000/
     depends_on:
       - data-service
-      - grades-scraper-service
+      #- grades-scraper-service
 
   matchday-management-service:
     build: ./matchday_management/matchday_management_service

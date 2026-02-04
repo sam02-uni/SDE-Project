@@ -51,7 +51,7 @@ def get_lineup(lineup_id: int, session: Session = Depends(get_session)) -> LineU
     return lineup
 
 
-@router.post("/", response_model=LineUp)  # POST /lineups
+@router.post("/", response_model=LineUp, status_code=201)  # POST /lineups
 def create_lineup(lineup: LineUpWithPlayers, session: Session = Depends(get_session)) -> LineUp:
 
     new_lineup = LineUp(

@@ -85,6 +85,31 @@ def getAllPlayers():
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
 
+@app.get("/by-league")
+def get_squads_by_league(league_id: int):
+    response = requests.get(f"{data_service_url_base}/squads?league_id={league_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = "Unable to get squads of the league")
+    squads = response.json()
+    return squads
+
+@app.get("/take_squad/{league_id}")
+def get_squad_by_league(league_id:int,  logged_user: dict = Depends(verify_token)):
+    user_id = logged_user["user_id"]
+    parametri = {
+        "league_id" : league_id,
+        "user_id" : user_id
+    }
+    response = requests.get(f"{data_service_url_base}/squads", params=parametri)
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    data = response.json()
+    squad_id = data[0]["id"]
+    response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players", params=parametri)
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    return response.json()
+
 # aggiunta di un giocatore ad una rosa
 # TODO: test
 # Optional se vogliamo
@@ -116,19 +141,4 @@ def get_squad_by_id(squad_id:int, with_players: bool=False):
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
 
-@app.get("/take_squad/{league_id}")
-def get_squad_by_league(league_id:int,  logged_user: dict = Depends(verify_token)):
-    user_id = logged_user["user_id"]
-    parametri = {
-        "league_id" : league_id,
-        "user_id" : user_id
-    }
-    response = requests.get(f"{data_service_url_base}/squads", params=parametri)
-    if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
-    data = response.json()
-    squad_id = data[0]["id"]
-    response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players", params=parametri)
-    if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
-    return response.json()
+

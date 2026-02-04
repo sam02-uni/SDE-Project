@@ -60,6 +60,12 @@ def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_toke
     if response.status_code != 201:
         raise HTTPException(status_code=response.status_code, detail="Not created")
     new_league = response.json()
+
+    # add owner as participant
+    response = requests.post(f"{data_service_url_base}leagues/{new_league['id']}/participants", json=new_league['owner_id'])
+    if response.status_code !=201:
+        raise HTTPException(status_code=response.status_code, detail="Ownwe not added as participant")
+    
     print(new_league)
     return new_league["id"]
 

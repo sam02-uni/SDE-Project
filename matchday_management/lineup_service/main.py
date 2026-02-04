@@ -3,6 +3,7 @@ import requests
 import os
 from models import LineUpCreate
 from dependency import verify_token
+from typing import Optional
 
 app = FastAPI(title= "lineup business service", root_path="/business/lineups")
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
@@ -14,7 +15,27 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
+# TODO: TEST
+@app.get("/by-squad")
+def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
+    # TODO: fare authorization ? discuti con Mariano e Samuele
 
+    matchday_id = None
+    if matchday_number:
+        # get matchday_id:
+        response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday_number}")
+        if response.status_code != 200:
+                raise HTTPException(status_code = response.status_code, detail = "Matchday not found")
+        matchday_id = response.json()[0]['id']
+
+    # get lineups
+    response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad_id}&matchday_id={matchday_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = "Lineups not found")
+    lineups = response.json() # squad with players
+
+    return lineups
+    
 @app.post("/", status_code = 201)
 def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and matchday specified in lineup object
     # Recupero id dell'utente di sessione
@@ -124,7 +145,6 @@ def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the g
     return result
 
              
-
 @app.get("/update_grades") 
 def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
  

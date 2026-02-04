@@ -58,22 +58,35 @@ def get_lineup_grades(lineup_id: int):
         raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
     return response.json()
 
-@app.get("lineups/calculate_scores") # calcuate scores for all lineups and update in back
-def calculate_scores(): 
-    # TODO: decidere cosa far passare qui da GuI
-    # 1: league_id (ce l'ha) e matchday (ce l'ha)
-    # 2: (scelta più service oriented) una serie di id di lineups che la gui deve avere
+# TODO: TEST - UNA VOLTA CHIAMATO QUESTO DALLA GUI, SUCCESSIVAMENTE RICHIAMARE INFO DASHBOARD PER OTTENERE CLASSIFICA RICALCOLATA
+@app.get("leagues/{league_id}/lineups/calculate_scores") # calcuate scores for all lineups and update in back
+def calculate_scores(league_id: int, matchday_number: int, request: Request): 
     
-    # Poi chiamare il lineup business con {lineup_id}/calculate_score per ognuna e returna per ogni linuep_id lo score alla gui
-    lineup_ids = [] # fake TODO
-    scores = []
-    for lineup_id in lineup_ids:
-        response = requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_id}/calculate_score")
+    headers = check_auth_headers(request)
+
+    # get squads of the league
+    response = requests.get(f"{squad_service_url_base}/by-league?league_id={league_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+    squads = response.json()
+
+    # get lineups for given matchday and calculate
+    scores = [] 
+    for squad in squads:
+        response = requests.get(f"{lineup_service_url_base}/by-squad?squad_id={squad['id']}&matchday_number={matchday_number}")
+        if response.status_code != 200:
+            raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+        lineup_for_matchday = response.json()[0]
+
+        # calculate:
+        response = requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_for_matchday['id']}/calculate_score", headers=headers)
         if response.status_code != 200:
             raise HTTPException(status_code = response.status_code, detail = "Unable to calculate score for a lineup")
-        scores.append({'lineup_id': lineup_id, 'score': scores})
-    
-    return scores
+        score_lineup = response.json()
+
+        scores.append({'lineup_id': lineup_for_matchday['id'], 'score': score_lineup['score_lineup']})
+
+    return scores # Servono ? 
 
 
 @app.post("/lineups", status_code=201)
