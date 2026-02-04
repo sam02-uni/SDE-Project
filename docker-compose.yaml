@@ -60,6 +60,7 @@ services:
       - FOOTBALL_ADAPTER_SERVICE_URL_BASE=http://adapter-football-service:8000/
     depends_on:
       - data-service
+      - adapter-football-service
 
   #Squad Business Service
   squad-service:

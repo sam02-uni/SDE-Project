@@ -111,7 +111,9 @@ class LineUp(SQLModel, table=True):
     matchday_id: int = Field(foreign_key="matchday.id", ondelete="RESTRICT") # Foreign Key verso MatchDay
     score: float = Field(default=0)
 
-    players: list[PlayerLineUpLink] = Relationship(back_populates="lineup")
+    players: list[PlayerLineUpLink] = Relationship(back_populates="lineup", sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",  # <--- QUI VA BENE
+        })
     squad: Squad = Relationship(back_populates="lineups")
 
 

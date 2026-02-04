@@ -2,8 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class LineUpCreate(BaseModel):
-    league_id: Optional[int] = None # se non passa squad lega è obbligatorio
-    squad_id: Optional[int] = None # se passa squad ho anche lega
+    squad_id: int 
     matchday_number: int 
     starting_ids: list[int]
     bench_ids: list[int]

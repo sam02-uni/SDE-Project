@@ -1,13 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 import requests
 import os
+from models import LineUpCreate
 
-
-app = FastAPI(title = "Matchday Management Service", root_path="/process/matchday_management", summary="Service to manage MatchDay processes")
-lineup_service_url_base = os.getenv("LINEUP_SERVICE_URL_BASE", "http://lineup-service:8000") # TODO add in Compose
-#league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") # TODO add in Compose
-squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000") # TODO add in Compose
+app = FastAPI(title = "Matchday Management Service", root_path="/process/matchday-management", summary="Service to manage MatchDay processes")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,6 +14,22 @@ app.add_middleware(
     allow_methods=["*"],   # QUESTO abilita OPTIONS
     allow_headers=["*"],   # QUESTO abilita Authorization
 )
+
+lineup_service_url_base = os.getenv("LINEUP_SERVICE_URL_BASE", "http://lineup-service:8000/business/lineups") 
+#league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") 
+squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000/business/squads") 
+
+
+def check_auth_headers(request: Request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Access token mancante o malformato")
+    
+    headers = {
+        "Authorization": auth_header,
+        "Content-Type": "application/json"
+    }
+    return headers
 
 @app.get("/")
 def read_root():  
@@ -61,10 +75,17 @@ def calculate_scores():
     
     return scores
 
+
 @app.post("/lineups/", status_code=201)
-def create_lineup(lineup: dict):
-    # TODO
-    pass
+def create_lineup(lineup: LineUpCreate, request: Request):
+
+    headers = check_auth_headers(request)
+    response = requests.post(f"{lineup_service_url_base}", json=jsonable_encoder(lineup), headers=headers)
+    if response.status_code != 201:
+        raise HTTPException(status_code = response.status_code, detail = "Not able to insert lineup")
+    
+    return response.json()
+    
 
 @app.get("/{squad_id}/last_score")
 def get_last_score_of_squad():

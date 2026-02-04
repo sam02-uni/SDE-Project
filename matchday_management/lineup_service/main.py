@@ -14,8 +14,8 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
-# TODO: TEST
-@app.post("/insert-lineup", status_code = 201)
+
+@app.post("/", status_code = 201)
 def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and matchday specified in lineup object
     # Recupero id dell'utente di sessione
     logged_user_id = user['user_id']
@@ -42,19 +42,25 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
     
     # Verifica che l'utente di sessione sia il proprietario della squadra
     if logged_user_id == squad['owner_id']:
-        response = requests.get(f"{data_service_url_base}/matchdays/{base_line_up.matchday_id}")
+        
+        response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={base_line_up.matchday_number}")
+        if response.status_code != 200:
+            raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Not able to get matchday info'))
+        matchday_id_for_lineup = response.json()[0]['id']
+
         # Verifica che il matchday esiste
         if response.status_code == 200:
             # Verifica sul numero di giocatori inseriti per la formazione
-            if len(base_line_up.starting_ids) == 11 and len(base_line_up.bench_ids) == 7:
+            if len(base_line_up.starting_ids) == 11 :#and len(base_line_up.bench_ids) == 7:
                 lineup = set(base_line_up.starting_ids + base_line_up.bench_ids) # set of player ids in lineup
-                squad_set = set(squad['players'])
+                squad_ids = [player['id'] for player in squad['players']]
+                squad_set = set(squad_ids)
                 # Verifica che tutti i giocatori appartengono alla squadra
                 if (lineup.issubset(squad_set)):
                     # Creazione del dict da mandare al db
                     lineUpPlayer = {
                         'squad_id': squad['id'],
-                        'matchday_id': base_line_up.matchday_id,
+                        'matchday_id': matchday_id_for_lineup,
                         'players': [] 
                     }
 
@@ -75,7 +81,10 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
                         })
                     # Richiesta di inserimento al db
                     postResponse = requests.post(f"{data_service_url_base}/lineups", json=lineUpPlayer)
-                    return postResponse
+                    if postResponse.status_code != 201:
+                        raise HTTPException(status_code = postResponse.status_code, detail = postResponse.json()['detail'])
+                    return postResponse.json()
+                
                 else:
                     raise HTTPException(status_code = 400, detail = "Bad request")
             else:
