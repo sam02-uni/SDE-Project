@@ -36,7 +36,7 @@
             <div class="widget-header">📅 Prossimo Turno</div>
             <div class="widget-content">
                 <span class="giornata-numero" id = "numeroGiornata">Giornata 24</span>
-                <p style="color: #64748b; margin-bottom: 20px;">Scadenza: Sabato ore 15:00</p>
+                <p style="color: #64748b; margin-bottom: 20px;" id = "scadenza">Scadenza: Sabato ore 15:00</p>
                 <div class="button-group">
                     <button id="btnFormazione" class="btn-primary">Inserisci Formazione</button>
                     <button id="btnInserisciSquadra" class="btn-primary">Inserisci/Modifica una squadra</button>
@@ -63,6 +63,36 @@
                         <tr><td>4</td><td>🔥 Bomber United</td><td>48</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">🏃 La Tua Rosa</div>
+            <div class="widget-content">
+                <div id="listaCompletaRosa" class="formazione-lista"> </div>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">🏟️ La Tua Formazione</div>
+            <div class="widget-content">
+                
+                <div class="formazione-settore">
+                    <h4 class="settore-titolo">Titolari <small>(11)</small></h4>
+                    <div id="listaTitolari" class="formazione-lista">
+                        <div class="player-card starter"> </div>
+                    </div>
+                </div>
+
+                <hr class="formazione-divider">
+
+                <div class="formazione-settore">
+                    <h4 class="settore-titolo">Panchina <small>(7)</small></h4>
+                    <div id="listaPanchina" class="formazione-lista panchina">
+                        <div class="player-card bench"> </div>
+                    </div>
+                </div>
+
             </div>
         </section>
 

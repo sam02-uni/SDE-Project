@@ -80,6 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const numeroGiornata = document.getElementById("numeroGiornata");
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const leagueName = document.getElementById("leagueNameDisplay");
+    const prioritaRuoli = { "G": 1, "D": 2, "M": 3, "A": 4 };
+
+    let playerSquad;
 
     // --- 1. LOGICA SIDEBAR (TENDINA A SFIORAMENTO) ---
     const openNav = () => {
@@ -339,14 +342,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (infoLega.firstMatchStarted){
-                // btnFormazione.style.display = 'none';
+                btnFormazione.style.display = 'none';
             } else {
-                // btnFormazione.style.display = 'block';
+                btnFormazione.style.display = 'block';
             }
             // Display del numero di giornata
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
             let nome_lega = localStorage.getItem('nome_lega');
-            localStorage.setItem("current_matchday", infoLega.currentMatchday)
+            localStorage.setItem("current_matchday", infoLega.currentMatchday);
+            localStorage.setItem('squad_id', infoLega.squad.id);
+            playerSquad = infoLega.squad.players;
             leagueName.textContent = `${nome_lega} - Serie A`;
 
         } catch(error){
@@ -357,52 +362,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- 3. POPOLAMENTO GIOCATORI (SIMULAZIONE DATI) ---
     async function caricaCalciatori() {
         const lista = document.getElementById("listaCalciatori");
-        let playerSquad;
-        // TODO: fare chiamata per recuperare la rosa dell'utente
-        
-        let url_completo = `${PROCESS_BASE_URL}/take_squad/${leagueId}`;
-        let url = new URL(url_completo);
-        try{
-            const token = localStorage.getItem('access_token');
-            let response = await fetch(url, {
-                method: 'GET', 
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // Gestione del token scaduto
-            if (response.status === 401) {
-                console.log("MI HA DATO L'ERRORE (401 intercettato)");
-                console.log("E ANDATO L'ERRORE")
-                const success = await refreshAccessToken();
-                console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
-                if (success) {
-                    const newToken = localStorage.getItem('access_token');
-                    response= await fetch(url, {
-                        method: 'GET', 
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${newToken}`
-                        }
-                    });
-                } else {
-                    window.location.href = "login.html";
-                    return;
-                }
-            }
-            playerSquad = await response.json();
-            localStorage.setItem('squad_id', playerSquad.id);
-        } catch(error){
-            console.error("Errore nel caricamento delle informazioni della lega:", error);
-        }
-        // Dati di esempio (questi arriveranno dal tuo Business Layer)
-        const miaRosa = playerSquad.players;
 
         lista.innerHTML = ""; // Svuota la lista precedente
 
-        Object.entries(miaRosa).forEach(([id, player]) => {
+        const calciatoriOrdinati = Object.entries(playerSquad).sort(([, a], [, b]) => {
+            return prioritaRuoli[a.role] - prioritaRuoli[b.role];
+        });
+
+        calciatoriOrdinati.forEach(([id, player]) => {
             const row = document.createElement("div");
             row.className = "player-row";
             row.innerHTML = `
@@ -418,8 +385,108 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    async function renderFormazione() {
+        const divTitolari = document.getElementById('listaTitolari');
+        const divPanchina = document.getElementById('listaPanchina');
+        let titolari;
+        let panchina;
+        // Svuota i contenitori
+        divTitolari.innerHTML = '';
+        divPanchina.innerHTML = '';
+        if (formazione.titolari != [] && formazione.panchina != []){
+            titolari = formazione.titolari.map(id => {
+                return playerSquad[id]; 
+                }).filter(player => player !== undefined);
+
+            panchina = formazione.panchina.map(id => {
+                return playerSquad[id]; 
+                }).filter(player => player !== undefined);
+        } else {
+            // Chiamata per recuperare la formazione schierata
+            
+            try {
+                const token = localStorage.getItem('access_token');
+                let response = await fetch(url, {
+                    method: 'GET', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // Gestione del token scaduto
+                if (response.status === 401) {
+                    console.log("MI HA DATO L'ERRORE (401 intercettato)");
+                    console.log("E ANDATO L'ERRORE")
+                    const success = await refreshAccessToken();
+                    console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
+                    if (success) {
+                        const newToken = localStorage.getItem('access_token');
+                        response= await fetch(url, {
+                            method: 'GET', 
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${newToken}`
+                            }
+                        });
+                    } else {
+                        window.location.href = "login.html";
+                        return;
+                    }
+                }
+            } catch (error){
+                console.error("Errore nel recuper info formazione:", error);
+            }
+        }
+        // Ciclo Titolari
+        titolari.forEach(p => {
+            divTitolari.innerHTML += `
+                <div class="player-card starter">
+                    <span class="p-role">${p.role} - ${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>`;
+        });
+
+        // Ciclo Panchina
+        panchina.forEach(p => {
+            divPanchina.innerHTML += `
+                <div class="player-card bench">
+                    <span class="p-role">${p.role} - ${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>`;
+        });
+    }
+
+    function renderRosaUnica() {
+        const container = document.getElementById('listaCompletaRosa');
+        if (!container) return;
+
+        // 1. Trasformiamo l'oggetto playerSquad in un array
+        const calciatori = Object.values(playerSquad);
+
+        // 2. Ordiniamo per ruolo (G -> D -> M -> A)
+        calciatori.sort((a, b) => {
+            return prioritaRuoli[a.role] - prioritaRuoli[b.role];
+        });
+
+        // 3. Generiamo l'HTML
+        container.innerHTML = calciatori.map(player => `
+            <div class="player-card">
+                <span class="p-role role-${player.role}">${player.role}</span>
+                <div class="p-details">
+                    <span class="p-name">${player.name} ${player.surname}</span>
+                    <span class="p-team">${player.serie_a_team}</span>
+                </div>
+                ${player.mean_rating > 0 ? `<span class="p-rating">⭐ ${player.mean_rating}</span>` : ''}
+            </div>
+        `).join('');
+    }
+
     //Carico le informazioni necessarie per la paginasave
     caricaLeghe();
     infoLega();
     controlloLega();
+    // renderRosaUnica();
+    setTimeout(() => { renderRosaUnica(); }, 2000);
+
 });

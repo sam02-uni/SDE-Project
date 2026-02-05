@@ -119,7 +119,7 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
 
     # squad of the logged user :
-    response = requests.get(f"{squad_service_url_base}/take-squad/{league_id}", headers=headers)
+    response = requests.get(f"{squad_service_url_base}take_squad/{league_id}", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get squad")
     squad_with_players = response.json()

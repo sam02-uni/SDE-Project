@@ -43,7 +43,7 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
 
     # Chiamata al db se ho squad_id
     if base_line_up.squad_id != None:
-        response = requests.get(f"{data_service_url_base}/squads/{base_line_up.squad_id}/with-players")
+        response = requests.get(f"{data_service_url_base}squads/{base_line_up.squad_id}/with-players")
         if response.status_code != 200:
             raise HTTPException(status_code = response.status_code, detail = "Squad not found")
         squad = response.json() # squad with players

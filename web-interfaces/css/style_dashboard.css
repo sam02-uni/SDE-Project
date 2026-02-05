@@ -387,3 +387,112 @@ body {
     opacity: 0.8;
     cursor: pointer;
 }
+
+.formazione-settore {
+    padding: 10px 0;
+}
+
+.settore-titolo {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    border-left: 3px solid #28a745;
+    padding-left: 8px;
+}
+
+.formazione-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Card del calciatore */
+.player-card {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.player-card.starter { border-left: 4px solid #28a745; }
+.player-card.bench { border-left: 4px solid #fd7e14; background: #fffcf9; }
+
+.p-role {
+    font-weight: bold;
+    width: 40px;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.p-name {
+    flex-grow: 1;
+    font-weight: 500;
+}
+
+.formazione-divider {
+    margin: 15px 0;
+    border: 0;
+    border-top: 1px dashed #ccc;
+}
+
+.formazione-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.player-card {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+}
+
+.player-card:hover {
+    background: #f9f9f9;
+}
+
+.p-details {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    flex-grow: 1;
+}
+
+.p-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.p-team {
+    font-size: 0.75rem;
+    color: #777;
+    text-transform: uppercase;
+}
+
+.p-rating {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #ffa000;
+}
+
+/* Colori Ruoli compatti */
+.p-role {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.role-G { background: #fff176; color: #827717; }
+.role-D { background: #81c784; color: #1b5e20; }
+.role-M { background: #64b5f6; color: #0d47a1; }
+.role-A { background: #e57373; color: #b71c1c; }
