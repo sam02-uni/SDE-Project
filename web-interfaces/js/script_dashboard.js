@@ -78,8 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutForm = document.getElementById('logoutForm');
     const leagueId = localStorage.getItem("selected_league_id");
     const numeroGiornata = document.getElementById("numeroGiornata");
+    const scadenzaFormazione = document.getElementById("scadenza") // TODO
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const leagueName = document.getElementById("leagueNameDisplay");
+    const board = document.getElementById("leaderboardBody");
     const prioritaRuoli = { "G": 1, "D": 2, "M": 3, "A": 4 };
 
     let playerSquad;
@@ -343,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (infoLega.firstMatchStarted){
                 btnFormazione.style.display = 'none';
+                scadenzaFormazione.textContent = '';
             } else {
                 btnFormazione.style.display = 'block';
             }
@@ -353,6 +356,26 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem('squad_id', infoLega.squad.id);
             playerSquad = infoLega.squad.players;
             leagueName.textContent = `${nome_lega} - Serie A`;
+
+            // visualizzazione della classifica
+            table = infoLega.table;
+
+            if ((table == null) || (table.length == 0)){
+                // no squads
+                return;
+            }
+            
+            console.log(table)
+
+            let counter_classifica = 1
+            table.forEach(squad_in_table => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${counter_classifica}</td><td>${squad_in_table.name}</td><td>${squad_in_table.score}</td>
+                `;
+                counter_classifica++;
+                board.appendChild(row)
+            });
 
         } catch(error){
             console.error("Errore nel caricamento delle informazioni della lega:", error);

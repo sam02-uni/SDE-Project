@@ -15,7 +15,7 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
-# TODO: TEST
+
 @app.get("/by-squad")
 def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
     # TODO: fare authorization ? discuti con Mariano e Samuele
@@ -146,15 +146,16 @@ def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the g
 
              
 @app.get("/update_grades") 
-def update_grades():  # aggiorna i voti dei giocatori per la giornata corrente
+def update_grades(matchday_number: int):  # aggiorna i voti di tutti giocatori per la giornata fornita
  
-    # check how many matches of the current matchday have been played so far online
-    response = requests.get(f"{football_adapter_service_url_base}/matchday_info")
+    # check how many matches of the matchday have been played so far online
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info?matchday={matchday_number}")
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Unable to get current matchday info")
+        raise HTTPException(status_code=response.status_code, detail="Unable to get matchday info")
     actual_matchday_info = response.json()
     print("actual matchday is:", actual_matchday_info['currentMatchday'])
 
+    # id of matchday in db
     response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={actual_matchday_info['currentMatchday']}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Matchday not found")

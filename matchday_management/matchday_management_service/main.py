@@ -38,28 +38,27 @@ def read_root():
 # TODO: TEST
 @app.get("/squads/{squad_id}/players") # get players of a squad (when inserting line up)
 def get_squad_players(squad_id: int):
-    response = requests.get(f"{squad_service_url_base}/business/squads/{squad_id}/with-players")
+    response = requests.get(f"{squad_service_url_base}/{squad_id}/with-players")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = "Unable to get squad players")    
     return response.json()["players"]
 
-# TODO: TEST
 @app.get("/lineups/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int):
     
     # update grades locally:
-    response = requests.get(f"{lineup_service_url_base}/business/lineups/update_grades")
+    response = requests.get(f"{lineup_service_url_base}/update_grades?matchday_number=23")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Unable to Update grades'))
     
     # get grades for given lineup
-    response =  requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_id}/grades")
+    response =  requests.get(f"{lineup_service_url_base}/{lineup_id}/grades")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
     return response.json()
 
-# TODO: TEST - UNA VOLTA CHIAMATO QUESTO DALLA GUI, SUCCESSIVAMENTE RICHIAMARE INFO DASHBOARD PER OTTENERE CLASSIFICA RICALCOLATA
-@app.get("leagues/{league_id}/lineups/calculate_scores") # calcuate scores for all lineups and update in back
+# chiamato questo metodo aggiorna per ottenere nuova classifica dal backend
+@app.get("/leagues/{league_id}/lineups/calculate_scores") # calcuate scores for all lineups and update in back
 def calculate_scores(league_id: int, matchday_number: int, request: Request): 
     
     headers = check_auth_headers(request)
@@ -73,13 +72,15 @@ def calculate_scores(league_id: int, matchday_number: int, request: Request):
     # get lineups for given matchday and calculate
     scores = [] 
     for squad in squads:
+        print(f"sto valutando i voti della formazione del matchday numero {matchday_number} per la squadra {squad['name']}")
         response = requests.get(f"{lineup_service_url_base}/by-squad?squad_id={squad['id']}&matchday_number={matchday_number}")
         if response.status_code != 200:
             raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
         lineup_for_matchday = response.json()[0]
 
+        print("la lineup ha id:", lineup_for_matchday)
         # calculate:
-        response = requests.get(f"{lineup_service_url_base}/business/lineups/{lineup_for_matchday['id']}/calculate_score", headers=headers)
+        response = requests.get(f"{lineup_service_url_base}/{lineup_for_matchday['id']}/calculate_score", headers=headers)
         if response.status_code != 200:
             raise HTTPException(status_code = response.status_code, detail = "Unable to calculate score for a lineup")
         score_lineup = response.json()

@@ -40,13 +40,18 @@ mapping_position = {
 }
 
 '''
-non trovato giocatore: Maldini
-lineup-business-service      | non trovato giocatore: Stojilkovic                                                                                                   
-lineup-business-service      | non trovato giocatore: Marianucci                                                                                                    
-lineup-business-service      | non trovato giocatore: Prati
-lineup-business-service      | non trovato giocatore: Kulenovic                                                                                                     
-lineup-business-service      | non trovato giocatore: Lovric                                                                                                        
-lineup-business-service      | non trovato giocatore: Al-Musrati
+Calciomercato chiuso il 2 Febbraio
+Giornata 23:
+non trovato giocatore:  (trasferito a gennaio da atalanta a lazio)
+non trovato giocatore: Stojilkovic       (da fuori a Pisa)                                                                                        
+non trovato giocatore: Marianucci (dal napoli al torino)                                                                                                   
+non trovato giocatore: Prati (dal cagliari al torino)
+non trovato giocatore: Kulenovic (da fuori al Torino)                                                                                   
+non trovato giocatore: Lovric (da Udinese a Verona)                                                                                                    
+non trovato giocatore: Al-Musrati (il trattino, su api è senza)
+non trovato giocatore: Jashari (Jasari su api)
+non trovato giocatore: Nicolussi Caviglia (da fiorentina a Parma)
+non trovato giocatore: Elphege (da fuori al Parma)
 
 '''
 

@@ -27,7 +27,7 @@ def get_league_by_name(name: str, user: dict = Depends(verify_token)): # name qu
     pass
 
 @app.get("/by_user", response_model=list[EssentialLeagueInfo])
-def get_leagues_by_user(not_logged_user_id: Optional[int] = None, user: dict = Depends(verify_token)):
+def get_leagues_by_user(not_logged_user_id: Optional[int] = None, user: Optional[dict] = Depends(verify_token)): # TODO per modificare e rendere opzionale verify_Token dovrei maneggiare il suo codice, non qua 
     if not_logged_user_id:
         response = requests.get(f"{data_service_url_base}leagues/?user_id={not_logged_user_id}")
     else:
