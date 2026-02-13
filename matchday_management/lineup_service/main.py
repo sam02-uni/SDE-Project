@@ -15,8 +15,7 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
-
-@app.get("/by-squad")
+@app.get("/by-squad", summary = "Get lineups of a squad or instead the lineup for the given matchday")
 def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
 
     matchday_id = None
@@ -35,7 +34,7 @@ def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
 
     return lineups
     
-@app.post("/", status_code = 201)
+@app.post("/", status_code = 201, summary="Insert the given lineup making sure to satisfy certain conditions")
 def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and matchday specified in lineup object
     # Recupero id dell'utente di sessione
     logged_user_id = user['user_id']
@@ -73,10 +72,15 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
 
             # verifica se formazione per la giornata à gia inserita
             response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad['id']}&matchDay_id={matchday_id_for_lineup}")
-            if (response == 200) and ( len(response.json()) >= 1) : # già presente
-                raise HTTPException(status_code = 400, detail = "Lineup already inserted for this matchday")
-            
-
+            existing_formation = response.json()
+            if (response.status_code == 200) and ( len(existing_formation) >= 1) : # già presente
+                # la elimino :
+                old_id = existing_formation[0]['id']
+                res = requests.delete(f"{data_service_url_base}/lineups/{old_id}")
+                if res.status_code != 200:
+                    raise HTTPException(status_code = res.status_code, detail = "Unable to delete the old lineup")
+                
+            # ok, go on
 
             # Verifica sul numero di giocatori inseriti per la formazione
             if len(base_line_up.starting_ids) == 11 :#and len(base_line_up.bench_ids) == 7:
@@ -123,8 +127,8 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
         raise HTTPException(status_code = 403, detail = "User is not the owner")
     
 
-@app.get("/{lineup_id}/grades")
-def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the given lineup
+@app.get("/{lineup_id}/grades", summary = "get the grades of the given lineup's players")
+def get_lineup_grades(lineup_id: int): 
 
     # get lineup from data service
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
@@ -151,8 +155,8 @@ def get_lineup_grades(lineup_id: int): # get the grades (stored in db) for the g
     return result
 
              
-@app.get("/update_grades") 
-def update_grades(matchday_id: int):  # aggiorna i voti di tutti giocatori per la giornata fornita
+@app.get("/update_grades", summary = "Update the players grades for the given matchday") 
+def update_grades(matchday_id: int):  
  
     # matchday in db
     response = requests.get(f"{data_service_url_base}/matchdays/{matchday_id}")
@@ -239,9 +243,9 @@ def update_grades(matchday_id: int):  # aggiorna i voti di tutti giocatori per l
         
         return {"status": "Grades updated successfully"}
 
-# calcolo punteggio per formazione
+
 # TODO: TEST : parte di calcolo panchinari
-@app.get("/{lineup_id}/calculate_score")
+@app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup")
 def calculate_score(lineup_id: int):
 
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
@@ -317,7 +321,7 @@ def calculate_score(lineup_id: int):
     return {'score_lineup': score}
 
 # TODO: TEST
-@app.get("/{lineup_id}")
+@app.get("/{lineup_id}", summary = "Get a certain lineup")
 def get_lineup(lineup_id: int):
 
     res = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")

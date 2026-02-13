@@ -80,6 +80,10 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
     }, headers=headers)
     
     if response.status_code != 201:
+        # squad not created -> in order to clean data just delete the just inserted participant
+        res = requests.delete(f"{league_service_url_base}{league_id}/participants/by-email", params={'email': participantWithSquad.email_user})
+        if res.status_code != 200:
+            raise HTTPException(status_code = 500, detail = "Internal error for the squad and particpant relation") 
         raise HTTPException(status_code=response.status_code, detail="Squad not created")
 
     created_squad_id = response.json()['id']
@@ -118,7 +122,8 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
 
     # squad of the logged user:
-    response = requests.get(f"{squad_service_url_base}by-league?league_id={league_id}", headers=headers)
+    params = {'league_id': league_id, 'of_user': 'true'}
+    response = requests.get(f"{squad_service_url_base}by-league", params=params, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get squads")
 

@@ -24,4 +24,4 @@ class League(BaseModel):
 
 class TableSquadInfo(BaseModel):
     name: str
-    score: int
+    score: float

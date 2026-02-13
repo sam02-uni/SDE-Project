@@ -131,4 +131,21 @@ def add_league_participant(league_id: int, email_participant: emailParticipant, 
     
     return response.json() # return LeagueWithParticipants directly from data service
     
+# TODO: TEST
+@app.delete("/{league_id}/participants/by-email", summary = "delete a participant using the email")
+def delete_participant_by_mail(league_id: int, email: str):
+    # authorization ?
 
+    # get id of the participant
+    res = requests.get(f"{data_service_url_base}users/by-email?user_email={email}")
+    if res.status_code != 200:
+        raise HTTPException(status_code = res.status_code, detail= "User not found")
+    
+    id_participant = res.json()['id']
+
+    # delete from league
+    res = requests.delete(f"{data_service_url_base}leagues/{league_id}/participants/{id_participant}")
+    if res.status_code != 200:
+        raise HTTPException(status_code = res.status_code, detail = res.json().get("detail", "Unable to delete participant"))
+    
+    return {'detail': 'deleted successfully', 'deleted_participant_id': id_participant}

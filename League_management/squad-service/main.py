@@ -13,10 +13,9 @@ data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:
 def read_root():
     return {"squad business service is running"}
 
-# creazione di una rosa associata ad una lega e ad un utente
-@app.post("/", status_code=201) # POST /business/squads
+@app.post("/", status_code=201, summary = "Create a squad with the logged user as owner in the given league") 
 def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
-    print("AISFSJDGJSDGJSJDGJDSFGJ")
+    
     user_id = logged_user['user_id']
     # minimum number of players check
     players = info.players
@@ -36,7 +35,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
                 a=+1
                 continue
 
-    if g < 3 or d < 6 or m < 6 or a < 6: # 21 giocatori
+    if g < 3 or d < 8 or m < 8 or a < 6: # 25 giocatori
         raise HTTPException(status_code = 400, detail="Not enough players in squad")
     
     # authorization : user loggato è admin della lega ?
@@ -66,7 +65,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     return response.json()
     
 
-@app.get("/suggest_player") # suggest the players with that name within
+@app.get("/suggest_player", summary = "Get the players having the given name within") 
 def get_suggested_players(wanted_name: str): # wanted_name: query param
     if wanted_name is None or len(wanted_name) <= 1:
         raise HTTPException(status_code = 400, detail= "Query parameter not valid")
@@ -78,32 +77,40 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
     suggested_players = response.json()
     return suggested_players if suggested_players else []
 
-@app.get("/allPlayers")
+# TODO: DA TENERE ? 
+@app.get("/allPlayers", summary = "Return all Players in the application")
 def getAllPlayers():
     response = requests.get(f"{data_service_url_base}/players/")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
 
-@app.get("/by-league")
-def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_token), user_id: Optional[int] = None):
+# TODO: TEST
+@app.get("/by-league", summary = "Get the squads of the given league and optionally for the user, logged or given")
+def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_token), user_id: Optional[int] = None, of_user: Optional[bool] = False):
 
-    logged_user_id = logged_user['user_id']
+    params = {}
 
-    # if user_id is passed take it, else take the logged user
-    owner_id = user_id if user_id else logged_user_id 
+    if of_user: 
+        logged_user_id = logged_user['user_id']
 
-    # get squads of user by league
-    response = requests.get(f"{data_service_url_base}/squads?league_id={league_id}&user_id={owner_id}")
+        # if user_id is passed take it, else take the logged user
+        owner_id = user_id if user_id else logged_user_id 
+
+        params = {'league_id': league_id, 'user_id': owner_id}
+    else:
+        params = {'league_id'} # just league
+
+    # get squads by league
+    response = requests.get(f"{data_service_url_base}/squads", params=params)
     if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = "Unable to get squads of the user in league")
+        raise HTTPException(status_code = response.status_code, detail = "Unable to get squads in league")
     squads = response.json()
     return squads
 
-# aggiunta di un giocatore ad una rosa
-# TODO: test
-# Optional se vogliamo
-@app.patch("/{squad_id}/add_player")
+
+# TODO: TEST - Optional se vogliamo
+@app.patch("/{squad_id}/add_player", summary = "Add a player to a squad")
 def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = Depends(verify_token)):
     user_id = logged_user["user_id"]
 
@@ -120,7 +127,7 @@ def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = De
     
     # TODO: aggiunti giocatore alla rosa
 
-@app.get("/{squad_id}")
+@app.get("/{squad_id}", summary = "Get a Squad with or without players")
 def get_squad_by_id(squad_id:int, with_players: bool=False):
     if with_players:
         response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players")
