@@ -4,7 +4,7 @@ import requests
 import os
 from models import SquadCreate 
 from dependency import verify_token
-
+from typing import Optional
 
 app = FastAPI(title="Squad Business service", root_path = "/business/squads")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
@@ -19,7 +19,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     print("AISFSJDGJSDGJSJDGJDSFGJ")
     user_id = logged_user['user_id']
     # minimum number of players check
-    '''players = info.players
+    players = info.players
     g, d, m, a = 0,0,0,0
     for player in players:
         match player.role:
@@ -38,7 +38,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
 
     if g < 3 or d < 6 or m < 6 or a < 6: # 21 giocatori
         raise HTTPException(status_code = 400, detail="Not enough players in squad")
-    '''
+    
     # authorization : user loggato è admin della lega ?
     response = requests.get(f"{data_service_url_base}/leagues/{info.league_id}")
     if response.status_code != 200:
@@ -86,29 +86,19 @@ def getAllPlayers():
     return response.json()
 
 @app.get("/by-league")
-def get_squads_by_league(league_id: int):
-    response = requests.get(f"{data_service_url_base}/squads?league_id={league_id}")
+def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_token), user_id: Optional[int] = None):
+
+    logged_user_id = logged_user['user_id']
+
+    # if user_id is passed take it, else take the logged user
+    owner_id = user_id if user_id else logged_user_id 
+
+    # get squads of user by league
+    response = requests.get(f"{data_service_url_base}/squads?league_id={league_id}&user_id={owner_id}")
     if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = "Unable to get squads of the league")
+        raise HTTPException(status_code = response.status_code, detail = "Unable to get squads of the user in league")
     squads = response.json()
     return squads
-
-@app.get("/take_squad/{league_id}")
-def get_squad_by_league(league_id:int,  logged_user: dict = Depends(verify_token)):
-    user_id = logged_user["user_id"]
-    parametri = {
-        "league_id" : league_id,
-        "user_id" : user_id
-    }
-    response = requests.get(f"{data_service_url_base}/squads", params=parametri)
-    if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
-    data = response.json()
-    squad_id = data[0]["id"]
-    response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players", params=parametri)
-    if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
-    return response.json()
 
 # aggiunta di un giocatore ad una rosa
 # TODO: test

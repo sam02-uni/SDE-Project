@@ -16,7 +16,6 @@ app.add_middleware(
 )
 
 lineup_service_url_base = os.getenv("LINEUP_SERVICE_URL_BASE", "http://lineup-service:8000/business/lineups") 
-#league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") 
 squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000/business/squads") 
 
 
@@ -34,14 +33,6 @@ def check_auth_headers(request: Request):
 @app.get("/")
 def read_root():  
     return {"message": "MatchDay Management Process Centric service is running"}
-
-# TODO: TEST
-@app.get("/squads/{squad_id}/players") # get players of a squad (when inserting line up)
-def get_squad_players(squad_id: int):
-    response = requests.get(f"{squad_service_url_base}/{squad_id}/with-players")
-    if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = "Unable to get squad players")    
-    return response.json()["players"]
 
 @app.get("/lineups/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int):
@@ -116,5 +107,7 @@ def modify_lineup(lineup: LineUpCreate, request: Request):
 def get_last_score_of_squad():
     # TODO , SERVE ? 
     pass
+
+# TODO: delete ?
 
 

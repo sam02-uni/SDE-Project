@@ -57,8 +57,8 @@ class GradesScraper():
                         # seconda colonna: voto giocatore:
                         voto_reale_giocatore = colonne[1].select_one('span.player-grade').get('data-value').strip() 
                         voto_giocatore = colonne[1].select_one('span.player-fanta-grade').get('data-value').strip()
-                        if voto_giocatore == '55':
-                            voto_giocatore = '0'
+                        if voto_giocatore == '55': # S.V
+                            voto_giocatore = '-1'
                         voto_reale_giocatore_clean = voto_reale_giocatore.replace(',','.')
                         voto_giocatore_clean = voto_giocatore.replace(',','.')
                         grades_list.append({'squad_name': squad_name, 'player_surname': nome_giocatore, 'grade': voto_reale_giocatore_clean, 'fanta_grade': voto_giocatore_clean})

@@ -18,7 +18,6 @@ def read_root():
 
 @app.get("/by-squad")
 def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
-    # TODO: fare authorization ? discuti con Mariano e Samuele
 
     matchday_id = None
     if matchday_number:
@@ -241,7 +240,7 @@ def update_grades(matchday_id: int):  # aggiorna i voti di tutti giocatori per l
         return {"status": "Grades updated successfully"}
 
 # calcolo punteggio per formazione
-# TEST : parte di calcolo panchinari
+# TODO: TEST : parte di calcolo panchinari
 @app.get("/{lineup_id}/calculate_score")
 def calculate_score(lineup_id: int):
 
@@ -279,7 +278,7 @@ def calculate_score(lineup_id: int):
         rating_data = res.json()[0] if res.status_code == 200 else None
         
         # Se non ha voto (None) o voto non valido (<= 0)
-        if not rating_data or rating_data['fanta_rating'] <= 0: # TODO: se cambi in -1 per i SV qui metti < non <=
+        if not rating_data or rating_data['fanta_rating'] < 0: # TODO: CAMBIATO IN -1 IL SENZA VOTO QUINDI PLAYER RATING DA RIAGGIORNARE
             # se può ancora fare cambi:
             if times_switched >= 3:
                 score += 0

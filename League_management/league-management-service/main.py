@@ -117,13 +117,17 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     
     dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
 
-    # squad of the logged user , has a squad ?:
-    response = requests.get(f"{squad_service_url_base}take_squad/{league_id}", headers=headers)
+    # squad of the logged user:
+    response = requests.get(f"{squad_service_url_base}by-league?league_id={league_id}", headers=headers)
     if response.status_code != 200:
-        #raise HTTPException(status_code=response.status_code, detail="not able to get squad")
-        squad_with_players = None # if no, return None
-    else:
-        squad_with_players = response.json() # if yes, return squad
+        raise HTTPException(status_code=response.status_code, detail="not able to get squads")
+
+    # take the first one (the only one) with players
+    squad = response.json()[0]
+    response = requests.get(f"{squad_service_url_base}{squad['id']}?with_players=true")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
+    squad_with_players = response.json()
     
     dict_result.update({'squad': squad_with_players})
      
@@ -148,12 +152,22 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
 
     return dict_result
 
-@app.get("/take_squad/{league_id}")
+# TODO: SERVE ANCORA QUESTO METODO VISTO CHE LA SQUADRA VIENE GIA FORNITA IN INFO_DASHBOARD ????
+@app.get("/take_squad/{league_id}")  # TODO: modify in /squads/by-league?league_id as the REST paradigm
 def get_all_players(league_id: int, request: Request):
     headers = check_auth_headers(request)
-    response = requests.get(f"{squad_service_url_base}take_squad/{league_id}", headers=headers)
+
+    # squad of the logged user:
+    response = requests.get(f"{squad_service_url_base}by-league?league_id={league_id}", headers=headers)
     if response.status_code != 200:
-        raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
+        raise HTTPException(status_code=response.status_code, detail="not able to get squads")
+
+    # take the first one (the only one) with players
+    squad = response.json()[0]
+    response = requests.get(f"{squad_service_url_base}{squad['id']}?with_players=true")
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
+    
     return response.json()
 
 # TODO: delete league ?? Modify league ??
