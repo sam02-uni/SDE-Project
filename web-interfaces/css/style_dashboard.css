@@ -408,6 +408,10 @@ body {
 }
 
 /* Card del calciatore */
+
+
+.player-card.starter { border-left: 4px solid #28a745; }
+.player-card.bench { border-left: 4px solid #fd7e14; background: #fffcf9; }
 .player-card {
     display: flex;
     align-items: center;
@@ -416,10 +420,6 @@ body {
     border-radius: 6px;
     border: 1px solid #eee;
 }
-
-.player-card.starter { border-left: 4px solid #28a745; }
-.player-card.bench { border-left: 4px solid #fd7e14; background: #fffcf9; }
-
 .p-role {
     font-weight: bold;
     width: 40px;
@@ -446,11 +446,11 @@ body {
 
 .player-card {
     display: flex;
-    align-items: center;
+    align-items: center; /* Allinea verticalmente il cerchietto e i testi */
     padding: 10px;
     background: #fff;
     border-bottom: 1px solid #eee;
-    transition: background 0.2s;
+    min-height: 60px; /* Altezza minima per stare larghi */
 }
 
 .player-card:hover {
@@ -459,8 +459,8 @@ body {
 
 .p-details {
     display: flex;
-    flex-direction: column;
-    margin-left: 10px;
+    flex-direction: column; /* Questo mette la squadra sotto il nome */
+    margin-left: 15px;      /* Spazio tra cerchietto ruolo e testi */
     flex-grow: 1;
 }
 
@@ -492,6 +492,7 @@ body {
     font-size: 0.7rem;
     font-weight: bold;
 }
+
 .role-G { background: #fff176; color: #827717; }
 .role-D { background: #81c784; color: #1b5e20; }
 .role-M { background: #64b5f6; color: #0d47a1; }

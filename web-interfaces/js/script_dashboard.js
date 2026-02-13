@@ -462,8 +462,11 @@ document.addEventListener("DOMContentLoaded", () => {
     titolariData.forEach(p => {
         divTitolari.innerHTML += `
             <div class="player-card starter">
-                <span class="p-role">${p.role} - ${p.serie_a_team}</span>
-                <span class="p-name">${p.name} ${p.surname}</span>
+                <span class="p-role role-${p.role}">${p.role}</span>
+                <div class="p-details">
+                    <span class="p-team">${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>
             </div>`;
     });
 
@@ -471,8 +474,11 @@ document.addEventListener("DOMContentLoaded", () => {
     panchinaData.forEach(p => {
         divPanchina.innerHTML += `
             <div class="player-card bench">
-                <span class="p-role">${p.role} - ${p.serie_a_team}</span>
-                <span class="p-name">${p.name} ${p.surname}</span>
+                <span class="p-role role-${p.role}">${p.role}</span>
+                <div class="p-details">
+                    <span class="p-team">${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>
             </div>`;
     });
 }
@@ -530,7 +536,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore di rete o CORS:", error);
                 // In caso di errore CORS, spesso il logout avviene comunque sul server,
                 // quindi forziamo il ritorno al login per sicurezza.
-                window.location.href = "/pages/login.html";
+                window.location.href = "login.html";
             }
         });
     }
