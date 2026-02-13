@@ -20,7 +20,6 @@ app.add_middleware(
 league_service_url_base = os.getenv("LEAGUE_SERVICE_URL_BASE", "http://league-service:8000") # league business
 squad_service_url_base = os.getenv("SQUAD_SERVICE_URL_BASE", "http://squad-service:8000") # squad business
 
-app.mount("/static", StaticFiles(directory="static"), name="static") # TODO: rimuovere dopo i test
 
 def check_auth_headers(request: Request):
     auth_header = request.headers.get('Authorization')
@@ -118,11 +117,13 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     
     dict_result.update({'isAdmin': True}) if response.json()['is_owner'] else dict_result.update({'isAdmin': False})
 
-    # squad of the logged user :
+    # squad of the logged user , has a squad ?:
     response = requests.get(f"{squad_service_url_base}take_squad/{league_id}", headers=headers)
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="not able to get squad")
-    squad_with_players = response.json()
+        #raise HTTPException(status_code=response.status_code, detail="not able to get squad")
+        squad_with_players = None # if no, return None
+    else:
+        squad_with_players = response.json() # if yes, return squad
     
     dict_result.update({'squad': squad_with_players})
      
@@ -144,6 +145,7 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     
     dict_result.update({'table': response.json()})
 
+
     return dict_result
 
 @app.get("/take_squad/{league_id}")
@@ -153,5 +155,7 @@ def get_all_players(league_id: int, request: Request):
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
+
+# TODO: delete league ?? Modify league ??
 
 

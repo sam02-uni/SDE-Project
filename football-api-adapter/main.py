@@ -48,8 +48,6 @@ non trovato giocatore: Marianucci (dal napoli al torino)
 non trovato giocatore: Prati (dal cagliari al torino)
 non trovato giocatore: Kulenovic (da fuori al Torino)                                                                                   
 non trovato giocatore: Lovric (da Udinese a Verona)                                                                                                    
-non trovato giocatore: Al-Musrati (il trattino, su api è senza)
-non trovato giocatore: Jashari (Jasari su api)
 non trovato giocatore: Nicolussi Caviglia (da fiorentina a Parma)
 non trovato giocatore: Elphege (da fuori al Parma)
 

@@ -62,18 +62,32 @@ def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_toke
     new_league = response.json()
 
     # add owner as participant
-    response = requests.post(f"{data_service_url_base}leagues/{new_league['id']}/participants", json=new_league['owner_id'])
-    if response.status_code !=201:
-        raise HTTPException(status_code=response.status_code, detail="Ownwe not added as participant")
+    #response = requests.post(f"{data_service_url_base}leagues/{new_league['id']}/participants", json=new_league['owner_id'])
+    #if response.status_code !=201:
+    #    raise HTTPException(status_code=response.status_code, detail="Ownwe not added as participant")
     
     print(new_league)
     return new_league["id"]
 
+# TODO: TEST
 @app.delete("/{league_id}")
-def delete_league(league_id: int):
-    pass
+def delete_league(league_id: int, user: dict = Depends(verify_token)):
+    logged_user_id = user['user_id']
 
-@app.patch("/{league_id}") # update impostazioni lega
+    # is logged user the admin of the league ? 
+    league_info = requests.get(f"{data_service_url_base}leagues/{league_id}").json()
+    if league_info['owner_id'] != logged_user_id:
+        raise HTTPException(status_code=403, detail="The logged user is not the admin of this league")
+    
+    # delete league
+    res = requests.delete(f"{data_service_url_base}leagues/{league_id}")
+    if res.status_code != 200:
+        raise HTTPException(status_code=res.status_code, detail="Unable to delete this League")
+    
+    return res.json()
+    
+
+@app.patch("/{league_id}") # update impostazioni lega SI PUO EVITARE DI FARE
 def update_league(league_id: int):
     pass
 

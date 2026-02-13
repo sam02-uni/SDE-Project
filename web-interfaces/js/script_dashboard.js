@@ -408,6 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // TODO: chiamare questa funzione in infoLega ? 
     async function renderFormazione() {
         const divTitolari = document.getElementById('listaTitolari');
         const divPanchina = document.getElementById('listaPanchina');
@@ -427,6 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             // Chiamata per recuperare la formazione schierata
             
+            // TODO : che url sta chiamando qua sotto ??
             try {
                 const token = localStorage.getItem('access_token');
                 let response = await fetch(url, {
@@ -461,6 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore nel recuper info formazione:", error);
             }
         }
+
+        // TODO: qua sotto titolari da riempire con la risposta della chiamata
         // Ciclo Titolari
         titolari.forEach(p => {
             divTitolari.innerHTML += `

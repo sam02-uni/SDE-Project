@@ -14,7 +14,9 @@ mapping_players_db_to_fantacalcio = {
     'Delprato': 'Del Prato',
     'Vitinha O.' : 'Vitinha',
     'Konè M.' : 'Kouadio Koné',
-    'Thuram K.': 'Thuram-Ulie'
+    'Thuram K.': 'Thuram-Ulie',
+    'Al-Musrati' : 'Al Musrati',
+    'Jashari': 'Jasari'
 }
 
 @app.get("/")

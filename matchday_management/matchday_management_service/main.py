@@ -11,8 +11,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],   # QUESTO abilita OPTIONS
-    allow_headers=["*"],   # QUESTO abilita Authorization
+    allow_methods=["*"],  
+    allow_headers=["*"],   
 )
 
 lineup_service_url_base = os.getenv("LINEUP_SERVICE_URL_BASE", "http://lineup-service:8000/business/lineups") 
@@ -46,8 +46,14 @@ def get_squad_players(squad_id: int):
 @app.get("/lineups/{lineup_id}/grades")
 def get_lineup_grades(lineup_id: int):
     
+    # get lineup: 
+    response = requests.get(f"{lineup_service_url_base}/{lineup_id}")
+    if response.status_code != 200:
+        raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Unable to get Lineup'))
+    lineup = response.json()
+
     # update grades locally:
-    response = requests.get(f"{lineup_service_url_base}/update_grades?matchday_number=23")
+    response = requests.get(f"{lineup_service_url_base}/update_grades?matchday_id={lineup['matchday_id']}")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Unable to Update grades'))
     
@@ -99,11 +105,16 @@ def create_lineup(lineup: LineUpCreate, request: Request):
         raise HTTPException(status_code = response.status_code, detail = "Not able to insert lineup")
     
     return response.json()
+
+@app.patch("/lineups")
+def modify_lineup(lineup: LineUpCreate, request: Request):
+    # TODO, SERVE ?
+    pass
     
 
 @app.get("/{squad_id}/last_score")
 def get_last_score_of_squad():
-    # TODO: magari quando l'utente sulla home vuole vedere ultimo risultato
+    # TODO , SERVE ? 
     pass
 
 
