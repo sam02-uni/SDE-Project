@@ -23,16 +23,16 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     for player in players:
         match player.role:
             case "G":
-                g=+1
+                g+=1
                 continue
             case "D":
-                d=+1
+                d+=1
                 continue
             case "M":
-                m=+1
+                m+=1
                 continue
             case "A":
-                a=+1
+                a+=1
                 continue
 
     if g < 3 or d < 8 or m < 8 or a < 6: # 25 giocatori

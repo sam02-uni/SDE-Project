@@ -82,9 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
+    const divTitolari = document.getElementById('listaTitolari');
+    const divPanchina = document.getElementById('listaPanchina');
     const prioritaRuoli = { "G": 1, "D": 2, "M": 3, "A": 4 };
 
     let playerSquad;
+
 
     // --- 1. LOGICA SIDEBAR (TENDINA A SFIORAMENTO) ---
     const openNav = () => {
@@ -130,6 +133,30 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.classList.remove("active");
         });
     }
+    
+    // --- INIZIALIZZA LA DASHBOARD ---
+    async function inizializzaDashboard() {
+    try {
+        // 1. Controllo che esista una lega selezionata
+        controlloLega();
+
+        // 2. Carica le leghe nella sidebar
+        await caricaLeghe();
+
+        // 3. Carica i dati della lega e della squadra (playerSquad viene popolata qui)
+        await infoLega();
+
+        // 4. Rendering ora che i dati sono pronti
+        console.log("Dati pronti, inizio rendering...");
+        renderRosaUnica();
+        await renderFormazione();
+
+    } catch (error) {
+        console.error("Errore nell'inizializzazione dashboard:", error);
+    }
+}
+
+    // --- SALVA FORMAZIONE ---
     async function saveFormation(){            
         console.log("Salvataggio formazione, ID selezionati:  T:", formazione.titolari, " P:", formazione.panchina);
         let squadId = localStorage.getItem("squad_id");
@@ -160,49 +187,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Errore imprevisto nel salvataggio della formazione");
             } else {
                 alert("Formazione salvata correttamente");
+                renderFormazione()
             }
 
         } catch (error){
             console.error('Unexpected error', error);
         }
     }
-    // --- 4. SALVATAGGIO FORMAZIONE ---
+    
     saveBtn.addEventListener("click", saveFormation);
 
-    // --- 5. LOGOUT (PROCESS CENTRIC) ---
-    // Chiamata al logout
-    if (logoutForm) {
-        logoutForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Blocca l'invio normale che fallirebbe
+    
 
-            try {
-                // Facciamo la chiamata alla porta del backend
-                let response = await fetch('http://localhost:8000/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include', 
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-            // Se il logout ha successo sul server (porta 8000)
-                if (response.ok) {
-                    localStorage.removeItem('access_token'); // Rimuovi il token specifico
-                    localStorage.clear(); 
-                    window.location.href = "login.html"; 
-                } else {
-                    alert("Errore durante il logout. Riprova.");
-                }
-            } catch (error) {
-                console.error("Errore di rete o CORS:", error);
-                // In caso di errore CORS, spesso il logout avviene comunque sul server,
-                // quindi forziamo il ritorno al login per sicurezza.
-                window.location.href = "/pages/login.html";
-            }
-        });
-    }
-
-    // Refresh token function
+    // --- REFRESH TOKEN ---
     async function refreshAccessToken() {
         try {
             const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
@@ -222,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Loading leagues
+    // --- CARICA LEGHE ---
     async function caricaLeghe() {
         let url=new URL(LEGHE_URL);
         try {
@@ -237,10 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Gestione del token scaduto
             if (response.status === 401) {
-                console.log("MI HA DATO L'ERRORE (401 intercettato)");
-                console.log("E ANDATO L'ERRORE")
                 const success = await refreshAccessToken();
-                console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
                 if (success) {
                     const newToken = localStorage.getItem('access_token');
                     response= await fetch(url, {
@@ -284,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // Controlla se abbiamo l'id lega nel localstorage
+    // --- CONTROLLA E' PRESENTE L'ID DELLA LEGA ---
     function controlloLega(){
         if (!leagueId) {
             console.error("Nessuna lega selezionata! Torno alla home.");
@@ -295,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Stai visualizzando la lega con ID:", leagueId);
     }
 
-    // Recupero le informazioni riguardo alla lega
+    // --- RECUPERA INFORMAZIONI SULLA LEGA ---
     async function infoLega(){
         let url_completo = `${PROCESS_BASE_URL}/${leagueId}/info_dashboard_league`;
         let url = new URL(url_completo);
@@ -311,10 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Gestione del token scaduto
             if (response.status === 401) {
-                console.log("MI HA DATO L'ERRORE (401 intercettato)");
-                console.log("E ANDATO L'ERRORE")
                 const success = await refreshAccessToken();
-                console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
                 if (success) {
                     const newToken = localStorage.getItem('access_token');
                     response= await fetch(url, {
@@ -353,8 +344,11 @@ document.addEventListener("DOMContentLoaded", () => {
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
             let nome_lega = localStorage.getItem('nome_lega');
             localStorage.setItem("current_matchday", infoLega.currentMatchday);
-            localStorage.setItem('squad_id', infoLega.squad.id);
-            playerSquad = infoLega.squad.players;
+            if (infoLega.squad.id){
+                localStorage.setItem('squad_id', infoLega.squad.id);
+                playerSquad = infoLega.squad.players;
+            }
+                
             leagueName.textContent = `${nome_lega} - Serie A`;
 
             // visualizzazione della classifica
@@ -382,7 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- 3. POPOLAMENTO GIOCATORI (SIMULAZIONE DATI) ---
+
+    // --- POPOLAMENTO GIOCATORI ---
     async function caricaCalciatori() {
         const lista = document.getElementById("listaCalciatori");
 
@@ -408,112 +403,144 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // TODO: chiamare questa funzione in infoLega ? 
-    async function renderFormazione() {
-        const divTitolari = document.getElementById('listaTitolari');
-        const divPanchina = document.getElementById('listaPanchina');
-        let titolari;
-        let panchina;
-        // Svuota i contenitori
-        divTitolari.innerHTML = '';
-        divPanchina.innerHTML = '';
-        if (formazione.titolari != [] && formazione.panchina != []){
-            titolari = formazione.titolari.map(id => {
-                return playerSquad[id]; 
-                }).filter(player => player !== undefined);
+    // --- VISUALIZZA LA FORMAZIONE INSERITA ---
+ async function renderFormazione() {
+    let squadId = localStorage.getItem("squad_id");
+    let currentMatchday = localStorage.getItem("current_matchday");
 
-            panchina = formazione.panchina.map(id => {
-                return playerSquad[id]; 
-                }).filter(player => player !== undefined);
-        } else {
-            // Chiamata per recuperare la formazione schierata
-            
-            // TODO : che url sta chiamando qua sotto ??
-            try {
-                const token = localStorage.getItem('access_token');
-                let response = await fetch(url, {
-                    method: 'GET', 
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+    if (!divTitolari || !divPanchina) return;
 
-                // Gestione del token scaduto
-                if (response.status === 401) {
-                    console.log("MI HA DATO L'ERRORE (401 intercettato)");
-                    console.log("E ANDATO L'ERRORE")
-                    const success = await refreshAccessToken();
-                    console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
-                    if (success) {
-                        const newToken = localStorage.getItem('access_token');
-                        response= await fetch(url, {
-                            method: 'GET', 
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${newToken}`
-                            }
-                        });
-                    } else {
-                        window.location.href = "login.html";
-                        return;
-                    }
+    divTitolari.innerHTML = '';
+    divPanchina.innerHTML = '';
+
+    let titolariData = [];
+    let panchinaData = [];
+
+    // Se abbiamo appena salvato, usiamo i dati in memoria
+    if (formazione.titolari.length > 0) {
+        console.log("STO QUIIIIIIIIIIIIIIIIII")
+        titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
+        panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
+    } 
+    // Altrimenti carichiamo dal server
+    else {
+        let url = `${MATCHDAY_URL}/lineups/${squadId}/${currentMatchday}`;
+        try {
+            const token = localStorage.getItem('access_token');
+            let response = await fetch(url, {
+                method: 'GET', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
-            } catch (error){
-                console.error("Errore nel recuper info formazione:", error);
+            });
+
+            if (response.ok) {
+                const data = await response.json(); 
+                console.log("Dati ricevuti:", data);
+
+                // Il backend restituisce un oggetto con una lista "players"
+                if (data && data.players) {
+                    // Separiamo titolari e panchina usando il flag 'is_starting'
+                    titolariData = data.players
+                        .filter(item => item.is_starting === true)
+                        .map(item => item.player); // Prendiamo l'oggetto player interno
+
+                    panchinaData = data.players
+                        .filter(item => item.is_starting === false)
+                        .map(item => item.player);
+                    
+                    console.log("Titolari trovati:", titolariData.length);
+                }
             }
+        } catch (error) {
+            console.error("Errore nel recupero info formazione:", error);
         }
-
-        // TODO: qua sotto titolari da riempire con la risposta della chiamata
-        // Ciclo Titolari
-        titolari.forEach(p => {
-            divTitolari.innerHTML += `
-                <div class="player-card starter">
-                    <span class="p-role">${p.role} - ${p.serie_a_team}</span>
-                    <span class="p-name">${p.name} ${p.surname}</span>
-                </div>`;
-        });
-
-        // Ciclo Panchina
-        panchina.forEach(p => {
-            divPanchina.innerHTML += `
-                <div class="player-card bench">
-                    <span class="p-role">${p.role} - ${p.serie_a_team}</span>
-                    <span class="p-name">${p.name} ${p.surname}</span>
-                </div>`;
-        });
     }
+
+    // DISEGNA I TITOLARI
+    titolariData.forEach(p => {
+        divTitolari.innerHTML += `
+            <div class="player-card starter">
+                <span class="p-role role-${p.role}">${p.role}</span>
+                <div class="p-details">
+                    <span class="p-team">${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>
+            </div>`;
+    });
+
+    // DISEGNA LA PANCHINA
+    panchinaData.forEach(p => {
+        divPanchina.innerHTML += `
+            <div class="player-card bench">
+                <span class="p-role role-${p.role}">${p.role}</span>
+                <div class="p-details">
+                    <span class="p-team">${p.serie_a_team}</span>
+                    <span class="p-name">${p.name} ${p.surname}</span>
+                </div>
+            </div>`;
+    });
+}
 
     function renderRosaUnica() {
         const container = document.getElementById('listaCompletaRosa');
         if (!container) return;
+        if (playerSquad){
+            // 1. Trasformiamo l'oggetto playerSquad in un array
+            const calciatori = Object.values(playerSquad);
 
-        // 1. Trasformiamo l'oggetto playerSquad in un array
-        const calciatori = Object.values(playerSquad);
+            // 2. Ordiniamo per ruolo (G -> D -> M -> A)
+            calciatori.sort((a, b) => {
+                return prioritaRuoli[a.role] - prioritaRuoli[b.role];
+            });
 
-        // 2. Ordiniamo per ruolo (G -> D -> M -> A)
-        calciatori.sort((a, b) => {
-            return prioritaRuoli[a.role] - prioritaRuoli[b.role];
-        });
-
-        // 3. Generiamo l'HTML
-        container.innerHTML = calciatori.map(player => `
-            <div class="player-card">
-                <span class="p-role role-${player.role}">${player.role}</span>
-                <div class="p-details">
-                    <span class="p-name">${player.name} ${player.surname}</span>
-                    <span class="p-team">${player.serie_a_team}</span>
+            // 3. Generiamo l'HTML
+            container.innerHTML = calciatori.map(player => `
+                <div class="player-card">
+                    <span class="p-role role-${player.role}">${player.role}</span>
+                    <div class="p-details">
+                        <span class="p-name">${player.name} ${player.surname}</span>
+                        <span class="p-team">${player.serie_a_team}</span>
+                    </div>
+                    ${player.mean_rating > 0 ? `<span class="p-rating">⭐ ${player.mean_rating}</span>` : ''}
                 </div>
-                ${player.mean_rating > 0 ? `<span class="p-rating">⭐ ${player.mean_rating}</span>` : ''}
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
 
-    //Carico le informazioni necessarie per la paginasave
-    caricaLeghe();
-    infoLega();
-    controlloLega();
-    // renderRosaUnica();
-    setTimeout(() => { renderRosaUnica(); }, 2000);
+    // ---  LOGOUT  ---
+    if (logoutForm) {
+        logoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Blocca l'invio normale che fallirebbe
+
+            try {
+                // Facciamo la chiamata alla porta del backend
+                let response = await fetch('http://localhost:8000/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include', 
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+            // Se il logout ha successo sul server (porta 8000)
+                if (response.ok) {
+                    localStorage.removeItem('access_token'); // Rimuovi il token specifico
+                    localStorage.clear(); 
+                    window.location.href = "login.html"; 
+                } else {
+                    alert("Errore durante il logout. Riprova.");
+                }
+            } catch (error) {
+                console.error("Errore di rete o CORS:", error);
+                // In caso di errore CORS, spesso il logout avviene comunque sul server,
+                // quindi forziamo il ritorno al login per sicurezza.
+                window.location.href = "login.html";
+            }
+        });
+    }
+
+   inizializzaDashboard();
 
 });
