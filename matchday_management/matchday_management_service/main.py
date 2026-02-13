@@ -108,6 +108,42 @@ def get_last_score_of_squad():
     # TODO , SERVE ? 
     pass
 
+@app.get("/lineups/{squad_id}/{matchday_number}")
+def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
+    # 1. Recupera gli header per l'autorizzazione
+    headers = check_auth_headers(request)
+    
+    # 2. Chiama il servizio business (Lineup Service)
+    # Nota: uso l'endpoint 'by-squad' che vedo già usato nella tua funzione calculate_scores
+    url = f"{lineup_service_url_base}/by-squad"
+    
+    response = requests.get(url, headers=headers, params= {
+        "squad_id": squad_id,
+        "matchday_number": matchday_number
+    })
+    
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Formazione non trovata per questa giornata")
+    elif response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Errore nel recupero della formazione")
+    
+    lineups = response.json()
+    lineups_leng= len(lineups)
+    id_lineup=lineups[lineups_leng-1]["id"]          # SOLO PER ORA, POI DA TOGLIERE
+
+    url_lineup= f"{lineup_service_url_base}/{id_lineup}"
+
+    response_lineup= requests.get(
+        url_lineup,
+        headers=headers,
+    )
+    
+    last_lineup= response_lineup.json()
+    print(last_lineup)
+    return last_lineup
+        
+    raise HTTPException(status_code=404, detail="Nessuna formazione schierata")
+
 # TODO: delete ?
 
 
