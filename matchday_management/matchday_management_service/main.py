@@ -34,7 +34,9 @@ def check_auth_headers(request: Request):
 def read_root():  
     return {"message": "MatchDay Management Process Centric service is running"}
 
-@app.get("/lineups/{lineup_id}/grades", summary = "get the most recent grades available for the given lineup")
+
+# DA USARE IN JS
+@app.get("/lineups/{lineup_id}/grades", summary = "get the most recent grades available for the given lineup") 
 def get_lineup_grades(lineup_id: int):
     
     # get lineup: 

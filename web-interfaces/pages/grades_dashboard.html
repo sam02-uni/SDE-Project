@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voti Formazione</title>
+    <link rel="stylesheet" href="../css/style_dashboard.css">
+    <link rel="stylesheet" href="../css/style_grades.css">
+</head>
+<body>
+
+
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="trigger-area" id="triggerArea">
+        <button class="openbtn">Menu ☰</button>
+    </div>
+
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Dashboard</h3>
+        </div>
+        <nav class="sidebar-links" id="sidebarNav">
+            <a href="home_news.html" id="homeLink">🏠 News</a>
+            <div id="userLeagues"></div> 
+    
+            <hr> <a href="/pages/crea_lega.html">➕ Crea lega</a>
+            <form id="logoutForm" action="http://localhost:8000/auth/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-btn">🚪 Logout</button>
+        </form>
+        </nav>
+   </div>
+
+    <main class="dashboard-container">
+        
+        <section class="widget">
+            <div class="widget-header">🏟️ Titolari</div>
+            <div class="widget-content">
+                <div id="listaVotiTitolari" class="formazione-lista"> </div>
+            </div>
+        </section>
+
+        <section class="widget">
+            <div class="widget-header">🪑 Panchina</div>
+            <div class="widget-content">
+                <div id="listaVotiPanchina" class="formazione-lista">
+                    </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="../js/script_grades.js"></script>
+</body>
+</html>

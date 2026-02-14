@@ -97,7 +97,6 @@ async function fetchNews() {
 
     //Controllo se l'Access Token è scaduto 
     if (response.status === 401) {
-        console.log("E ANDATO L'ERRORE")
         console.warn("Access token scaduto, tentativo di refresh in corso...");
     
     // Questa funzione aggiornerà il localStorage con il nuovo token

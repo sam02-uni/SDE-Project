@@ -116,6 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btnInserisciSquadra.addEventListener("click", () => {
         window.location.href="rosa_dashboard.html"
     });
+
+    btnViewGrades.addEventListener("click", () => {
+        window.location.href= "grades_dashboard.html"
+    })
     
     // --- 2. LOGICA MODAL FORMAZIONE ---
     if (btnFormazione) {
