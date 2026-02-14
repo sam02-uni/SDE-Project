@@ -430,6 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Se abbiamo appena salvato, usiamo i dati in memoria
     if (formazione.titolari.length > 0) {
+        console.log("porcodio")
         titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
         panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
     } 

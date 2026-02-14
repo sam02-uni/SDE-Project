@@ -50,6 +50,15 @@ non trovato giocatore: Kulenovic (da fuori al Torino)
 non trovato giocatore: Lovric (da Udinese a Verona)                                                                                                    
 non trovato giocatore: Nicolussi Caviglia (da fiorentina a Parma)
 non trovato giocatore: Elphege (da fuori al Parma)
+non trovato giocatore: Maleh (da lecce a Cremonese)
+non trovato giocatore: Djuric (si chiama Đurić e stava al Parma, ora cremonese)
+non trovato giocatore: Maldini (atalanta a lazio)
+
+
+
+
+
+
 
 '''
 

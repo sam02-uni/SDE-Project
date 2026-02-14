@@ -19,6 +19,7 @@ def read_root():
 def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
 
     matchday_id = None
+   
     if matchday_number:
         # get matchday_id:
         response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday_number}")
@@ -26,8 +27,9 @@ def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
                 raise HTTPException(status_code = response.status_code, detail = "Matchday not found")
         matchday_id = response.json()[0]['id']
 
+    
     # get lineups
-    response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad_id}&matchday_id={matchday_id}")
+    response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad_id}&matchDay_id={matchday_id}")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = "Lineups not found")
     lineups = response.json() # squad with players
@@ -244,7 +246,7 @@ def update_grades(matchday_id: int):
         return {"status": "Grades updated successfully"}
 
 
-# TODO: TEST : parte di calcolo panchinari
+
 @app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup")
 def calculate_score(lineup_id: int):
 
@@ -266,7 +268,7 @@ def calculate_score(lineup_id: int):
     
     # se già stato calcolato per questa giornata:
     if lineup_with_players['score'] != 0:
-        return lineup_with_players['score'] 
+        return {'score_lineup': lineup_with_players['score']}
     
     # calcolo punteggio totale della formazione 
     times_switched = 0 # subentrati, max 3 cambi

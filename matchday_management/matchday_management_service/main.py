@@ -63,7 +63,7 @@ def calculate_scores(league_id: int, matchday_number: int, request: Request):
     headers = check_auth_headers(request)
 
     # get squads of the league
-    response = requests.get(f"{squad_service_url_base}/by-league?league_id={league_id}")
+    response = requests.get(f"{squad_service_url_base}/by-league?league_id={league_id}", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     squads = response.json()
@@ -98,11 +98,6 @@ def create_lineup(lineup: LineUpCreate, request: Request):
         raise HTTPException(status_code = response.status_code, detail = "Not able to insert lineup")
     
     return response.json()
-
-@app.patch("/lineups")
-def modify_lineup(lineup: LineUpCreate, request: Request):
-    # TODO, SERVE ?
-    pass
     
 
 @app.get("/{squad_id}/last_score")
@@ -129,7 +124,11 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
     elif response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Errore nel recupero della formazione")
     
+    if len(response.json()) == 0:
+        return None
+    
     lineups = response.json()
+    print(lineups)
     lineups_leng= len(lineups)
     id_lineup=lineups[lineups_leng-1]["id"]          # SOLO PER ORA, POI DA TOGLIERE
 
@@ -141,7 +140,7 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
     )
     
     last_lineup= response_lineup.json()
-    print(last_lineup)
+    #print(last_lineup)
     return last_lineup
         
     raise HTTPException(status_code=404, detail="Nessuna formazione schierata")

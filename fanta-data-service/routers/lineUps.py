@@ -88,7 +88,8 @@ def update_lineup(lineup_id: int, lineup: LineUpUpdate, session: Session = Depen
     if not lineup_db:
         raise HTTPException(status_code=404, detail="LineUp Not found")
     
-    if lineup.score:  # score aggiornato
+    
+    if lineup.score is not None:  # score aggiornato
         lineup_db.score = lineup.score
 
     if lineup.players:  # cambio players formazione

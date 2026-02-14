@@ -19,7 +19,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     user_id = logged_user['user_id']
     # minimum number of players check
     players = info.players
-    g, d, m, a = 0,0,0,0
+    '''g, d, m, a = 0,0,0,0
     for player in players:
         match player.role:
             case "G":
@@ -36,7 +36,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
                 continue
 
     if g < 3 or d < 8 or m < 8 or a < 6: # 25 giocatori
-        raise HTTPException(status_code = 400, detail="Not enough players in squad")
+        raise HTTPException(status_code = 400, detail="Not enough players in squad")'''
     
     # authorization : user loggato è admin della lega ?
     response = requests.get(f"{data_service_url_base}/leagues/{info.league_id}")
@@ -85,10 +85,10 @@ def getAllPlayers():
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
 
-# TODO: TEST
+
 @app.get("/by-league", summary = "Get the squads of the given league and optionally for the user, logged or given")
 def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_token), user_id: Optional[int] = None, of_user: Optional[bool] = False):
-
+    
     params = {}
 
     if of_user: 
@@ -99,7 +99,7 @@ def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_toke
 
         params = {'league_id': league_id, 'user_id': owner_id}
     else:
-        params = {'league_id'} # just league
+        params = {'league_id': league_id} # just league
 
     # get squads by league
     response = requests.get(f"{data_service_url_base}/squads", params=params)
