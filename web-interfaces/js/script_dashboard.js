@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (infoLega.lastMatchFinished){
                     btnCalcoloGiornata.style.display = 'block';
                 } else {
-                    btnViewGrades = 'block'
+                    btnViewGrades.style.display = 'block'
                     btnCalcoloGiornata.style.display = 'none';
                 }
             } else {
@@ -346,10 +346,15 @@ document.addEventListener("DOMContentLoaded", () => {
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
             let nome_lega = localStorage.getItem('nome_lega');
             localStorage.setItem("current_matchday", infoLega.currentMatchday);
-            if (infoLega.squad.id){
-                localStorage.setItem('squad_id', infoLega.squad.id);
-                playerSquad = infoLega.squad.players;
+            if (infoLega.squad != null){
+                if (infoLega.squad.id){
+                    localStorage.setItem('squad_id', infoLega.squad.id);
+                    playerSquad = infoLega.squad.players;
+                }
+            }else {
+                localStorage.removeItem('squad_id')
             }
+        
                 
             leagueName.textContent = `${nome_lega} - Serie A`;
 
@@ -408,6 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- VISUALIZZA LA FORMAZIONE INSERITA ---
  async function renderFormazione() {
     let squadId = localStorage.getItem("squad_id");
+    if(!squadId) return;
     let currentMatchday = localStorage.getItem("current_matchday");
 
     if (!divTitolari || !divPanchina) return;
@@ -420,7 +426,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Se abbiamo appena salvato, usiamo i dati in memoria
     if (formazione.titolari.length > 0) {
-        console.log("STO QUIIIIIIIIIIIIIIIIII")
         titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
         panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
     } 

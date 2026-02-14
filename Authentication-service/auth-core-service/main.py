@@ -3,9 +3,13 @@ from pydantic import BaseModel
 from core.jwt_service import sign_token, verify_token
 from core.refresh_service import generate_refresh_token, token_expiry
 from core.keys import KID, NUMBERS, b64
+import requests
 
-app = FastAPI(title="Auth Core Service")
+app = FastAPI(title="Auth Core Service",  root_path = "/core")
 
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+DATA_SERVICE_URL = "http://fanta-data-service:8000"
 
 
 # Request models
@@ -19,7 +23,41 @@ class VerifyRequest(BaseModel):
 
 # Endpoints
 
-@app.post("/core/sign")
+@app.post("/identify")
+def core_identification(user_info: dict):
+
+    email = user_info.get("email")
+    name = user_info.get("name")
+
+    # Controlla se l'utente esiste, altrimenti crea
+    r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
+    if r.status_code == 404:
+        r = requests.post(f"{DATA_SERVICE_URL}/users", json={"email": email, "username": name})
+    r.raise_for_status()
+    user = r.json()
+
+
+    # Genera un internal jwt for the user
+    internal_jwt = sign_token(user["id"], user["email"], 10)
+
+    #  Chiede al business layer di generare refresh token
+    token = generate_refresh_token()
+    expiry = token_expiry().isoformat()
+
+    #  Salva refresh token su data service
+    requests.post(f"{DATA_SERVICE_URL}/refresh/save", json={
+        "token": token,
+        "user_id": user["id"],
+        "expires_at": expiry
+    })
+
+    return {
+        "access_token": internal_jwt,
+        "refresh_token": token
+    }
+
+
+@app.post("/sign")
 def core_sign(req: SignRequest):
     """
     Generates an internal JWT for the user.
@@ -33,7 +71,7 @@ def core_sign(req: SignRequest):
     token = sign_token(req.user_id, req.email, req.minutes_valid)
     return {"token": token}
 
-@app.post("/core/verify")
+@app.post("/verify")
 def core_verify(req: VerifyRequest):
     """
     Verify the provided JWT.
@@ -48,13 +86,13 @@ def core_verify(req: VerifyRequest):
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-@app.post("/core/refresh/generate")
+@app.post("/refresh/generate")
 def core_generate_refresh():
     token = generate_refresh_token()
     expiry = token_expiry()
     return {"refresh_token": token, "expires_at": expiry.isoformat()}
 
-@app.get("/core/jwks")
+@app.get("/jwks")
 def core_jwks():
     """
     Return the JSON Web Key Set (JWKS) containing the public keys used for JWT verification.

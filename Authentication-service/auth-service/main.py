@@ -63,13 +63,6 @@ def login():
 
 @app.get("/auth/callback")
 def auth_callback(code: str):
-    """
-    Description: Post-login landing page that handles session creation and user identification.
-    
-    :param code: Authorization code to be exchanged for the Google access_token and id_token
-    :type code: str
-    :return: Redirect to the home page after setting internal access_token and refresh_token in the cookies.
-    """
     #  Scambia code con token Google
     token_resp = requests.post(
         GOOGLE_TOKEN_URL,
@@ -112,44 +105,28 @@ def auth_callback(code: str):
         )
     except JWTError as e:
         raise HTTPException(status_code=401, detail=f"Invalid ID token: {str(e)}")
+    
+    response= requests.post(
+        f"{AUTH_CORE_URL}/core/identify",
+        json=user_info
+            )
+    
 
-    email = user_info.get("email")
-    name = user_info.get("name")
+    if response.status_code != 200:
+        print(f"ERROR: {response.text}")
+        raise HTTPException(status_code=response.status_code, detail="Errore in Core Service")
+    
+    data=response.json()
+    internal_jwt = data["access_token"]
+    refresh_token = data["refresh_token"]
 
-    # Controlla se l'utente esiste, altrimenti crea
-    r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
-    if r.status_code == 404:
-        r = requests.post(f"{DATA_SERVICE_URL}/users", json={"email": email, "username": name})
-    r.raise_for_status()
-    user = r.json()
-
-    #  Chiede al business layer di generare JWT interno
-    core_resp = requests.post(f"{AUTH_CORE_URL}/core/sign", json={
-        "user_id": user["id"],
-        "email": user["email"],
-        "minutes_valid" : 10
-    })
-   
-    internal_jwt = core_resp.json()["token"]
-
-    #  Chiede al business layer di generare refresh token
-    refresh_resp = requests.post(f"{AUTH_CORE_URL}/core/refresh/generate")
-    refresh_token = refresh_resp.json()["refresh_token"]
-
-    #  Salva refresh token su data service
-    requests.post(f"{DATA_SERVICE_URL}/refresh/save", json={
-        "token": refresh_token,
-        "user_id": user["id"],
-        "expires_at": refresh_resp.json()["expires_at"]
-    })
-
-    #  Imposta cookie e redirect
-    redirect_url = f"http://localhost:3000/pages/save_token.html?token={internal_jwt}"
+    # 2. Gestione dei Cookie e Redirect (Responsabilità del Process Layer)
+    redirect_url = f"{HOME_URL}/pages/home_news.html?token={internal_jwt}"
     response = RedirectResponse(url=redirect_url)
-   # response = RedirectResponse(url="http://localhost:3000/pages/home_news.html")
+    
     cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
-    #response.set_cookie("access_token", internal_jwt, max_age=600, domain="localhost", **cookie_params)
     response.set_cookie("refresh_token", refresh_token, max_age=60*60*24*30, **cookie_params)
+    
     return response
 
 
