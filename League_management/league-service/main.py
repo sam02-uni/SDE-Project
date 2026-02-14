@@ -26,15 +26,19 @@ def get_league_by_name(name: str, user: dict = Depends(verify_token)): # name qu
     print(user_id)
     pass
 
-@app.get("/by_user", response_model=list[EssentialLeagueInfo])
-def get_leagues_by_user(not_logged_user_id: Optional[int] = None, user: Optional[dict] = Depends(verify_token)): # TODO per modificare e rendere opzionale verify_Token dovrei maneggiare il suo codice, non qua 
+@app.get("/by_user", response_model=list[EssentialLeagueInfo], summary = "Get the league whose owner or participant is the user, logged or given")
+def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant : Optional[bool] = False, user: Optional[dict] = Depends(verify_token)): 
+    params = {}
+    if as_participant:
+        params.update({'as_participant': 'true'})
     if not_logged_user_id:
-        response = requests.get(f"{data_service_url_base}leagues/?user_id={not_logged_user_id}")
+        params.update({'user_id': not_logged_user_id})
     else:
         logged_user_id = user['user_id']
-        response = requests.get(f"{data_service_url_base}leagues/?user_id={logged_user_id}")
+        params.update({'user_id': logged_user_id})       
+    response = requests.get(f"{data_service_url_base}leagues", params=params)
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Not found PIPPO")
+        raise HTTPException(status_code=response.status_code, detail="Not found")
     return response.json()
 
 @app.get("/current_matchday")

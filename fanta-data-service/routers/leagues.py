@@ -2,6 +2,7 @@
 from unittest import result
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlmodel import Session, select
+from sqlalchemy import or_
 from database import get_session
 from models import League, User, Participant, LeagueUpdate, LeagueWithParticipants
 from typing import Optional, Annotated
@@ -16,11 +17,20 @@ router = APIRouter(
 # con lega.participants ad esempio
 
 @router.get("/", response_model=list[League])  # GET /leagues
-def get_all_leagues(user_id: Optional[int] = None, session: Session = Depends(get_session)) -> list[League]:
-    statement = select(League)
+def get_all_leagues(user_id: Optional[int] = None, as_participant: Optional[bool] = False, session: Session = Depends(get_session)) -> list[League]:
+    statement = select(League).join(League.participants, isouter=True)
+    
     if user_id is not None:
-        statement = statement.where(League.owner_id == user_id)
-    result = session.exec(statement).all()
+        if as_participant:
+            
+            statement = statement.where(
+                or_(League.owner_id == user_id, User.id == user_id)
+            )
+        else:
+        
+            statement = statement.where(League.owner_id == user_id)
+
+    result = session.exec(statement).unique().all()
     return result
 
 @router.get("/{league_id}", response_model=League) # GET /leagues/{league_id}
