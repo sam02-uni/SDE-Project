@@ -100,6 +100,7 @@ def suggest_players(given_name:str):
 @app.get("/info_webapp_home")
 def get_info_webapp_home(request: Request):
     headers = check_auth_headers(request)
+    # TODO: aggiungere anche quelle in cui è partecipante
     response = requests.get(f"{league_service_url_base}by_user", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
@@ -128,13 +129,17 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
         raise HTTPException(status_code=response.status_code, detail="not able to get squads")
 
     # take the first one (the only one) with players
-    squad = response.json()[0]
-    response = requests.get(f"{squad_service_url_base}{squad['id']}?with_players=true")
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
-    squad_with_players = response.json()
-    
-    dict_result.update({'squad': squad_with_players})
+    squad_list = response.json()
+    if len(squad_list) == 0:
+        dict_result.update({'squad': None})
+    else:
+        squad = squad_list[0]
+        response = requests.get(f"{squad_service_url_base}{squad['id']}?with_players=true")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
+        squad_with_players = response.json()
+        
+        dict_result.update({'squad': squad_with_players})
      
     # current matchday:
     response = requests.get(f"{league_service_url_base}current_matchday")

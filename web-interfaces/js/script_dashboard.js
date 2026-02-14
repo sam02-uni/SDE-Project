@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const numeroGiornata = document.getElementById("numeroGiornata");
     const scadenzaFormazione = document.getElementById("scadenza") // TODO
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
+    const btnViewGrades = document.getElementById("btnViewGrades");
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
     const divTitolari = document.getElementById('listaTitolari');
@@ -328,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (infoLega.lastMatchFinished){
                     btnCalcoloGiornata.style.display = 'block';
                 } else {
+                    btnViewGrades = 'block'
                     btnCalcoloGiornata.style.display = 'none';
                 }
             } else {
