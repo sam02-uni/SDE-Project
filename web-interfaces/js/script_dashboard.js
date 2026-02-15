@@ -233,6 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else if (response.status === 401) {
                     const success = await refreshAccessToken();
                     if (success) {
+                        const newToken=localStorage.getItem('access_token');
                         response= await fetch(url, {
                         method: 'GET', 
                         headers: {
@@ -295,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.status === 401) {
                 const success = await refreshAccessToken();
                 if (success) {
+                    const newToken=localStorage.getItem('access_token');
                     response= await fetch(url, {
                         method: 'GET', 
                         headers: {
@@ -365,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.status === 401) {
                 const success = await refreshAccessToken();
                 if (success) {
+                    const newToken=localStorage.getItem('access_token');
                     response= await fetch(url, {
                         method: 'GET', 
                         headers: {

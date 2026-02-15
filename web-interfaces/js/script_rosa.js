@@ -172,13 +172,32 @@ document.addEventListener("DOMContentLoaded", () => {
                         "players": squad
                     })
                 });
-                if (response.status != 201){
-                    alert("Errore imprevisto nell'inserimento della squadra.");
-                    console.log(response.status, response.body);
+                
+                // Gestione del token scaduto
+            if (response.status === 401) {
+                const success = await refreshAccessToken();
+                if (success) {
+                    const newToken = localStorage.getItem('access_token');
+                    response = await fetch(url, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${newToken}` 
+                    },
+                    body: JSON.stringify({  
+                        "email_user":partecipant,
+                        "squad_name":squadName,
+                        "players": squad
+                    })
+                });
+                
+                alert("Lineup added successfully!")
+                window.location.href = "lega_dashboard.html";
                 } else {
-                    alert("Inserimento avvenuto con successo!");
-                    location.reload();
+                    window.location.href = "login.html";
+                    return;
                 }
+            }
             } else {
                 alert("Numero di giocatori insufficienti, completare la rosa con 25 giocatori.");
             }

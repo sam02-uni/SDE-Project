@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from core.jwt_service import sign_token, verify_token
+from core.jwt_service import sign_token
 from core.refresh_service import generate_refresh_token, token_expiry
 from core.keys import KID, NUMBERS, b64
 import requests
@@ -56,41 +56,19 @@ def core_identification(user_info: dict):
         "refresh_token": token
     }
 
+@app.post("/generate/access")
+def core_session_user(token : dict):
 
-@app.post("/sign")
-def core_sign(req: SignRequest):
-    """
-    Generates an internal JWT for the user.
-
-    - **user_id**: The user's ID (string)
-    - **email**: User's email
-    - **minutes_valid**: Token expiration time in minutes
-
-    Returns a JSON containing the signed token.
-    """
-    token = sign_token(req.user_id, req.email, req.minutes_valid)
-    return {"token": token}
-
-@app.post("/verify")
-def core_verify(req: VerifyRequest):
-    """
-    Verify the provided JWT.
-
-    - **token**: JWT string to be verified
-
-    Returns whether the token is valid and the decoded payload if valid.
-    """
-    try:
-        payload = verify_token(req.token)
-        return payload
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-@app.post("/refresh/generate")
-def core_generate_refresh():
-    token = generate_refresh_token()
-    expiry = token_expiry()
-    return {"refresh_token": token, "expires_at": expiry.isoformat()}
+    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json={"token": token["token"]})
+    token_obj.raise_for_status()
+    token_data = token_obj.json()
+    
+    # 2. Identico all'originale
+    user_data = requests.get(f"{DATA_SERVICE_URL}/users/{token_data['user_id']}").json()
+    new_token=sign_token(user_data['id'], user_data['email'], 10)
+    
+    # Restituisco l'intero oggetto user come faceva il data service
+    return new_token
 
 @app.get("/jwks")
 def core_jwks():
