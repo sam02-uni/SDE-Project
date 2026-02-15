@@ -71,10 +71,7 @@ async function caricaLeghe() {
 
         // Gestione del token scaduto
         if (response.status === 401) {
-            console.log("MI HA DATO L'ERRORE (401 intercettato)");
-            console.log("E ANDATO L'ERRORE")
             const success = await refreshAccessToken();
-            console.log("GENERO NUOVO ACCESS TOKEN DA LEGHE")
             if (success) {
                 const newToken = localStorage.getItem('access_token');
                 response= await fetch(url, {
