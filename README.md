@@ -1,19 +1,21 @@
 # SDE-Project
 
+This project is a comprehensive platform designed for the creation and end-to-end management of fantasy football leagues. Built with a scalable microservices architecture, it enables users to orchestrate every aspect of the game—from team drafting and lineup management to real-time news aggregation and matchday scoring.
+
 ## Stack delle tecnologie:
 
 **FastApi**: a Python framework for building services.  
-**SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.
-**Postgres**:
-**Uvicorn**:
-**Docker**: is used for the container of each service.
-**Pyhton**
-**HTML, CSS & JS**
+**SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.  
+**Postgres**:  
+**Uvicorn**:  
+**Docker**: is used for the container of each service.  
+**Pyhton**  
+**HTML, CSS & JS**  
 
 ### Fonti esterne
-**RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.
-**HTML scraping** from "Gazzetta dello sport" and "sosfanta" sites.
-**Google API**
+**RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.  
+**HTML scraping** from "Gazzetta dello sport" and "sosfanta" sites.   
+**Google API**  
 
 ## Docker Services & Port Mapping
 
