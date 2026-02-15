@@ -69,10 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById("overlay");
     const openBtn = document.getElementById("openSidebar");
     
-    const modal = document.getElementById("modalFormazione");
+    const modalFormazione = document.getElementById("modalFormazione");
+    const modalCalcola= document.getElementById("modalCalcolaGiornata")
     const btnFormazione = document.getElementById("btnFormazione");
     const btnInserisciSquadra = document.getElementById("btnInserisciSquadra");
-    const closeModal = document.getElementById("closeModal");
+    const closeModalFormazione = document.getElementById("closeModalFormazione");
+    const closeModalCalcola= document.getElementById("closeModalCalcola")
     const saveBtn = document.getElementById("saveFormazione");
     const containerLeagues = document.getElementById("userLeagues");
     const logoutForm = document.getElementById('logoutForm');
@@ -80,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const numeroGiornata = document.getElementById("numeroGiornata");
     const scadenzaFormazione = document.getElementById("scadenza") // TODO
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
+    const btnConfermaCalcolo= document.getElementById("confirm")
     const btnViewGrades = document.getElementById("btnViewGrades");
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
@@ -124,10 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href= "grades_dashboard.html"
     })
     
-    // --- 2. LOGICA MODAL FORMAZIONE ---
+    // --- LOGICA MODAL FORMAZIONE ---
     if (btnFormazione) {
         btnFormazione.addEventListener("click", () => {
-            modal.style.display = "block";
+            modalFormazione.style.display = "block";
             overlay.classList.add("active"); // Mostra l'overlay anche per la modal
             formazione.titolari = [];
             formazione.panchina = [];
@@ -135,9 +138,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (closeModal) {
-        closeModal.addEventListener("click", () => {
-            modal.style.display = "none";
+    if (closeModalFormazione) {
+        closeModalFormazione.addEventListener("click", () => {
+            modalFormazione.style.display = "none";
+            overlay.classList.remove("active");
+        });
+    }
+
+    
+    // ---  LOGICA MODAL CALCOLA GIORNATA ---
+    if (btnCalcoloGiornata) {
+        btnCalcoloGiornata.addEventListener("click", () => {
+            modalCalcola.style.display = "block";
+            overlay.classList.add("active"); // Mostra l'overlay anche per la modal
+            popolaGiornate();
+        });
+    }
+
+    if (closeModalCalcola) {
+        closeModalCalcola.addEventListener("click", () => {
+            modalCalcola.style.display = "none";
             overlay.classList.remove("active");
         });
     }
@@ -251,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
     saveBtn.addEventListener("click", saveFormation);
-    btnCalcoloGiornata.addEventListener("click", computeScores)
+    btnConfermaCalcolo.addEventListener("click", computeScores)
 
     
 
@@ -384,8 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (infoLega.lastMatchFinished){
                     btnCalcoloGiornata.style.display = 'block';
                 } else {
-                    btnViewGrades.style.display = 'block'
-                    btnCalcoloGiornata.style.display = 'none';
+                    btnViewGrades.style.display = 'block';
                 }
             } else {
                 btnInserisciSquadra.style.display = 'none';
@@ -464,6 +483,26 @@ document.addEventListener("DOMContentLoaded", () => {
             lista.appendChild(row);
         });
     }
+
+    // --- POPOLA GIORNATA ---
+    function popolaGiornate() {
+
+    const currentMatchday = localStorage.getItem("current_matchday") || "1";
+    
+    selectMatchday.innerHTML = ""; 
+
+    for (let i = 1; i <= 38; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `Giornata ${i}`;
+        
+        if (i.toString() === currentMatchday.toString()) {
+            option.selected = true;
+        }
+        
+        selectMatchday.appendChild(option);
+    }
+}
 
     // --- VISUALIZZA LA FORMAZIONE INSERITA ---
     async function renderFormazione() {
