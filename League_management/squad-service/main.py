@@ -44,7 +44,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
         raise HTTPException(status_code = 400, detail="Bad Request: the squad league does not exists")
     if user_id != response.json()['owner_id']:
         raise HTTPException(status_code = 403, detail="Action is Forbidden for the logged user")
-    print("authorization passed")
+    
 
     response = requests.get(f"{data_service_url_base}/users/by-email?user_email={info.owner_email}") # id dell owner della squadra
     if response.status_code != 200:
@@ -77,8 +77,8 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
     suggested_players = response.json()
     return suggested_players if suggested_players else []
 
-# TODO: DA TENERE ? 
-@app.get("/allPlayers", summary = "Return all Players in the application")
+ 
+@app.get("/all-players", summary = "Return all Players in the application")
 def getAllPlayers():
     response = requests.get(f"{data_service_url_base}/players/")
     if response.status_code != 200:

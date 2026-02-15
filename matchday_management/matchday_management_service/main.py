@@ -56,7 +56,7 @@ def get_lineup_grades(lineup_id: int):
         raise HTTPException(status_code = response.status_code, detail = "Unable to get grades")
     return response.json()
 
-# chiamato questo metodo aggiorna per ottenere nuova classifica dal backend
+
 @app.get("/leagues/{league_id}/lineups/calculate_scores", summary = "calculate the scores for all the lineups of the league for the given matchday") 
 def calculate_scores(league_id: int, matchday_number: int, request: Request): 
     
@@ -95,17 +95,19 @@ def create_lineup(lineup: LineUpCreate, request: Request):
     headers = check_auth_headers(request)
     response = requests.post(f"{lineup_service_url_base}", json=jsonable_encoder(lineup), headers=headers)
     if response.status_code != 201:
+        print(response.json())
         raise HTTPException(status_code = response.status_code, detail = "Not able to insert lineup")
     
     return response.json()
     
 
-@app.get("/{squad_id}/last_score")
+@app.get("/{squad_id}/scores", summary = "Get the scores of a squad during the leage so far")
 def get_last_score_of_squad():
     # TODO , SERVE ? 
     pass
 
-@app.get("/lineups/{squad_id}/{matchday_number}")
+#  lineups/{squad_id}/{matchday_number}
+@app.get("/squads/{squad_id}/lineups", summary= "Get a certain lineup")
 def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
     # 1. Recupera gli header per l'autorizzazione
     headers = check_auth_headers(request)

@@ -5,7 +5,7 @@ from typing import Optional
 app = FastAPI(title="Fanta Grades Scraper Service", root_path="/scraper/fanta_grades")
 gradeScraper = GradesScraper()
 
-mapping_players_db_to_fantacalcio = {
+mapping_players_fantacalcio_to_db = {
     'Ederson D.S.': 'Ederson',
     'Floriani Mussolini': 'floriani',
     'Malinovskyi': 'malinovskiy',
@@ -16,7 +16,11 @@ mapping_players_db_to_fantacalcio = {
     'Konè M.' : 'Kouadio Koné',
     'Thuram K.': 'Thuram-Ulie',
     'Al-Musrati' : 'Al Musrati',
-    'Jashari': 'Jasari'
+    'Jashari': 'Jasari',
+    'Djuric': 'Đurić',
+    'Iling Junior': 'Iling-Junior',
+    'Bella-Kotchap': 'Bella Kotchap',
+    'Akpa Akpro': 'Akpa-Akpro'
 }
 
 @app.get("/")
@@ -24,7 +28,7 @@ def read_root():
     return {"message": "Fanta Grades Scraper Service is running"}
 
 
-@app.get("/scrape_grades/{matchday_number}")
+@app.get("/scrape_grades/{matchday_number}", summary = "Scrape the grades for the given matchday")
 def scrape_fanta_grades(matchday_number: Optional[int] = None):
     
     grades = gradeScraper.scrape_grades(matchday_number=matchday_number)
@@ -35,7 +39,7 @@ def scrape_fanta_grades(matchday_number: Optional[int] = None):
     for grade in grades:
         # mappa per nomi speciali:
 
-        mappato = mapping_players_db_to_fantacalcio.get(grade['player_surname'])
+        mappato = mapping_players_fantacalcio_to_db.get(grade['player_surname'])
         if mappato:
             grade['player_surname'] = mappato
 

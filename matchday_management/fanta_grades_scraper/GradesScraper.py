@@ -23,12 +23,6 @@ class GradesScraper():
             "Referer": "https://www.google.com/" # Fa credere al server che arrivi da Google
         }
 
-        # 3. Ritardo casuale (prima della richiesta)
-        # Simula il tempo che un umano impiega per cliccare o digitare
-        #attesa = random.uniform(2.0, 5.0)
-        #print(f"Attendo {attesa:.2f} secondi...")
-        #time.sleep(attesa)
-
         response = self.session.get(self.url_matchday.format(matchday_number), headers=headers, timeout=10)
         response.raise_for_status()
 

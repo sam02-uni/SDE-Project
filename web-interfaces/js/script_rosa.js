@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const squadName = document.getElementById("squadName").value.trim();
         const token = localStorage.getItem('access_token');
         if (partecipant && squadName){
-            if (miaRosa.length == 25){
+            if (miaRosa.length >= 0){
                 const squad  = miaRosa.map(playerInRosa => {
                     return databaseCalciatori.find(c => c.id === playerInRosa.id);
                 }); // Per ogni elemento in miaRosa, cerchiamo il corrispettivo nel database

@@ -36,7 +36,12 @@ def get_player_rating(matchday_id:int, player_id:Optional[int] = None, session: 
         return ratings
 
 @router.delete("/rating")  # DELETE /players/rating All ratings
-def delete_player(session: Session = Depends(get_session)): # Delete All playerRatings
+def delete_player(matchday_id: Optional[int] = None, session: Session = Depends(get_session)): # Delete All playerRatings
+    if matchday_id:
+        stmt = delete(PlayerRating).where(PlayerRating.matchday_id == matchday_id)
+        session.exec(stmt)
+        session.commit()
+        return {'ok:': True}
 
     statement = delete(PlayerRating)
     session.exec(statement)

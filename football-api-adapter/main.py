@@ -42,26 +42,6 @@ mapping_position = {
 '''
 Calciomercato chiuso il 2 Febbraio
 Giornata 23:
-non trovato giocatore:  (trasferito a gennaio da atalanta a lazio)
-non trovato giocatore: Stojilkovic       (da fuori a Pisa)                                                                                        
-non trovato giocatore: Marianucci (dal napoli al torino)                                                                                                   
-non trovato giocatore: Prati (dal cagliari al torino)
-non trovato giocatore: Kulenovic (da fuori al Torino)                                                                                   
-non trovato giocatore: Lovric (da Udinese a Verona)                                                                                                    
-non trovato giocatore: Nicolussi Caviglia (da fiorentina a Parma)
-non trovato giocatore: Elphege (da fuori al Parma)
-non trovato giocatore: Maleh (da lecce a Cremonese)
-non trovato giocatore: Djuric (si chiama Đurić e stava al Parma, ora cremonese)
-non trovato giocatore: Maldini (atalanta a lazio)
-non trovato giocatore: Holm
-non trovato giocatore: Boga
-non trovato giocatore: Garcia U (dal marsiglia)
-non trovato giocatore: Nzola (dal pisa al sassuolo)
-
-
-
-
-
 
 '''
 

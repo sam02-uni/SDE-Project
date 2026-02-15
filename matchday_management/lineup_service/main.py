@@ -40,7 +40,8 @@ def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
 def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and matchday specified in lineup object
     # Recupero id dell'utente di sessione
     logged_user_id = user['user_id']
-
+    
+    
     # Chiamata al db se ho squad_id
     if base_line_up.squad_id != None:
         response = requests.get(f"{data_service_url_base}squads/{base_line_up.squad_id}/with-players")
@@ -61,7 +62,7 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
             raise HTTPException(status_code = 400, detail = "Bad request")
 
     
-    # Verifica che l'utente di sessione sia il proprietario della squadra
+    # Authorization : Verifica che l'utente di sessione sia il proprietario della squadra
     if logged_user_id == squad['owner_id']:
         
         response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={base_line_up.matchday_number}")
@@ -84,8 +85,10 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
                 
             # ok, go on
 
+            print("Arrivato qui")
             # Verifica sul numero di giocatori inseriti per la formazione
-            if len(base_line_up.starting_ids) == 11 :#and len(base_line_up.bench_ids) == 7:
+            # TODO: riaggiusta == 11
+            if len(base_line_up.starting_ids) >= 0 :#and len(base_line_up.bench_ids) == 7:
                 lineup = set(base_line_up.starting_ids + base_line_up.bench_ids) # set of player ids in lineup
                 squad_ids = [player['id'] for player in squad['players']]
                 squad_set = set(squad_ids)
@@ -131,6 +134,8 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
 
 @app.get("/{lineup_id}/grades", summary = "get the grades of the given lineup's players")
 def get_lineup_grades(lineup_id: int): 
+
+    # TODO AUTHORIZATION?: solo l'owner della squad o l'admin della lega può visualizzare i voti della sua formazione
 
     # get lineup from data service
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
@@ -250,6 +255,8 @@ def update_grades(matchday_id: int):
 @app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup")
 def calculate_score(lineup_id: int):
 
+    # TODO: Authorization, solo admin può calcolare
+
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="LineUp not found")
@@ -268,6 +275,7 @@ def calculate_score(lineup_id: int):
     
     # se già stato calcolato per questa giornata:
     if lineup_with_players['score'] != 0:
+        print("qui ?")
         return {'score_lineup': lineup_with_players['score']}
     
     # calcolo punteggio totale della formazione 

@@ -156,7 +156,7 @@ class LineUpWithPlayers(SQLModel):
     id: Optional[int] = None
     squad_id: int
     matchday_id: int
-    score: float
+    score: Optional[float] = 0.0
     players: list[PlayerInLineUp] = []
 
 class LineUpUpdate(SQLModel):
