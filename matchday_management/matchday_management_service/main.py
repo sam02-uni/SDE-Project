@@ -35,7 +35,7 @@ def read_root():
     return {"message": "MatchDay Management Process Centric service is running"}
 
 
-# DA USARE IN JS
+
 @app.get("/lineups/{lineup_id}/grades", summary = "get the most recent grades available for the given lineup") 
 def get_lineup_grades(lineup_id: int):
     
@@ -57,7 +57,7 @@ def get_lineup_grades(lineup_id: int):
     return response.json()
 
 # chiamato questo metodo aggiorna per ottenere nuova classifica dal backend
-@app.get("/leagues/{league_id}/lineups/calculate_scores", summary = "calculate the scores for all the linups of the league for the given matchday") 
+@app.get("/leagues/{league_id}/lineups/calculate_scores", summary = "calculate the scores for all the lineups of the league for the given matchday") 
 def calculate_scores(league_id: int, matchday_number: int, request: Request): 
     
     headers = check_auth_headers(request)
