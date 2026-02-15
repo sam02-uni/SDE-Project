@@ -144,25 +144,15 @@ def refresh_token_endpoint(request: Request):
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token mancante")
 
-    # Chiede al data service se il token è valido
-    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json={"token": refresh_token})
-    token_obj.raise_for_status()
-    token = token_obj.json()
-    user = requests.get(f"{DATA_SERVICE_URL}/users/{token['user_id']}").json()
-
-    # Chiede al core layer di generare nuovo JWT
-    new_jwt_resp = requests.post(f"{AUTH_CORE_URL}/core/sign", json={
-        "user_id": user["id"],
-        "email": user["email"],
-        "minutes_valid": 10
-    })
-    new_jwt = new_jwt_resp.json()["token"]
-
-    #response = JSONResponse({"message": "Token rinnovato con successo"})
-    #cookie_params = {"httponly": True, "secure": False, "samesite": "lax", "path": "/"}
-    #response.set_cookie("access_token", new_jwt, max_age=600, **cookie_params)
+    token_resp = requests.post(
+        f"{AUTH_CORE_URL}/core/generate/access", 
+        json={"token": refresh_token}
+    )
+    token_resp.raise_for_status()
+    new_token = token_resp.json() 
+    
     return {
-        "access_token": new_jwt,
+        "access_token": new_token,
         "message": "Token rinnovato"
     }
 
