@@ -51,7 +51,7 @@ def init_base_league(league_info: BaseLeagueModel, request: Request):
 
 @app.get("/allPlayers")
 def get_all_players():
-    response = requests.get(f"{squad_service_url_base}allPlayers")
+    response = requests.get(f"{squad_service_url_base}all-players")
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()

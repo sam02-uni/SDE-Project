@@ -173,7 +173,7 @@ function renderPlayerWithGrade(containerId, player, grade) {
 
     try {
         // 1. Recupera la formazione
-        let url_lineup = `${MATCHDAY_URL}/lineups/${squadId}/${currentMatchday}`;
+        let url_lineup = `${MATCHDAY_URL}/squads/${squadId}/lineups?matchday_number=${currentMatchday}`;
         let response = await fetch(url_lineup, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -188,13 +188,16 @@ function renderPlayerWithGrade(containerId, player, grade) {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            
             // Creiamo un "dizionario" dei voti per trovarli velocemente
             let gradesMap = {};
             if (response_votes.ok) {
                 const votesList = await response_votes.json();
+                
                 votesList.forEach(v => {
                     // Mappa l'ID del giocatore al suo voto (es: { "10": 7.5, "25": 6 })
-                    gradesMap[v.player_id] = v.grade; 
+                    
+                    gradesMap[v.player.id] = v.fanta_rating; 
                 });
             }
 
@@ -207,8 +210,10 @@ function renderPlayerWithGrade(containerId, player, grade) {
                 
                 // Cerchiamo il voto corrispondente a questo giocatore nella mappa
                 let voto=gradesMap[p.id]
-                if (voto === undefined){
-                    voto=gradesMap[p.id]="-"
+                
+                if (voto === null){
+                    
+                    voto=gradesMap[p.id]="S.V."
                     }
                 
                 // Generiamo l'HTML usando la funzione che hai creato

@@ -1,6 +1,6 @@
 # SDE-Project
 
-This project is a comprehensive platform designed for the creation and end-to-end management of fantasy football leagues. Built with a scalable microservices architecture, it enables users to orchestrate every aspect of the game—from team drafting and lineup management to real-time news aggregation and matchday scoring.
+This SOA (Service Oriented Application) is a comprehensive platform designed for the creation and end-to-end management of fantasy football leagues. Built with a scalable microservices architecture, it enables users to orchestrate every aspect of the game—from team drafting and lineup management to real-time news aggregation and matchday scoring.
 
 ## Stack of technologies:
 
@@ -10,12 +10,14 @@ This project is a comprehensive platform designed for the creation and end-to-en
 **Uvicorn**:  
 **Docker**: is used for the container of each service.  
 **Pyhton**  
-**HTML, CSS & JS**  
+**HTML, CSS & JS**: used for the Fronted of the application
 
 ### External sources
 **RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.  
 **HTML scraping** from "Gazzetta dello sport" and "sosfanta" sites.   
 **Google API**  
+**Football API**
+**Fantacalcio.it**
 
 ## Docker Services & Port Mapping
 

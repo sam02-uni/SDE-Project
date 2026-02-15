@@ -115,6 +115,21 @@ body {
     transition: 0.3s;
 }
 
+.openbtn-right{
+    /* Mantieni lo stile originale */
+    font-size: 15px;
+    cursor: pointer;
+    background-color: #f17863;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.3s;
+
+    /* La magia per il posizionamento */
+    margin-left: auto;
+}
 .openbtn:hover {
     background-color: #d35400;
 }

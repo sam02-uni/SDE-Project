@@ -54,7 +54,7 @@ def get_league_details(league_id: int):
     league_data = requests.get(f"{data_service_url_base}leagues/{league_id}").json()
     return league_data
 
-@app.post("/", response_model=int, status_code=201) # response model è l'id della lega creata 
+@app.post("/", response_model=int, status_code=201, summary = "Creation of a legue") # response model è l'id della lega creata 
 def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_token)): # league_data contiene name, max_credits
     
     user_id = user['user_id']
@@ -65,7 +65,7 @@ def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_toke
         raise HTTPException(status_code=response.status_code, detail="Not created")
     new_league = response.json()
 
-    # add owner as participant
+    # add owner as participant -> No, the Owner have to put himself in the add Squad section
     #response = requests.post(f"{data_service_url_base}leagues/{new_league['id']}/participants", json=new_league['owner_id'])
     #if response.status_code !=201:
     #    raise HTTPException(status_code=response.status_code, detail="Ownwe not added as participant")

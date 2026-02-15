@@ -81,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const scadenzaFormazione = document.getElementById("scadenza") // TODO
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const btnViewGrades = document.getElementById("btnViewGrades");
+    const btnDeleteLeague = document.getElementById("btnDeleteButton");
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
     const divTitolari = document.getElementById('listaTitolari');
@@ -114,6 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
+    btnDeleteLeague.addEventListener("click", () => {
+        // TODO ? 
+    })
 
 
     btnInserisciSquadra.addEventListener("click", () => {
@@ -389,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (infoLega.firstMatchStarted){
-                btnFormazione.style.display = 'none';
+                //btnFormazione.style.display = 'none';
                 scadenzaFormazione.textContent = '';
             } else {
                 btnFormazione.style.display = 'block';
@@ -483,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
         // Altrimenti carichiamo dal server
         else {
-            let url = `${MATCHDAY_URL}/lineups/${squadId}/${currentMatchday}`;
+            let url = `${MATCHDAY_URL}/squads/${squadId}/lineups?matchday_number=${currentMatchday}`;
             try {
                 const token = localStorage.getItem('access_token');
                 let response = await fetch(url, {
