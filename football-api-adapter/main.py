@@ -53,7 +53,10 @@ non trovato giocatore: Elphege (da fuori al Parma)
 non trovato giocatore: Maleh (da lecce a Cremonese)
 non trovato giocatore: Djuric (si chiama Đurić e stava al Parma, ora cremonese)
 non trovato giocatore: Maldini (atalanta a lazio)
-
+non trovato giocatore: Holm
+non trovato giocatore: Boga
+non trovato giocatore: Garcia U (dal marsiglia)
+non trovato giocatore: Nzola (dal pisa al sassuolo)
 
 
 
@@ -99,6 +102,11 @@ def update_players(team_id: str): # team_id query param
     if response.status_code != 201:
         raise HTTPException(status_code=500, detail=f"data service error:{response.text}")
     return {'ok':True}
+
+@app.get("/players_by_team")
+def get_players_by_team(team_id: str):
+    return client.get_players_by_team(team_id)
+
 
 @app.get("/matchday_info")
 def get_matchday_info(matchday: Optional[int] = None):
