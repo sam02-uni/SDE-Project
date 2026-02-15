@@ -2,7 +2,7 @@
 
 This project is a comprehensive platform designed for the creation and end-to-end management of fantasy football leagues. Built with a scalable microservices architecture, it enables users to orchestrate every aspect of the game—from team drafting and lineup management to real-time news aggregation and matchday scoring.
 
-## Stack delle tecnologie:
+## Stack of technologies:
 
 **FastApi**: a Python framework for building services.  
 **SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.  
@@ -12,7 +12,7 @@ This project is a comprehensive platform designed for the creation and end-to-en
 **Pyhton**  
 **HTML, CSS & JS**  
 
-### Fonti esterne
+### External sources
 **RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.  
 **HTML scraping** from "Gazzetta dello sport" and "sosfanta" sites.   
 **Google API**  
