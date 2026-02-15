@@ -114,7 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Chiude se si clicca sull'oscuramento
     overlay.addEventListener("click", () => {
         closeNav();
-        modal.style.display = "none"; // Chiude anche la modal se aperta
+        modalFormazione.style.display = "none";
+        modalCalcola.style.display = "none"; // Chiude anche la modal se aperta
     });
 
 
@@ -193,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Salvataggio formazione, ID selezionati:  T:", formazione.titolari, " P:", formazione.panchina);
         let squadId = localStorage.getItem("squad_id");
         let current = localStorage.getItem("current_matchday");
-        modal.style.display = "none";
+        modalFormazione.style.display = "none";
         overlay.classList.remove("active");
         
         // Chiamata al process per inserire la formazione
@@ -220,6 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 alert("Formazione salvata correttamente");
                 renderFormazione()
+                window.location.reload()
             }
 
         } catch (error){
