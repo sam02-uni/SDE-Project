@@ -113,6 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "none"; // Chiude anche la modal se aperta
     });
 
+
+
+
     btnInserisciSquadra.addEventListener("click", () => {
         window.location.href="rosa_dashboard.html"
     });
@@ -200,7 +203,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
+    // --- COMPUTE SCORES ---
+    async function computeScores(){
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const league_id = localStorage.getItem("selected_league_id");
+                
+                // Endpoint basato sulla tua struttura MATCHDAY_URL
+                let url = `${MATCHDAY_URL}/leagues/${league_id}/lineups/calculate_scores`;
+
+                let response = await fetch(url, {
+                    method: "POST", 
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}` 
+                    }
+                });
+
+                if (response.ok) {
+                    alert("Giornata calcolata con successo!");
+                    // Per aggiornare la classifica
+                    window.location.reload(); 
+                } else if (response.status === 401) {
+                    const success = await refreshAccessToken();
+                    if (success) {
+                        response= await fetch(url, {
+                        method: 'GET', 
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${newToken}`
+                        }
+                        });
+                    } else {
+                        window.location.href = "login.html";
+                    }
+                } else {
+                    alert("Errore: Impossibile calcolare la giornata");
+                }
+
+            } catch (error) {
+                console.error("Errore durante il calcolo:", error);
+            }
+
+        }
+    
     saveBtn.addEventListener("click", saveFormation);
+    btnCalcoloGiornata.addEventListener("click", computeScores)
 
     
 
@@ -241,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.status === 401) {
                 const success = await refreshAccessToken();
                 if (success) {
-                    const newToken = localStorage.getItem('access_token');
                     response= await fetch(url, {
                         method: 'GET', 
                         headers: {
@@ -312,7 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.status === 401) {
                 const success = await refreshAccessToken();
                 if (success) {
-                    const newToken = localStorage.getItem('access_token');
                     response= await fetch(url, {
                         method: 'GET', 
                         headers: {
@@ -415,85 +462,85 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- VISUALIZZA LA FORMAZIONE INSERITA ---
- async function renderFormazione() {
-    let squadId = localStorage.getItem("squad_id");
-    if(!squadId) return;
-    let currentMatchday = localStorage.getItem("current_matchday");
+    async function renderFormazione() {
+        let squadId = localStorage.getItem("squad_id");
+        if(!squadId) return;
+        let currentMatchday = localStorage.getItem("current_matchday");
 
-    if (!divTitolari || !divPanchina) return;
+        if (!divTitolari || !divPanchina) return;
 
-    divTitolari.innerHTML = '';
-    divPanchina.innerHTML = '';
+        divTitolari.innerHTML = '';
+        divPanchina.innerHTML = '';
 
-    let titolariData = [];
-    let panchinaData = [];
+        let titolariData = [];
+        let panchinaData = [];
 
-    // Se abbiamo appena salvato, usiamo i dati in memoria
-    if (formazione.titolari.length > 0) {
-        console.log("porcodio")
-        titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
-        panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
-    } 
-    // Altrimenti carichiamo dal server
-    else {
-        let url = `${MATCHDAY_URL}/lineups/${squadId}/${currentMatchday}`;
-        try {
-            const token = localStorage.getItem('access_token');
-            let response = await fetch(url, {
-                method: 'GET', 
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+        // Se abbiamo appena salvato, usiamo i dati in memoria
+        if (formazione.titolari.length > 0) {
+            console.log("porcodio")
+            titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
+            panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
+        } 
+        // Altrimenti carichiamo dal server
+        else {
+            let url = `${MATCHDAY_URL}/lineups/${squadId}/${currentMatchday}`;
+            try {
+                const token = localStorage.getItem('access_token');
+                let response = await fetch(url, {
+                    method: 'GET', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json(); 
+                    console.log("Dati ricevuti:", data);
+
+                    // Il backend restituisce un oggetto con una lista "players"
+                    if (data && data.players) {
+                        // Separiamo titolari e panchina usando il flag 'is_starting'
+                        titolariData = data.players
+                            .filter(item => item.is_starting === true)
+                            .map(item => item.player); // Prendiamo l'oggetto player interno
+
+                        panchinaData = data.players
+                            .filter(item => item.is_starting === false)
+                            .map(item => item.player);
+                        
+                        console.log("Titolari trovati:", titolariData.length);
+                    }
                 }
-            });
-
-            if (response.ok) {
-                const data = await response.json(); 
-                console.log("Dati ricevuti:", data);
-
-                // Il backend restituisce un oggetto con una lista "players"
-                if (data && data.players) {
-                    // Separiamo titolari e panchina usando il flag 'is_starting'
-                    titolariData = data.players
-                        .filter(item => item.is_starting === true)
-                        .map(item => item.player); // Prendiamo l'oggetto player interno
-
-                    panchinaData = data.players
-                        .filter(item => item.is_starting === false)
-                        .map(item => item.player);
-                    
-                    console.log("Titolari trovati:", titolariData.length);
-                }
+            } catch (error) {
+                console.error("Errore nel recupero info formazione:", error);
             }
-        } catch (error) {
-            console.error("Errore nel recupero info formazione:", error);
         }
+
+        // DISEGNA I TITOLARI
+        titolariData.forEach(p => {
+            divTitolari.innerHTML += `
+                <div class="player-card starter">
+                    <span class="p-role role-${p.role}">${p.role}</span>
+                    <div class="p-details">
+                        <span class="p-team">${p.serie_a_team}</span>
+                        <span class="p-name">${p.name} ${p.surname}</span>
+                    </div>
+                </div>`;
+        });
+
+        // DISEGNA LA PANCHINA
+        panchinaData.forEach(p => {
+            divPanchina.innerHTML += `
+                <div class="player-card bench">
+                    <span class="p-role role-${p.role}">${p.role}</span>
+                    <div class="p-details">
+                        <span class="p-team">${p.serie_a_team}</span>
+                        <span class="p-name">${p.name} ${p.surname}</span>
+                    </div>
+                </div>`;
+        });
     }
-
-    // DISEGNA I TITOLARI
-    titolariData.forEach(p => {
-        divTitolari.innerHTML += `
-            <div class="player-card starter">
-                <span class="p-role role-${p.role}">${p.role}</span>
-                <div class="p-details">
-                    <span class="p-team">${p.serie_a_team}</span>
-                    <span class="p-name">${p.name} ${p.surname}</span>
-                </div>
-            </div>`;
-    });
-
-    // DISEGNA LA PANCHINA
-    panchinaData.forEach(p => {
-        divPanchina.innerHTML += `
-            <div class="player-card bench">
-                <span class="p-role role-${p.role}">${p.role}</span>
-                <div class="p-details">
-                    <span class="p-team">${p.serie_a_team}</span>
-                    <span class="p-name">${p.name} ${p.surname}</span>
-                </div>
-            </div>`;
-    });
-}
 
     function renderRosaUnica() {
         const container = document.getElementById('listaCompletaRosa');
