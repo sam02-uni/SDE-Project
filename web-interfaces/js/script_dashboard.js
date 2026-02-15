@@ -118,9 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    btnDeleteLeague.addEventListener("click", () => {
+    //btnDeleteLeague.addEventListener("click", () => {
         // TODO ? 
-    })
+    //})
 
 
     btnInserisciSquadra.addEventListener("click", () => {
@@ -233,9 +233,15 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const token = localStorage.getItem('access_token');
                 const league_id = localStorage.getItem("selected_league_id");
-                const matchday= localStorage.getItem("current_matchday")
+                
+                const selectElement = document.getElementById("selectMatchday");
+                const matchday = selectElement.value;
 
-                // Endpoint basato sulla tua struttura MATCHDAY_URL
+                if (!matchday) {
+                    alert("Seleziona una giornata");
+                    return;
+                    }
+
                 let url = `${MATCHDAY_URL}/leagues/${league_id}/lineups/calculate_scores?matchday_number=${matchday}`;
 
                 let response = await fetch(url, {
