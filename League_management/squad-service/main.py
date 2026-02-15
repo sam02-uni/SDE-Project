@@ -108,7 +108,7 @@ def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_toke
     squads = response.json()
     return squads
 
-
+'''
 # TODO: TEST - Optional se vogliamo
 @app.patch("/{squad_id}/add_player", summary = "Add a player to a squad")
 def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = Depends(verify_token)):
@@ -126,6 +126,8 @@ def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = De
         raise HTTPException(status_code = 403, detail="Action is Forbidden for the logged user")
     
     # TODO: aggiunti giocatore alla rosa
+'''
+
 
 @app.get("/{squad_id}", summary = "Get a Squad with or without players")
 def get_squad_by_id(squad_id:int, with_players: bool=False):
@@ -137,5 +139,31 @@ def get_squad_by_id(squad_id:int, with_players: bool=False):
     if response.status_code != 200:
         raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
     return response.json()
+
+
+@app.get("/{squad_id}/last-scores", summary = "Get the last 3 scores of the squad, given the matchday from start")
+def get_last_scores(squad_id: int, matchday_number: int):
+    
+    results = list()
+    n_last_scores = 3 # ultimi 3 risultati
+    for i in range(1,n_last_scores+1):
+        matchday_to_search = matchday_number - i
+        # get matchday id:
+        response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday_to_search}")
+        if response.status_code != 200:
+            raise HTTPException(status_code = response.status_code, detail = "Matchday not found")
+        matchday_id = response.json()[0]['id']
+
+        # get lineup
+        res = requests.get(f"{data_service_url_base}/lineups?squad_id={squad_id}&matchDay_id={matchday_id}")
+        if (res.status_code != 200) or (len(res.json()) == 0):
+            # no lineup per quel matchday
+            results.append({'matchday_number': matchday_to_search, 'score': 'S.V.'})
+        else:
+            lineup = res.json()[0]
+            results.append({'matchday_number': matchday_to_search, 'score': lineup['score']})
+        
+    return results
+
 
 

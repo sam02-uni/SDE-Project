@@ -20,6 +20,7 @@ const containerLeagues = document.getElementById("userLeagues");
 const divTitolari = document.getElementById('listaVotiTitolari');
 const divPanchina = document.getElementById('listaVotiPanchina');
 
+
 let formazione = {
     titolari: [], // Max 11
     panchina: []  // Max 7
@@ -211,7 +212,7 @@ function renderPlayerWithGrade(containerId, player, grade) {
                 // Cerchiamo il voto corrispondente a questo giocatore nella mappa
                 let voto=gradesMap[p.id]
                 
-                if (voto === null){
+                if (voto === null || voto === -1){
                     
                     voto=gradesMap[p.id]="S.V."
                     }

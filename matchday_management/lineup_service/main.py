@@ -275,7 +275,7 @@ def calculate_score(lineup_id: int):
     
     # se già stato calcolato per questa giornata:
     if lineup_with_players['score'] != 0:
-        print("qui ?")
+        print("già calcolato per questa giornata")
         return {'score_lineup': lineup_with_players['score']}
     
     # calcolo punteggio totale della formazione 
@@ -339,6 +339,7 @@ def get_lineup(lineup_id: int):
         raise HTTPException(status_code = res.status_code, detail = "Lineup not found")
     
     return res.json()
+
 
  
 

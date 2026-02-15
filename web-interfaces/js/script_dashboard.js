@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnConfermaCalcolo= document.getElementById("confirm")
     const btnViewGrades = document.getElementById("btnViewGrades");
     const btnDeleteLeague = document.getElementById("btnDeleteButton");
+    const divLastScores = document.getElementById('divLastScores');
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
     const divTitolari = document.getElementById('listaTitolari');
@@ -183,6 +184,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Dati pronti, inizio rendering...");
         renderRosaUnica();
         await renderFormazione();
+
+        await renderLastScores();
 
     } catch (error) {
         console.error("Errore nell'inizializzazione dashboard:", error);
@@ -620,6 +623,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `).join('');
         }
+    }
+
+    function renderLastScores(){
+
+        // TODO: 
+        const lastScores = [
+            { matchday: 24, score: 74.5 },
+            { matchday: 23, score: 81.0 },
+            { matchday: 22, score: 69.0 }
+        ];
+
+        
+        divLastScores.innerHTML = lastScores.map(data => `
+            <div class="score-row">
+                <span class="matchday-label">Matchday ${data.matchday}</span>
+                <span class="score-value">${data.score}</span>
+            </div>
+        `).join('');
     }
 
     // ---  LOGOUT  ---

@@ -205,6 +205,31 @@ body {
     font-size: 0.95rem;
 }
 
+
+/* da qui in poi sono per i last scores*/
+
+.score-row {
+    display: flex;
+    justify-content: space-between; /* Spinge il numero a sx e il punteggio a dx */
+    padding: 8px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.score-row:last-child {
+    border-bottom: none; /* Rimuove la linea dall'ultima riga */
+}
+
+.matchday-label {
+    color: #64748b; /* Grigio scuro per la label */
+    font-size: 14px;
+}
+
+.score-value {
+    font-weight: bold;
+    color: #1e293b; /* Colore più scuro per il punteggio */
+    font-size: 16px;
+}
+
 /* ==========================================================================
    5. BOTTONI E MODAL
    ========================================================================== */

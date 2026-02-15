@@ -103,10 +103,14 @@ def create_lineup(lineup: LineUpCreate, request: Request):
     return response.json()
     
 
-@app.get("/{squad_id}/scores", summary = "Get the scores of a squad during the leage so far")
-def get_last_score_of_squad():
-    # TODO , SERVE ? 
-    pass
+@app.get("/{squad_id}/last-scores", summary = "Get the last scores of a squad given the matchday to start from")
+def get_scores_of_squad(squad_id: int, matchday_number: int):
+    
+    res = requests.get(f"{squad_service_url_base}/{squad_id}/last-scores?matchday_number={matchday_number}")
+    if res.status_code != 200:
+        raise HTTPException(status_code = res.status_code, detail = res.json().get("detial", "not able to get last scores"))
+    
+    return res.json()
 
 #  lineups/{squad_id}/{matchday_number}
 @app.get("/squads/{squad_id}/lineups", summary= "Get a certain lineup")
