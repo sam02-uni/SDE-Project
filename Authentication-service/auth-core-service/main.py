@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from core.jwt_service import sign_token
 from core.refresh_service import generate_refresh_token, token_expiry
 from core.keys import KID, NUMBERS, b64
 import requests
-from typing import List
+from models import *
+
 
 app = FastAPI(title="Auth Core Service",  root_path = "/core")
 
@@ -12,32 +12,6 @@ GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 DATA_SERVICE_URL = "http://fanta-data-service:8000"
 
-
-# Models
-class SignRequest(BaseModel):
-    email: str
-    name: str
-
-class Token(BaseModel):
-    token_str: str
-
-class NewTokens(BaseModel):
-    access_token: str
-    refresh_token: str
-
-class JWK(BaseModel):
-    kty: str
-    kid: str
-    use: str
-    alg: str
-    n: str
-    e: str
-
-class JWKSResponse(BaseModel):
-    keys: List[JWK]
-
-class StatusResponse(BaseModel):
-    status: str
 
 @app.post("/identify", summary= "It generates the internal tokens", response_model=NewTokens)
 def core_identification(user_info: SignRequest):

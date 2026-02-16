@@ -4,8 +4,7 @@ import os, requests
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
-from pydantic import BaseModel
-from typing import List
+from models import *
 
 load_dotenv()
 
@@ -36,22 +35,8 @@ GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 
 SCOPES = "openid email profile"
 
-# Models
-class RefreshResponse(BaseModel):
-    access_token: str
-    message: str
+
 jwks = requests.get(GOOGLE_JWKS_URL).json()
-
-class JWK(BaseModel):
-    kty: str
-    kid: str
-    use: str
-    alg: str
-    n: str
-    e: str
-
-class JWKSResponse(BaseModel):
-    keys: List[JWK]
 
 def get_google_public_key(kid: str):
     for key in jwks["keys"]:

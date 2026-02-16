@@ -21,14 +21,16 @@ function selectRole(element, playerId, tipo) {
     }
 
     const isAlreadySelected = element.classList.contains('selected-t') || element.classList.contains('selected-p');
+    let p_id= parseInt(playerId)
 
     if (isAlreadySelected) {
         // 1. Rimuoviamo graficamente il colore
         element.classList.remove('selected-t', 'selected-p');
         
         // 2. Rimuoviamo l'ID dagli array
-        formazione.titolari = formazione.titolari.filter(id => id !== playerId);
-        formazione.panchina = formazione.panchina.filter(id => id !== playerId);
+        formazione.titolari = formazione.titolari.filter(id => id !== p_id);
+        console.log("Titolari prima:", formazione.titolari);
+        formazione.panchina = formazione.panchina.filter(id => id !== p_idd);
         
         console.log(`Rimosso giocatore ${playerId}. Titolari: ${formazione.titolari.length}, Panchina: ${formazione.panchina.length}`);
         return; // Usciamo dalla funzione, il lavoro è finito!
@@ -41,20 +43,20 @@ function selectRole(element, playerId, tipo) {
     buttons.forEach(btn => btn.classList.remove('selected-t', 'selected-p'));
 
     // 2. Logica di aggiornamento (Rimuovi da entrambi per evitare duplicati)
-    formazione.titolari = formazione.titolari.filter(id => id !== playerId);
-    formazione.panchina = formazione.panchina.filter(id => id !== playerId);
+    formazione.titolari = formazione.titolari.filter(id => id !== p_id);
+    formazione.panchina = formazione.panchina.filter(id => id !== p_id);
 
     // 3. Aggiunta e colore
     if (tipo === 't') {
         if (formazione.titolari.length < 11) {
-            formazione.titolari.push(parseInt(playerId));
+            formazione.titolari.push(p_id);
             element.classList.add('selected-t');
         } else {
             alert("Hai già 11 titolari!");
         }
     } else if (tipo === 'p') {
         if (formazione.panchina.length < 7) {
-            formazione.panchina.push(parseInt(playerId));
+            formazione.panchina.push(p_id);
             element.classList.add('selected-p');
         } else {
             alert("La panchina è piena (max 7)!");
@@ -483,7 +485,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return prioritaRuoli[a.role] - prioritaRuoli[b.role];
         });
 
-        calciatoriOrdinati.forEach(([id, player]) => {
+        calciatoriOrdinati.forEach(([id,player]) => {
             const row = document.createElement("div");
             row.className = "player-row";
             row.innerHTML = `

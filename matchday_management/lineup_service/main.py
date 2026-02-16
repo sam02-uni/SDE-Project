@@ -266,7 +266,10 @@ def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
     lineup_with_players = response.json()
 
     # Authorization, solo admin può calcolare
-    res = requests.get(f"{data_service_url_base}/squads/{lineup_id['squad_id']}")
+    #res = requests.get(f"{data_service_url_base}/squads/{lineup_id['squad_id']}")
+    #league = requests.get(f"{data_service_url_base}/leagues/{res.json()['league_id']}").json()
+    squad_resp=lineup_with_players['squad_id']
+    res = requests.get(f"{data_service_url_base}/squads/{squad_resp}")
     league = requests.get(f"{data_service_url_base}/leagues/{res.json()['league_id']}").json()
     if logged_user_id != league['owner_id']:
         raise HTTPException(status_code = 403, detail = "Only the admin can calculate the score") 

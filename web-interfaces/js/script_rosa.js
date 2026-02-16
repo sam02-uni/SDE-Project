@@ -189,15 +189,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             "squad_name":squadName,
                             "players": squad
                         })
-                    });
-                    
-                    alert("Lineup added successfully!")
+                        });
+                    }
+                
+                    } 
+                
+                if(response.ok){
+                    alert("Lineup added successfully!");
                     window.location.href = "lega_dashboard.html";
-                    } else {
+                } else {
                         window.location.href = "login.html";
                         return;
                     }
-                }
             } else {
                 alert("Numero di giocatori insufficienti, completare la rosa con 25 giocatori.");
             }
