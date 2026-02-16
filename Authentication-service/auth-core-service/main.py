@@ -4,6 +4,7 @@ from core.jwt_service import sign_token
 from core.refresh_service import generate_refresh_token, token_expiry
 from core.keys import KID, NUMBERS, b64
 import requests
+from typing import List
 
 app = FastAPI(title="Auth Core Service",  root_path = "/core")
 
@@ -12,7 +13,7 @@ GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 DATA_SERVICE_URL = "http://fanta-data-service:8000"
 
 
-# Request models
+# Models
 class SignRequest(BaseModel):
     email: str
     name: str
@@ -20,11 +21,32 @@ class SignRequest(BaseModel):
 class Token(BaseModel):
     token_str: str
 
-# Endpoints
+class NewTokens(BaseModel):
+    access_token: str
+    refresh_token: str
 
-@app.post("/identify")
+class JWK(BaseModel):
+    kty: str
+    kid: str
+    use: str
+    alg: str
+    n: str
+    e: str
+
+class JWKSResponse(BaseModel):
+    keys: List[JWK]
+
+class StatusResponse(BaseModel):
+    status: str
+
+@app.post("/identify", summary= "It generates the internal tokens", response_model=NewTokens)
 def core_identification(user_info: SignRequest):
-
+    """
+    Description:
+    It receives the user's name and email and queries the database to retrieve the user ID. 
+    If the user does not exist, it creates a new record. Based on the gathered information, 
+    it generates an access token along with a refresh token. 
+    """
     email = user_info.email
     name = user_info.name
 
@@ -55,8 +77,13 @@ def core_identification(user_info: SignRequest):
         "refresh_token": token
     }
 
-@app.post("/generate/access")
+@app.post("/generate/access", summary="It generates a new access token from the refresh one", response_model=str)
 def core_session_user(refresh_token : Token):
+    """
+    Description:
+    Receives a refresh token, retrieves the associated user from the database, and issues a new access token.
+ 
+    """
     token=refresh_token.token_str
     payload={"token": token}
     token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json=payload)
@@ -68,9 +95,12 @@ def core_session_user(refresh_token : Token):
     
     return new_token
 
-@app.post("/refresh/revoke")
+@app.post("/refresh/revoke", summary="It revokes the refresh token", response_model=StatusResponse)
 def core_revoke_refresh(refresh_token: Token):
-    
+    """
+    Description:
+    It revokes the refresh token associated to the user
+    """
     token=refresh_token.token_str
     try:
         payload={"token": token}
@@ -79,21 +109,14 @@ def core_revoke_refresh(refresh_token: Token):
         raise HTTPException(
             detail=f"Errore interno: {str(e)}"
         )
-    
-    return response
 
-@app.get("/jwks")
+    return response.json()
+
+@app.get("/jwks", summary="It returns the public key", response_model=JWKSResponse)
 def core_jwks():
     """
     Return the JSON Web Key Set (JWKS) containing the public keys used for JWT verification.
 
-    Each key includes:
-    - **kty**: key type (RSA)
-    - **kid**: unique key ID
-    - **use**: usage (sig)
-    - **alg**: algorithm (RS256)
-    - **n**: modulus in base64url
-    - **e**: exponent in base64url
     """
     return {
         "keys": [{

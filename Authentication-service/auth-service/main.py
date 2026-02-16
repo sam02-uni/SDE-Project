@@ -4,7 +4,8 @@ import os, requests
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
-
+from pydantic import BaseModel
+from typing import List
 
 load_dotenv()
 
@@ -35,7 +36,22 @@ GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 
 SCOPES = "openid email profile"
 
+# Models
+class RefreshResponse(BaseModel):
+    access_token: str
+    message: str
 jwks = requests.get(GOOGLE_JWKS_URL).json()
+
+class JWK(BaseModel):
+    kty: str
+    kid: str
+    use: str
+    alg: str
+    n: str
+    e: str
+
+class JWKSResponse(BaseModel):
+    keys: List[JWK]
 
 def get_google_public_key(kid: str):
     for key in jwks["keys"]:
@@ -43,12 +59,11 @@ def get_google_public_key(kid: str):
             return key
     return None
 
-@app.get("/auth/login")
+@app.get("/auth/login", summary = "Initiates the delegated authentication flow")
 def login():
     """
-    Description: Initiates the delegated authentication flow. It generates the Google Consent URL and redirects the user to the official Google login page.
+    Description: It generates the Google Consent URL and redirects the user to the official Google login page.
 
-    Response: 307 Temporary Redirect to the Google Authentication Server.
     """
     params = {
         "client_id": CLIENT_ID,
@@ -61,8 +76,15 @@ def login():
     url = requests.Request("GET", GOOGLE_AUTH_URL, params=params).prepare().url
     return RedirectResponse(url)
 
-@app.get("/auth/callback")
+@app.get("/auth/callback", summary = "Handles Google OAuth2 callback and issues internal tokens")
 def auth_callback(code: str):
+    """
+    Description:
+    It receives the code parameter returned by Google after the user grants consent,
+    exchanges it for Google tokens (id_token and access_token), validates the id_token
+    using Google's public keys, and creates/identifies the user in the Core Service.
+
+    """
     #  Scambia code con token Google
     token_resp = requests.post(
         GOOGLE_TOKEN_URL,
@@ -134,14 +156,13 @@ def auth_callback(code: str):
     return response
 
 
-@app.post("/auth/refresh")
+@app.post("/auth/refresh",summary = "Renews an expired session using the refresh token cookie", response_model=RefreshResponse)
 def refresh_token_endpoint(request: Request):
     """
-    Description: Silent refresh endpoint to renew expired sessions.
-    
-    :param request: The incoming HTTP request containing the refresh_token cookie.
-    :type request: Request
-    :return: JSONResponse with a new access token set in the cookies.
+    Description:
+    Silent refresh endpoint used to renew an expired access token.
+    The refresh token is retrieved from the `refresh_token` HttpOnly cookie
+    and sent to the Core Service to generate a new internal access token.
 
     """
     refresh_token = request.cookies.get("refresh_token")
@@ -161,14 +182,13 @@ def refresh_token_endpoint(request: Request):
     }
 
 
-@app.post("/auth/logout")
+@app.post("/auth/logout", summary = "Terminates the user session.")
 def logout(request: Request):
     """
-    Description: Terminates the user session.
+    Description:
+    Terminates the user session by revoking the `refresh token` (if available)
+    through the Core Service and clearing authentication cookies.
     
-    :param request: The incoming HTTP request containing the refresh_token and access_token cookie.
-    :type request: Request
-    :return: Delete cookie
     """
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token:
@@ -182,12 +202,13 @@ def logout(request: Request):
     response.delete_cookie("refresh_token", path="/")
     return response
 
-@app.get("/auth/jwks")
+@app.get("/auth/jwks", summary="Utility endpoint for public key distribution.", response_model=JWKSResponse)
 def core_jwks():
     """
-    Description: Utility endpoint for public key distribution.
+    Description:
+    Utility endpoint used to expose the JSON Web Key Set (JWKS) required
+    to verify JWT signatures issued by the Core Service.
     
-    :return: JSON with public key
     """
     return requests.get(f"{AUTH_CORE_URL}/core/jwks").json()
 
