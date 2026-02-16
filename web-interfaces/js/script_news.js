@@ -1,3 +1,8 @@
+/**
+ * FantaNews - Script News
+ * Gestisce: Sidebar (Hover), Popolamento delle news
+ */
+
 // Configuration variables
 const API_URL = "http://localhost:8005/news";
 const FILTER_URL = "http://localhost:8005/news-filter";
@@ -25,16 +30,6 @@ const tagChecklist = document.getElementById("tagChecklist");
 const applyBtn = document.getElementById("applyFilters");
 const logoutForm = document.getElementById('logoutForm');
 const containerLeagues = document.getElementById("userLeagues");
-
-// Eseguito subito all'apertura della pagina 
-/*const urlParams = new URLSearchParams(window.location.search);
-const tokenDaUrl = urlParams.get('token');
-if (tokenDaUrl) {
-    localStorage.setItem('access_token', tokenDaUrl);
-    // Pulisce l'URL per estetica
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
-} */
 
 // Checklist generation
 tags.forEach(tag => {
@@ -93,34 +88,31 @@ async function fetchNews() {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         }
-});
+    });
 
     //Controllo se l'Access Token è scaduto 
     if (response.status === 401) {
         console.warn("Access token scaduto, tentativo di refresh in corso...");
-    
-    // Questa funzione aggiornerà il localStorage con il nuovo token
-    const success = await refreshAccessToken();
-    
-    if (success) {
-        // Recuperiamo il NUOVO token appena salvato
-        token = localStorage.getItem('access_token');
-        
-        //Riproviamo la GET con il nuovo token
-        response = await fetch(API_URL, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-    } else {
-        console.error("Refresh fallito o sessione scaduta.");
-        window.location.href = 'login.html';
-        return;
-    }
+        // Questa funzione aggiornerà il localStorage con il nuovo token
+        const success = await refreshAccessToken();
+        if (success) {
+            // Recuperiamo il NUOVO token appena salvato
+            token = localStorage.getItem('access_token');
+            //Riproviamo la GET con il nuovo token
+            response = await fetch(API_URL, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } else {
+            console.error("Refresh fallito o sessione scaduta.");
+            window.location.href = 'login.html';
+            return;
+        }
 
-}
+    }
 
     //Controllo finale sulla riuscita della richiesta
     if (!response.ok) {
@@ -190,40 +182,40 @@ async function applyFilters() {
     try {
         // Verify token
        // Recuperiamo il token aggiornato dal localStorage
-    let token = localStorage.getItem('access_token');
+        let token = localStorage.getItem('access_token');
 
     
-    let response = await fetch(url, {
-        method: 'GET', 
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    });
+        let response = await fetch(url, {
+            method: 'GET', 
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-    if (response.status === 401) {
-        console.warn("Access token scaduto, tentativo di refresh in corso...");
+        if (response.status === 401) {
+            console.warn("Access token scaduto, tentativo di refresh in corso...");
         
-        const success = await refreshAccessToken();
-        console.log("GENERO NUOVO ACCESS TOKEN DA NEWS")
-        if (success) {
-            // Se il refresh ha avuto successo, prendiamo il NUOVO token dal localStorage
-            token = localStorage.getItem('access_token');
+            const success = await refreshAccessToken();
+            console.log("GENERO NUOVO ACCESS TOKEN DA NEWS")
+            if (success) {
+                // Se il refresh ha avuto successo, prendiamo il NUOVO token dal localStorage
+                token = localStorage.getItem('access_token');
         
-            // Riproviamo la fetch con il nuovo token
-            response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }else {
-            console.error("Refresh fallito, reindirizzamento al login.");
-            window.location.href = 'login.html';
-            return;
+                // Riproviamo la fetch con il nuovo token
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }else {
+                console.error("Refresh fallito, reindirizzamento al login.");
+                window.location.href = 'login.html';
+                return;
+            }
         }
-    }
 
         if (!response.ok) {
             window.location.href = 'login.html';
@@ -288,7 +280,6 @@ async function caricaLeghe() {
         }
 
         const leghe = await response.json();        
-        // 2. Pulisci il div dedicato alle leghe
         containerLeagues.innerHTML = ""; 
 
         leghe.forEach(lega => {
@@ -300,7 +291,6 @@ async function caricaLeghe() {
             
             link.onclick = (e) => {
                 e.preventDefault();
-                // SE DOVESSE SERVIRE PER IL FRONTEND
                 localStorage.setItem('selected_league_id', lega.id);
                 localStorage.setItem('nome_lega', lega.name);
                 window.location.href = "lega_dashboard.html";
@@ -346,7 +336,7 @@ if (logoutForm) {
     });
 }
 
-//Carico le leghe
+// Leagues load
 caricaLeghe();
 // Start
 fetchNews();

@@ -12,7 +12,6 @@ let formazione = {
 };
 
 function selectRole(element, playerId, tipo) {
-    // Invece di getElementById, cerchiamo il genitore comune
     const container = element.closest('.formation-controls');
     
     if (!container) {
@@ -24,29 +23,28 @@ function selectRole(element, playerId, tipo) {
     let p_id= parseInt(playerId)
 
     if (isAlreadySelected) {
-        // 1. Rimuoviamo graficamente il colore
+        // Graphical remove of the color
         element.classList.remove('selected-t', 'selected-p');
         
-        // 2. Rimuoviamo l'ID dagli array
+        // Remove the IDs from the array
         formazione.titolari = formazione.titolari.filter(id => id !== p_id);
         console.log("Titolari prima:", formazione.titolari);
         formazione.panchina = formazione.panchina.filter(id => id !== p_idd);
         
         console.log(`Rimosso giocatore ${playerId}. Titolari: ${formazione.titolari.length}, Panchina: ${formazione.panchina.length}`);
-        return; // Usciamo dalla funzione, il lavoro è finito!
+        return; 
     }
 
-    // Ora che abbiamo il container, troviamo i bottoni al suo INTERNO
+    // Search some buttons inside the container
     const buttons = container.querySelectorAll('.btn-sel');
 
-    // 1. Reset grafico per questa riga
+    // Graphic reset for each button
     buttons.forEach(btn => btn.classList.remove('selected-t', 'selected-p'));
 
-    // 2. Logica di aggiornamento (Rimuovi da entrambi per evitare duplicati)
+    // Update logic for each IDs with no duplicates
     formazione.titolari = formazione.titolari.filter(id => id !== p_id);
     formazione.panchina = formazione.panchina.filter(id => id !== p_id);
 
-    // 3. Aggiunta e colore
     if (tipo === 't') {
         if (formazione.titolari.length < 11) {
             formazione.titolari.push(p_id);
@@ -66,7 +64,7 @@ function selectRole(element, playerId, tipo) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    // --- ELEMENTI DOM ---
+    // DOM elements
     const sidebar = document.getElementById("mySidebar");
     const overlay = document.getElementById("overlay");
     const openBtn = document.getElementById("openSidebar");
@@ -86,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const btnConfermaCalcolo= document.getElementById("confirm")
     const btnViewGrades = document.getElementById("btnViewGrades");
-    //const btnDeleteLeague = document.getElementById("btnDeleteButton");
     const divLastScores = document.getElementById('divLastScores');
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
@@ -97,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let playerSquad;
 
 
-    // --- 1. LOGICA SIDEBAR (TENDINA A SFIORAMENTO) ---
+    // Sidebar logic
     const openNav = () => {
         sidebar.classList.add("active");
         overlay.classList.add("active");
@@ -108,17 +105,17 @@ document.addEventListener("DOMContentLoaded", () => {
         overlay.classList.remove("active");
     };
 
-    // Apre quando il mouse entra nel bottone Menu
+    // Open when the mouse are on the button
     openBtn.addEventListener("mouseenter", openNav);
 
-    // Chiude quando il mouse esce dalla sidebar
+    // Close when the mouse is not in the sidebar
     sidebar.addEventListener("mouseleave", closeNav);
 
-    // Chiude se si clicca sull'oscuramento
+    // Close if click on close
     overlay.addEventListener("click", () => {
         closeNav();
         modalFormazione.style.display = "none";
-        modalCalcola.style.display = "none"; // Chiude anche la modal se aperta
+        modalCalcola.style.display = "none"; 
     });
 
 
@@ -126,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // TODO ? 
     //})
 
-
+    // Some reference to the other pages
     btnInserisciSquadra.addEventListener("click", () => {
         window.location.href="rosa_dashboard.html"
     });
@@ -135,11 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href= "grades_dashboard.html"
     })
     
-    // --- LOGICA MODAL FORMAZIONE ---
+    // Logic for the formation
     if (btnFormazione) {
         btnFormazione.addEventListener("click", () => {
             modalFormazione.style.display = "block";
-            overlay.classList.add("active"); // Mostra l'overlay anche per la modal
+            overlay.classList.add("active"); 
             formazione.titolari = [];
             formazione.panchina = [];
             caricaCalciatori();
@@ -154,11 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     
-    // ---  LOGICA MODAL CALCOLA GIORNATA ---
+    // Logic for calculate the grades
     if (btnCalcoloGiornata) {
         btnCalcoloGiornata.addEventListener("click", () => {
             modalCalcola.style.display = "block";
-            overlay.classList.add("active"); // Mostra l'overlay anche per la modal
+            overlay.classList.add("active");
             popolaGiornate();
         });
     }
@@ -170,19 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
-    // --- INIZIALIZZA LA DASHBOARD ---
+    // Dashboard initialization
     async function inizializzaDashboard() {
     try {
-        // 1. Controllo che esista una lega selezionata
+        // League control
         controlloLega();
 
-        // 2. Carica le leghe nella sidebar
+        // Take all the leagues
         await caricaLeghe();
 
-        // 3. Carica i dati della lega e della squadra (playerSquad viene popolata qui)
+        // Show league data and load palyer squad
         await infoLega();
 
-        // 4. Rendering ora che i dati sono pronti
+        // Render of the data
         console.log("Dati pronti, inizio rendering...");
         renderRosaUnica();
         await renderFormazione();
@@ -194,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 }
 
-    // --- SALVA FORMAZIONE ---
+    // Save formation logic
     async function saveFormation(){            
         console.log("Salvataggio formazione, ID selezionati:  T:", formazione.titolari, " P:", formazione.panchina);
         let squadId = localStorage.getItem("squad_id");
@@ -202,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modalFormazione.style.display = "none";
         overlay.classList.remove("active");
         
-        // Chiamata al process per inserire la formazione
+        // Call to the process to insert the formation
         try{
             const token = localStorage.getItem('access_token');
             let url_completo = `${MATCHDAY_URL}/lineups`;
@@ -234,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    // --- COMPUTE SCORES ---
+    // Compute score logic
     async function computeScores(){
 
             try {
@@ -261,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (response.ok) {
                     alert("Giornata calcolata con successo!");
-                    // Per aggiornare la classifica
+                    // This is to refresh the classific
                     window.location.reload(); 
                 } else if (response.status === 401) {
                     const success = await refreshAccessToken();
@@ -285,14 +282,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore durante il calcolo:", error);
             }
 
-        }
-    
+    }
+    // Add the function to the respective button
     saveBtn.addEventListener("click", saveFormation);
     btnConfermaCalcolo.addEventListener("click", computeScores)
 
-    
-
-    // --- REFRESH TOKEN ---
+    // Refresh token logic
     async function refreshAccessToken() {
         try {
             const refreshResp = await fetch('http://localhost:8000/auth/refresh', {
@@ -312,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- CARICA LEGHE ---
+    // Load leagues
     async function caricaLeghe() {
         let url=new URL(LEGHE_URL);
         try {
@@ -344,7 +339,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const leghe = await response.json();
-            // 2. Pulisci il div dedicato alle leghe
             containerLeagues.innerHTML = ""; 
 
             leghe.forEach(lega => {
@@ -356,13 +350,12 @@ document.addEventListener("DOMContentLoaded", () => {
             
                 link.onclick = (e) => {
                     e.preventDefault();
-                    // SE DOVESSE SERVIRE PER IL FRONTEND
                     localStorage.setItem('selected_league_id', lega.id);
                     localStorage.setItem('nome_lega', lega.name);
                     window.location.href = "lega_dashboard.html";
                 };
 
-                // 3. Aggiungi al contenitore specifico tra News e Logout
+                // Add the specific container between News and Logout
                 containerLeagues.appendChild(link);
             });
         } catch (error) {
@@ -370,8 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-
-    // --- CONTROLLA E' PRESENTE L'ID DELLA LEGA ---
+    // Control if there is the lega id
     function controlloLega(){
         if (!leagueId) {
             console.error("Nessuna lega selezionata! Torno alla home.");
@@ -382,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Stai visualizzando la lega con ID:", leagueId);
     }
 
-    // --- RECUPERA INFORMAZIONI SULLA LEGA ---
+    // Retrive info for the selected league
     async function infoLega(){
         let url_completo = `${PROCESS_BASE_URL}/${leagueId}/info_dashboard_league`;
         let url = new URL(url_completo);
@@ -415,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const infoLega = await response.json();
             console.log(infoLega);
-            // Display dei vari pulsanti in base ad alcune info
+            // Display of some buttons if some conditions are matched
             if (infoLega.isAdmin){
                 btnInserisciSquadra.style.display = 'block';
                 if (infoLega.lastMatchFinished){
@@ -433,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 btnFormazione.style.display = 'block';
             }
-            // Display del numero di giornata
+            // Display of the matchday number and some other info
             numeroGiornata.textContent = `Giornata ${infoLega.currentMatchday}`;
             let nome_lega = localStorage.getItem('nome_lega');
             localStorage.setItem("current_matchday", infoLega.currentMatchday);
@@ -449,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
             leagueName.textContent = `${nome_lega} - Serie A`;
 
-            // visualizzazione della classifica
+            // Classific visualization
             table = infoLega.table;
 
             if ((table == null) || (table.length == 0)){
@@ -475,11 +467,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // --- POPOLAMENTO GIOCATORI ---
+    // Player population
     async function caricaCalciatori() {
         const lista = document.getElementById("listaCalciatori");
 
-        lista.innerHTML = ""; // Svuota la lista precedente
+        lista.innerHTML = ""; // Clear the previous list
 
         const calciatoriOrdinati = Object.entries(playerSquad).sort(([, a], [, b]) => {
             return prioritaRuoli[a.role] - prioritaRuoli[b.role];
@@ -501,7 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- POPOLA GIORNATA ---
+    // Matchdays population
     function popolaGiornate() {
 
     const currentMatchday = localStorage.getItem("current_matchday") || "1";
@@ -521,7 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 }
 
-    // --- VISUALIZZA LA FORMAZIONE INSERITA ---
+    // Formation visualization if insert
     async function renderFormazione() {
         let squadId = localStorage.getItem("squad_id");
         if(!squadId) return;
@@ -535,12 +527,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let titolariData = [];
         let panchinaData = [];
 
-        // Se abbiamo appena salvato, usiamo i dati in memoria
+        // If we upload now the formation we use that data
         if (formazione.titolari.length > 0) {
             titolariData = formazione.titolari.map(id => playerSquad[id]).filter(p => p);
             panchinaData = formazione.panchina.map(id => playerSquad[id]).filter(p => p);
         } 
-        // Altrimenti carichiamo dal server
+        // Otherwise call at the server
         else {
             let url = `${MATCHDAY_URL}/squads/${squadId}/lineups?matchday_number=${currentMatchday}`;
             try {
@@ -601,19 +593,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Visualization about the player squad
     function renderRosaUnica() {
         const container = document.getElementById('listaCompletaRosa');
         if (!container) return;
         if (playerSquad){
-            // 1. Trasformiamo l'oggetto playerSquad in un array
+            // Transform from object into array
             const calciatori = Object.values(playerSquad);
 
-            // 2. Ordiniamo per ruolo (G -> D -> M -> A)
+            // Role ordination
             calciatori.sort((a, b) => {
                 return prioritaRuoli[a.role] - prioritaRuoli[b.role];
             });
 
-            // 3. Generiamo l'HTML
+            // Generate the HTML
             container.innerHTML = calciatori.map(player => `
                 <div class="player-card">
                     <span class="p-role role-${player.role}">${player.role}</span>
@@ -627,6 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Render the last score
     async function renderLastScores(){
         let squadId = localStorage.getItem("squad_id");
         if(!squadId) return;
@@ -661,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
     }
 
-    // ---  LOGOUT  ---
+    // Logout logic
     if (logoutForm) {
         logoutForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Blocca l'invio normale che fallirebbe

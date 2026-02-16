@@ -3,11 +3,12 @@ from typing import List
 
 KEYWORDS = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"]
 
+# Filter logic
 def apply_fanta_filter(news_list: List[dict], active_tags: List[str] = None) -> List[dict]:
     """Filter the news based on the tags insert, if none all the keywords are used"""
     relevant_news = []
     
-    # Se l'utente non ha selezionato tag specifici, usiamo il set completo
+    # If user doesn't select any filter we applied all of them
     tags_to_check = active_tags if active_tags else KEYWORDS
     
     for item in news_list:
@@ -15,12 +16,13 @@ def apply_fanta_filter(news_list: List[dict], active_tags: List[str] = None) -> 
         riassunto = (item.get('riassunto') or "").lower()
         testo_completo = f"{titolo} {riassunto}"
         
-        # Verifichiamo se almeno uno dei tag è presente nel testo
+        # Verify if one or more of the tag are in the text
         if any(tag.lower() in testo_completo for tag in tags_to_check):
             relevant_news.append(item)
             
     return relevant_news
 
+# Filter the information with only the data that are useful for our application
 def rss_filter(news):
     """Retrieve only the data that are relevant for our application"""
     filtered_news = []

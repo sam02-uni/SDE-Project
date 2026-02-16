@@ -1,13 +1,12 @@
 import feedparser
 
-# Lista dei feed RSS
+# List of sites where the RSS feed file is available
 FEED_URLS = [
     "https://www.corrieredellosport.it/rss/calcio/serie-a",
     "https://www.tuttosport.com/rss/calcio/serie-a"
-    #"https://www.calciomercato.com/feed",
-    # "https://www.fantacalcio.it/rss"
 ]
 
+# Retrive the data from the RSS file
 def fetch_fanta_news():
     """Take the news from some site. Published the link of the news"""
     rss_feed = []

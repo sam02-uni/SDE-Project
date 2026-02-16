@@ -1,8 +1,0 @@
-services: 
-  rss-feed-service:
-    build: .
-    container_name: news_aggregator_container
-    ports:
-      - "8003:8000" 
-    volumes:
-      - .:/app 

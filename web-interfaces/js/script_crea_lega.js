@@ -5,7 +5,7 @@
 LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
 
 document.addEventListener("DOMContentLoaded", () => {
-    // --- ELEMENTI DOM ---
+    // DOM element
     const sidebar = document.getElementById("mySidebar");
     const overlay = document.getElementById("overlay");
     const openBtn = document.getElementById("openSidebar"); // Il trigger
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutForm = document.getElementById('logoutForm');
     const containerLeagues = document.getElementById("userLeagues");
 
-    // --- LOGICA SIDEBAR (HOVER) ---
+    // Sidebar logic
 
     const openNav = () => { 
         sidebar.classList.add("active"); 
@@ -88,8 +88,6 @@ async function caricaLeghe() {
         }
 
         const leghe = await response.json();
-        
-        // 2. Pulisci il div dedicato alle leghe
         containerLeagues.innerHTML = ""; 
         
         leghe.forEach(lega => {
@@ -101,13 +99,12 @@ async function caricaLeghe() {
             
             link.onclick = (e) => {
                 e.preventDefault();
-                // SE DOVESSE SERVIRE PER IL FRONTEND
                 localStorage.setItem('selected_league_id', lega.id);
                 localStorage.setItem('nome_lega', lega.name);
                 window.location.href = "lega_dashboard.html";
             };
 
-            // 3. Aggiungi al contenitore specifico tra News e Logout
+            // Aggiunta al contenitore specifico tra News e Logout
             containerLeagues.appendChild(link);
         });
     } catch (error) {
@@ -151,7 +148,7 @@ if (logoutForm) {
     });
 }
 
-    // --- LOGICA DI BUSINESS: CREAZIONE LEGA ---
+    // Pulsante per la creazione della lega
     if (btnCrea) {
         btnCrea.addEventListener("click", async () => {
             // Recupera il token PIÙ RECENTE qui dentro
