@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 import requests
 import os
-from models import SquadCreate 
+from models import *
 from dependency import verify_token
 from typing import Optional
 
@@ -65,7 +65,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     return response.json()
     
 
-@app.get("/suggest_player", summary = "Get the players having the given name within") 
+@app.get("/suggest_player", summary = "Get the players having the given name within", response_model = list[Player]) 
 def get_suggested_players(wanted_name: str): # wanted_name: query param
     if wanted_name is None or len(wanted_name) <= 1:
         raise HTTPException(status_code = 400, detail= "Query parameter not valid")
@@ -78,7 +78,7 @@ def get_suggested_players(wanted_name: str): # wanted_name: query param
     return suggested_players if suggested_players else []
 
  
-@app.get("/all-players", summary = "Return all Players in the application")
+@app.get("/all-players", summary = "Return all Players in the application", response_model = list[Player])
 def getAllPlayers():
     response = requests.get(f"{data_service_url_base}/players/")
     if response.status_code != 200:
@@ -86,7 +86,7 @@ def getAllPlayers():
     return response.json()
 
 
-@app.get("/by-league", summary = "Get the squads of the given league and optionally for the user, logged or given")
+@app.get("/by-league", summary = "Get the squads of the given league and optionally for the user, logged or given", response_model = list[Squad])
 def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_token), user_id: Optional[int] = None, of_user: Optional[bool] = False):
     
     params = {}
@@ -129,7 +129,7 @@ def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = De
 '''
 
 
-@app.get("/{squad_id}", summary = "Get a Squad with or without players")
+@app.get("/{squad_id}", summary = "Get a Squad with or without players", response_model = dict)
 def get_squad_by_id(squad_id:int, with_players: bool=False):
     if with_players:
         response = requests.get(f"{data_service_url_base}/squads/{squad_id}/with-players")
@@ -141,7 +141,7 @@ def get_squad_by_id(squad_id:int, with_players: bool=False):
     return response.json()
 
 
-@app.get("/{squad_id}/last-scores", summary = "Get the last 3 scores of the squad, given the matchday from start")
+@app.get("/{squad_id}/last-scores", summary = "Get the last 3 scores of the squad, given the matchday from start", response_model = list[SquadScore])
 def get_last_scores(squad_id: int, matchday_number: int):
     
     results = list()

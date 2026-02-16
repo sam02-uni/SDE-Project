@@ -4,11 +4,11 @@ This SOA (Service Oriented Application) is a comprehensive platform designed for
 
 ## Stack of technologies:
 
-**FastApi**: a Python framework for building services.  
+**FastAPI**: a Python framework for building services.  
 **SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.  
 **Postgres**:  
 **Uvicorn**:  
-**Docker**: is used for the container of each service.  
+**Docker Container / Compose**: is used for the container of each service.  
 **Pyhton**  
 **HTML, CSS & JS**: used for the Fronted of the application
 
@@ -16,8 +16,8 @@ This SOA (Service Oriented Application) is a comprehensive platform designed for
 **RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.  
 **HTML scraping** from "Gazzetta dello sport" and "sosfanta" sites.   
 **Google API**  
-**Football API**
-**Fantacalcio.it**
+**Football Data API**: ([Football-data](https://www.football-data.org/)) API from which we get information on players, matches, matchdays   
+**Fantacalcio.it**: Website from which we scrape the fantasy ratings for each matchday
 
 ## Docker Services & Port Mapping
 
@@ -93,3 +93,19 @@ To ensure secure token signing, you need to generate an RSA private key.
 ```bash
 cd keys
 openssl genrsa -out private.pem 2048
+```
+---
+### Football data API key
+In order to make the Football Adapter Service work and therefore get data you need to have an API Key.
+Go to this [site](https://www.football-data.org/client/register) and register with an email of yours to get access to the free plan. Then check your mailbox, the key will be there.  
+Now create an **.env** file in the 'football-api-adapter' folder and put this into it: FOOTBALL_API_KEY = 'xxxxx...xxxx' replacing the text between the quotes with your key.
+
+---
+### SQL Dumps 
+In the 'sql' folder there are different .sql files that contains instructions to insert data which is needed for the correct functioning of the application.  
+For each .sql file inject it into the fanta-db container, where the Postgresql database run: open a terminal in the root folder of the project and type
+```bash
+docker cp sql/<file_name>.sql fanta-db:/
+```
+this command will copy the .sql file into the root of the container.  
+Now TODO

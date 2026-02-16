@@ -9,14 +9,15 @@ import os
 from client import FootballAPIClient
 import requests
 from typing import Optional
+from models import *
 
-class Player():
+'''class Player():
     id: int 
     name: str
     surname: str 
     role: str
     serie_a_team: str 
-    mean_rating: float 
+    mean_rating: float '''
 
 app = FastAPI(title="Football API Adapter", root_path="/adapter/football") 
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://fanta-data-service:8001")
@@ -83,17 +84,17 @@ def update_players(team_id: str): # team_id query param
         raise HTTPException(status_code=500, detail=f"data service error:{response.text}")
     return {'ok':True}
 
-@app.get("/players_by_team")
+@app.get("/players_by_team", summary="Get the players of a team, given the id on Football API", response_model = TeamAPI)
 def get_players_by_team(team_id: str):
     return client.get_players_by_team(team_id)
 
 
-@app.get("/matchday_info")
+@app.get("/matchday_info", summary = "Get infos about the given matchday", response_model = MatchDayInfo)
 def get_matchday_info(matchday: Optional[int] = None):
     info = client.get_matchday_info(competiton_id='2019', matchday_number=matchday)
     return info
 
-@app.get("/finished_matches/{matchday}")
+@app.get("/finished_matches/{matchday}", summary = "Get the finished matches of the given matchday", response_model = list[MatchAPI])
 def get_finished_matches(matchday: int):
     matches = client.get_finished_matches(matchday)
     return matches

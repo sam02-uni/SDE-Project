@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 import requests
 import os
-from models import BaseLeagueModel, ParticipantUserWithSquad
+from models import *
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import json
@@ -36,7 +36,7 @@ def check_auth_headers(request: Request):
 def read_root():
     return {"League management process service is Running!"}
 
-@app.post("/init", response_model=int) # restituisce id alla gui
+@app.post("/init", response_model=int, summary = "Create a Base Fantacalcio League") # restituisce id alla gui
 def init_base_league(league_info: BaseLeagueModel, request: Request):
     # crea lega con nome e max_credits inseriti dall admin nella gui
 
@@ -49,7 +49,7 @@ def init_base_league(league_info: BaseLeagueModel, request: Request):
     
     return response.json() # id created league
 
-@app.get("/allPlayers")
+@app.get("/allPlayers", summary = "Get all players in the application db", response_model = list[Player])
 def get_all_players():
     response = requests.get(f"{squad_service_url_base}all-players")
     if response.status_code != 200:
@@ -96,11 +96,11 @@ def suggest_players(given_name:str):
     response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
     return response.json() # return json list of players (all fields)
 
-# informazioni per la home iniziale = le leghe a cui partecipa l'utente da mettere a sinistra
-@app.get("/info_webapp_home")
+
+@app.get("/info_webapp_home", response_model = list[EssentialLeagueInfo], summary = "Get the leagues in which the logged user is owner or participant")
 def get_info_webapp_home(request: Request):
     headers = check_auth_headers(request)
-    # TODO: aggiungere anche quelle in cui è partecipante
+    
     response = requests.get(f"{league_service_url_base}by_user", headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
@@ -108,8 +108,8 @@ def get_info_webapp_home(request: Request):
     return response.json() # list of leagues with essential info
 
 
-@app.get("/{league_id}/info_dashboard_league")
-def get_info_dashboard(league_id: int, request: Request): # return info to display on the dashboard of the league for the logged in user
+@app.get("/{league_id}/info_dashboard_league", summary = "Get all the necessary infos to show on the dashboard of the Leaue", response_model = InfoDashboard)
+def get_info_dashboard(league_id: int, request: Request): 
     
     headers = check_auth_headers(request)
 
@@ -163,7 +163,7 @@ def get_info_dashboard(league_id: int, request: Request): # return info to displ
     return dict_result
 
 # TODO: SERVE ANCORA QUESTO METODO VISTO CHE LA SQUADRA VIENE GIA FORNITA IN INFO_DASHBOARD ????
-@app.get("/take_squad/{league_id}")  # TODO: modify in /squads/by-league?league_id as the REST paradigm
+'''@app.get("/take_squad/{league_id}")  # TODO: modify in /squads/by-league?league_id as the REST paradigm
 def get_all_players(league_id: int, request: Request):
     headers = check_auth_headers(request)
 
@@ -178,8 +178,8 @@ def get_all_players(league_id: int, request: Request):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
     
-    return response.json()
+    return response.json()'''
 
-# TODO: delete league ?? Modify league ??
+
 
 
