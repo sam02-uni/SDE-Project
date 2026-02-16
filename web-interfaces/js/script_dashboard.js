@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCalcoloGiornata = document.getElementById("btnCalcolaGiornata");
     const btnConfermaCalcolo= document.getElementById("confirm")
     const btnViewGrades = document.getElementById("btnViewGrades");
-    const btnDeleteLeague = document.getElementById("btnDeleteButton");
+    //const btnDeleteLeague = document.getElementById("btnDeleteButton");
     const divLastScores = document.getElementById('divLastScores');
     const leagueName = document.getElementById("leagueNameDisplay");
     const board = document.getElementById("leaderboardBody");
@@ -426,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (infoLega.firstMatchStarted){
-                //btnFormazione.style.display = 'none';
+                //TODO TOGLI : btnFormazione.style.display = 'none';
                 scadenzaFormazione.textContent = '';
             } else {
                 btnFormazione.style.display = 'block';
@@ -649,7 +649,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.log("Dati ricevuti:", data);
                     divLastScores.innerHTML = data.map(d => `
                             <div class="score-row">
-                            <span class="matchday-label">Matchday ${d.matchday}</span>
+                            <span class="matchday-label">Matchday ${d.matchday_number}</span>
                             <span class="score-value">${d.score}</span>
                         </div>
                     `).join('');

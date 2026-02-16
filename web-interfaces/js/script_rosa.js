@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const squadName = document.getElementById("squadName").value.trim();
         const token = localStorage.getItem('access_token');
         if (partecipant && squadName){
-            if (miaRosa.length >= 0){
+            if (miaRosa.length >= 0){ // TODO TEST camba in originale 25
                 const squad  = miaRosa.map(playerInRosa => {
                     return databaseCalciatori.find(c => c.id === playerInRosa.id);
                 }); // Per ogni elemento in miaRosa, cerchiamo il corrispettivo nel database
@@ -174,30 +174,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 // Gestione del token scaduto
-            if (response.status === 401) {
-                const success = await refreshAccessToken();
-                if (success) {
-                    const newToken = localStorage.getItem('access_token');
-                    response = await fetch(url, {
-                    method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${newToken}` 
-                    },
-                    body: JSON.stringify({  
-                        "email_user":partecipant,
-                        "squad_name":squadName,
-                        "players": squad
-                    })
-                });
-                
-                alert("Lineup added successfully!")
-                window.location.href = "lega_dashboard.html";
-                } else {
-                    window.location.href = "login.html";
-                    return;
+                if (response.status === 401) {
+                    const success = await refreshAccessToken();
+                    if (success) {
+                        const newToken = localStorage.getItem('access_token');
+                        response = await fetch(url, {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${newToken}` 
+                        },
+                        body: JSON.stringify({  
+                            "email_user":partecipant,
+                            "squad_name":squadName,
+                            "players": squad
+                        })
+                    });
+                    
+                    alert("Lineup added successfully!")
+                    window.location.href = "lega_dashboard.html";
+                    } else {
+                        window.location.href = "login.html";
+                        return;
+                    }
                 }
-            }
             } else {
                 alert("Numero di giocatori insufficienti, completare la rosa con 25 giocatori.");
             }

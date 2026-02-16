@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 import enum
-
+from typing import Optional
 class BaseLeagueModel(BaseModel):
     name: str
     max_credits: int
@@ -30,7 +30,7 @@ class EssentialLeagueInfo(BaseModel):
 
 class InfoDashboard(BaseModel):
     isAdmin: bool
-    squad: dict
+    squad: Optional[dict] = None
     currentMatchday: int
     firstMatchStarted: bool
     lastMatchFinished: bool

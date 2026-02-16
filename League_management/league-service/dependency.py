@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Request, Depends, HTTPException, Header
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import httpx
 from jose import jwt, JWTError
 from datetime import datetime
 
 app = FastAPI(title="Business Service")
+security = HTTPBearer()
 AUTH_SERVICE_URL = "http://auth-process-service:8000/auth"
 
 
@@ -18,12 +20,14 @@ async def get_public_key(kid: str):
             return key
     raise HTTPException(status_code=401, detail="Chiave pubblica non trovata")
 
-async def verify_token(authorization: str = Header(...)):
+async def verify_token(auth: HTTPAuthorizationCredentials = Depends(security)):
    
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Token mancante o malformato")
+    #if not authorization.startswith("Bearer "):
+    #    raise HTTPException(status_code=401, detail="Token mancante o malformato")
     
-    access_token = authorization.split(" ")[1]  # prendi solo il token dopo "Bearer "
+    #access_token = authorization.split(" ")[1]  # prendi solo il token dopo "Bearer "
+
+    access_token = auth.credentials
     if access_token=="null":
         raise HTTPException(status_code=401, detail="Token mancante")
 

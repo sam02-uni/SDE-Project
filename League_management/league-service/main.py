@@ -1,5 +1,6 @@
 # Business Logic Service for the League Management
 from fastapi import FastAPI, HTTPException, Depends, Body
+from fastapi.security import HTTPBearer
 import requests
 import os
 import json
@@ -7,11 +8,9 @@ from models import *
 from dependency import verify_token
 from typing import Optional
 
-tags_metadata = [ # for the Swagger documentation
-    ]
 
-app = FastAPI(title="League Business Service", openapi_tags=tags_metadata, root_path="/business/leagues") 
-
+app = FastAPI(title="League Business Service", root_path="/business/leagues") 
+security = HTTPBearer()
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
 football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") 
 
@@ -20,7 +19,7 @@ def read_root():
     return {"message": "League Business Service is running"}
 
 @app.get("/by_user", response_model=list[EssentialLeagueInfo], summary = "Get the league whose owner or participant is the user, logged or given")
-def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant : Optional[bool] = False, user: Optional[dict] = Depends(verify_token)): 
+def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant : Optional[bool] = False, user: Optional[dict] = Depends(verify_token), token: str = Depends(security)): 
     params = {}
     if as_participant:
         params.update({'as_participant': 'true'})
@@ -36,7 +35,8 @@ def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant
 
 @app.get("/current_matchday", summary = "Get infos about the Current Matchday", response_model = MatchDayInfo)
 def get_current_matchday_info():
-    response = requests.get(f"{football_adapter_service_url_base}/matchday_info")
+    # TODO: TESTING DA TOGLIERE 
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info?matchday=23")
     if response.status_code != 200:
         return {"error": "unable to fetch current matchday info"}
     
@@ -66,9 +66,9 @@ def create_league(league_data: BaseLeagueModel, user: dict = Depends(verify_toke
     print(new_league)
     return new_league["id"]
 
-# TODO: TEST
+
 @app.delete("/{league_id}", summary = "Delete a League")
-def delete_league(league_id: int, user: dict = Depends(verify_token)):
+def delete_league(league_id: int, user: dict = Depends(verify_token), token: str = Depends(security)):
     logged_user_id = user['user_id']
 
     # is logged user the admin of the league ? 

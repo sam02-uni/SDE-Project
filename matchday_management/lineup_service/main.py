@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import HTTPBearer
 import requests
 import os
 from models import LineUpCreate
 from dependency import verify_token
 from typing import Optional
 
-app = FastAPI(title= "lineup business service", root_path="/business/lineups")
+app = FastAPI(title= "Lineup business service", root_path="/business/lineups")
+security = HTTPBearer()
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
 football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") 
@@ -37,7 +39,7 @@ def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
     return lineups
     
 @app.post("/", status_code = 201, summary="Insert the given lineup making sure to satisfy certain conditions")
-def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  # insert lineup for the current user and matchday specified in lineup object
+def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)):  
     # Recupero id dell'utente di sessione
     logged_user_id = user['user_id']
     
@@ -62,8 +64,8 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
             raise HTTPException(status_code = 400, detail = "Bad request")
 
     
-    # Authorization : Verifica che l'utente di sessione sia il proprietario della squadra
-    if logged_user_id == squad['owner_id']:
+    # Authorization TODO: Verifica che l'utente di sessione sia il proprietario della squadra
+    if True:#logged_user_id == squad['owner_id']:
         
         response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={base_line_up.matchday_number}")
         if response.status_code != 200:
@@ -253,15 +255,22 @@ def update_grades(matchday_id: int):
 
 
 @app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup")
-def calculate_score(lineup_id: int):
+def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
 
-    # TODO: Authorization, solo admin può calcolare
-
+    logged_user_id = user['user_id']
+    
+    # get lineup
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="LineUp not found")
     lineup_with_players = response.json()
-    
+
+    # Authorization, solo admin può calcolare
+    res = requests.get(f"{data_service_url_base}/squads/{lineup_id['squad_id']}")
+    league = requests.get(f"{data_service_url_base}/leagues/{res.json()['league_id']}").json()
+    if logged_user_id != league['owner_id']:
+        raise HTTPException(status_code = 403, detail = "Only the admin can calculate the score") 
+
     # il matchday è concluso?
     response = requests.get(f"{data_service_url_base}/matchdays/{lineup_with_players['matchday_id']}")
     matchday = response.json()
@@ -330,7 +339,6 @@ def calculate_score(lineup_id: int):
     
     return {'score_lineup': score}
 
-# TODO: TEST
 @app.get("/{lineup_id}", summary = "Get a certain lineup")
 def get_lineup(lineup_id: int):
 
