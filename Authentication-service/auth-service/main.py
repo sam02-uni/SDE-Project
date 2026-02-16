@@ -106,12 +106,16 @@ def auth_callback(code: str):
     except JWTError as e:
         raise HTTPException(status_code=401, detail=f"Invalid ID token: {str(e)}")
     
+    payload = {
+    "email": user_info.get("email"),
+    "name": user_info.get("name")
+    }
+
     response= requests.post(
         f"{AUTH_CORE_URL}/core/identify",
-        json=user_info
+        json=payload
             )
     
-
     if response.status_code != 200:
         print(f"ERROR: {response.text}")
         raise HTTPException(status_code=response.status_code, detail="Errore in Core Service")
@@ -146,7 +150,7 @@ def refresh_token_endpoint(request: Request):
 
     token_resp = requests.post(
         f"{AUTH_CORE_URL}/core/generate/access", 
-        json={"token": refresh_token}
+        json={"token_str": refresh_token}
     )
     token_resp.raise_for_status()
     new_token = token_resp.json() 
@@ -169,8 +173,8 @@ def logout(request: Request):
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token:
         try:
-            payload={"token": refresh_token}
-            response = requests.post(f"{DATA_SERVICE_URL}/refresh/revoke", json=payload)
+            payload={"token_str": refresh_token}
+            response = requests.post(f"{AUTH_CORE_URL}/core/refresh/revoke", json=payload)
         except Exception:
             pass
     response = JSONResponse({"detail": "Logout effettuato con successo"})

@@ -14,20 +14,19 @@ DATA_SERVICE_URL = "http://fanta-data-service:8000"
 
 # Request models
 class SignRequest(BaseModel):
-    user_id: int
     email: str
-    minutes_valid: int
+    name: str
 
-class VerifyRequest(BaseModel):
-    token: str
+class Token(BaseModel):
+    token_str: str
 
 # Endpoints
 
 @app.post("/identify")
-def core_identification(user_info: dict):
+def core_identification(user_info: SignRequest):
 
-    email = user_info.get("email")
-    name = user_info.get("name")
+    email = user_info.email
+    name = user_info.name
 
     # Controlla se l'utente esiste, altrimenti crea
     r = requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
@@ -57,18 +56,31 @@ def core_identification(user_info: dict):
     }
 
 @app.post("/generate/access")
-def core_session_user(token : dict):
-
-    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json={"token": token["token"]})
+def core_session_user(refresh_token : Token):
+    token=refresh_token.token_str
+    payload={"token": token}
+    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json=payload)
     token_obj.raise_for_status()
     token_data = token_obj.json()
     
-    # 2. Identico all'originale
     user_data = requests.get(f"{DATA_SERVICE_URL}/users/{token_data['user_id']}").json()
     new_token=sign_token(user_data['id'], user_data['email'], 10)
     
-    # Restituisco l'intero oggetto user come faceva il data service
     return new_token
+
+@app.post("/refresh/revoke")
+def core_revoke_refresh(refresh_token: Token):
+    
+    token=refresh_token.token_str
+    try:
+        payload={"token": token}
+        response = requests.post(f"{DATA_SERVICE_URL}/refresh/revoke", json=payload)
+    except Exception as e:
+        raise HTTPException(
+            detail=f"Errore interno: {str(e)}"
+        )
+    
+    return response
 
 @app.get("/jwks")
 def core_jwks():
