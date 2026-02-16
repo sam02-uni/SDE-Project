@@ -625,22 +625,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderLastScores(){
+    async function renderLastScores(){
+        let squadId = localStorage.getItem("squad_id");
+        if(!squadId) return;
+        let currentMatchday = localStorage.getItem("current_matchday");
+        squad_id=parseInt(squadId)
+        matchday= parseInt(currentMatchday)
 
-        // TODO: 
-        const lastScores = [
-            { matchday: 24, score: 74.5 },
-            { matchday: 23, score: 81.0 },
-            { matchday: 22, score: 69.0 }
-        ];
-
+        let url = `${MATCHDAY_URL}/${squad_id}/last-scores?matchday_number=${matchday}`;
         
-        divLastScores.innerHTML = lastScores.map(data => `
-            <div class="score-row">
-                <span class="matchday-label">Matchday ${data.matchday}</span>
-                <span class="score-value">${data.score}</span>
-            </div>
-        `).join('');
+        try {
+                const token = localStorage.getItem('access_token');
+                let response = await fetch(url, {
+                    method: 'GET', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json(); 
+                    console.log("Dati ricevuti:", data);
+                    divLastScores.innerHTML = data.map(d => `
+                            <div class="score-row">
+                            <span class="matchday-label">Matchday ${d.matchday}</span>
+                            <span class="score-value">${d.score}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error("Errore nel recupero info formazione:", error);
+            }
     }
 
     // ---  LOGOUT  ---
