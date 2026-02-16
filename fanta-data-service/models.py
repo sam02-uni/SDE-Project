@@ -17,7 +17,7 @@ class Participant(SQLModel, table=True):  # Partecipazione di un User a una Leag
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(index=True, unique=True)
+    username: str = Field(index=True)
     email: str = Field(index=True, unique=True)
 
     # python 

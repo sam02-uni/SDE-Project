@@ -152,6 +152,5 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
     return last_lineup
         
 
-# TODO: delete ?
 
 

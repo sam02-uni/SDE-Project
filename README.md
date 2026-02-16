@@ -4,13 +4,16 @@ This SOA (Service Oriented Application) is a comprehensive platform designed for
 
 ## Stack of technologies:
 
-**FastAPI**: a Python framework for building services.  
-**SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.  
-**Postgres**:  
-**Uvicorn**:  
-**Docker Container / Compose**: is used for the container of each service.  
-**Pyhton**  
-**HTML, CSS & JS**: used for the Fronted of the application
+Following information about used languages, technologies, framework, storage, infrastructure :  
+**Python**: 3.11, used for the backend of the application\
+**HTML, CSS & JS**: used for the Fronted of the application\
+**FastAPI**: a Python web framework for building services  
+**SQLModel**: A library designed to simplify database interactions in Python FastAPI applications. It is built on top of SQLAlchemy and Pydantic, which are included as automatic dependencies.\
+**PostgreSQL**: 15 (Alpine), light relational database   
+**Uvicorn**: ASGI Server Web that run FastAPI   
+**Nginx** (Alpine) Web server used for serving static files on the fronted  
+**Docker Container / Compose**: each service runs on one container and all are managed and started with Compose  
+
 
 ### External sources
 **RSS FEED** from "Corriere dello sport" and "Tuttosport" sites.  
@@ -47,6 +50,10 @@ This table provides a comprehensive overview of the microservices configuration 
 * **Web Access:** The primary dashboard is accessible at `http://localhost:3000`.
 * **Inter-Service Communication:** Within the Docker network, services communicate using their **service name** and the internal port **8000** (e.g., `http://data-service:8000`).
 * **Database Access:** The PostgreSQL instance is exposed externally on the standard port `5432`.
+
+### Documentation
+Since we are using FastAPI for each service the documentation is generated automatically from the code. This means that, while the service is running, just go to **localhost:<porta_servizio>/docs** to see the documentation rendered on Swagger.io (you can also try the endpoints directly from there).  
+Alternatively, in the /docs folder of the project there are the sources of these docs; Just choose one and paste it into [Swagger.io](https://editor.swagger.io/) to see the doc rendered. (In this way, however, it will obviously not be possible to try the endpoints).
 
 ## How to install
 
@@ -102,10 +109,15 @@ Now create an **.env** file in the 'football-api-adapter' folder and put this in
 
 ---
 ### SQL Dumps 
-In the 'sql' folder there are different .sql files that contains instructions to insert data which is needed for the correct functioning of the application.  
+In the 'sql' folder there are different .sql files that contains commands to insert data needed for the correct functioning of the application.  
 For each .sql file inject it into the fanta-db container, where the Postgresql database run: open a terminal in the root folder of the project and type
 ```bash
 docker cp sql/<file_name>.sql fanta-db:/
 ```
 this command will copy the .sql file into the root of the container.  
-Now TODO
+After this you have to run the following command to actually insert the data:
+```bash
+docker exec -it fanta-db psql -U user -d fantacalcio_db -f /<file_name>.sql
+```
+
+---
