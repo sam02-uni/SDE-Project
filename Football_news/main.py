@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
+from models import *
 
 tags_metadata = [ # per la documentazione Swagger
     {
@@ -17,20 +18,17 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="Process Centric News", openapi_tags=tags_metadata)
 
-# Monta i file statici per il servizio
-app.mount("/Static", StaticFiles(directory="Static"), name="static")
-
-# Rende accessibile il servizio anche ai file ed alle pagine esterne
+# Service accessible from other pages
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Permette a TUTTI i siti di chiamare questa API. 
+    allow_origins=["*"],  
     allow_credentials=True,
-    allow_methods=["*"], # Permette GET, POST, ecc.
-    allow_headers=["*"], # Permette tutti gli header
+    allow_methods=["*"], 
+    allow_headers=["*"], 
 )
 
 
-# Recupero URL necessari al servizio
+# Take all the URL necessary to work
 TOKEN_URL = os.getenv("TOKEN_URL", "http://localhost:8000")
 AGG_URL = os.getenv("AGG_URL", "http://localhost:8003")
 HTML_URL = os.getenv("HTML_URL", "http://localhost:8006")
@@ -48,7 +46,7 @@ def read_root():
     """Return if the service is running or not"""
     return {"Lineup Business service is running"}
 
-@app.get("/news")
+@app.get("/news", response_model = FinalResponse, summary = "Take and return the data from RSS and HTML in order of date and time (from newest to oldest)")
 async def takeNews(request: Request):
     """Take and return the data from RSS and HTML"""
     # Recurpero i dati per la verifica dell'accesso
@@ -79,7 +77,7 @@ async def takeNews(request: Request):
     else:
         raise HTTPException(status_code=resp.status_code, detail="Internal error")
 
-@app.get("/news-filter")
+@app.get("/news-filter", response_model = FinalResponse, summary = "Return the filtered data from RSS and HTML in order of date and time (from newest to oldest)")
 async def takeFilNews(request: Request, tags: Optional[List[str]] = Query(None)):
     """Take and return the data filtered from RSS and HTML"""
     # Recurpero i dati per la verifica dell'accesso

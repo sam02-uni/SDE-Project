@@ -2,6 +2,7 @@ import news_agg
 import os
 import httpx
 from fastapi import FastAPI, Query, Depends,HTTPException
+from models import *
 from typing import List, Optional
 from dependency import verify_token
 
@@ -14,10 +15,10 @@ tags_metadata = [ # per la documentazione Swagger
 
 app = FastAPI(title="RSS Aggregator", openapi_tags=tags_metadata)
 
-# Prende gli URL dei servizi necessari al funzionamento
+# Take the url necessary to work
 RSS_URL = os.getenv("RSS_URL", "http://localhost:8002")
 
-@app.get("/rss-fanta")
+@app.get("/rss-fanta", response_model=NewsResponse, summary = "Return the info get by the RSS feed file")
 async def call_RSS():
     """Method that take and return the data needed for the news section"""
     async with httpx.AsyncClient() as client:
@@ -26,7 +27,7 @@ async def call_RSS():
         filtered_response = news_agg.rss_filter(data)
         return {"news": filtered_response}
     
-@app.get("/filter-news")
+@app.get("/filter-news", response_model=FilterResponse, summary = "Return the filtered info of the RSS feed file")
 async def get_filtered_news(tags: Optional[List[str]] = Query(None)):
     """Take the filtered news"""
     async with httpx.AsyncClient() as client:

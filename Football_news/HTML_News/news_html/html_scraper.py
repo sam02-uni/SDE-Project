@@ -4,17 +4,18 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from newspaper import Article
 
-# URL e il tag HTML
+# URL and tag HTML
 SOURCES = {
     "SOS Fanta": "https://www.sosfanta.com/news-formazioni/",
     "Gazzetta": "https://www.gazzetta.it/calcio/serie-a/"
 }
 
-# Header per non sembrare dei bot
+# Header for bot control
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
 }
 
+# Function for retrive the news
 def grab_news():
     """Retrieve all the data needed for our application from html pages"""
     all_news = [] 
