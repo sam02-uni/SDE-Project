@@ -11,5 +11,4 @@ def sign_token(user_id: int, email: str, minutes_valid: int ):
     token = jwt.encode(payload, PRIVATE_KEY, algorithm="RS256", headers={"kid": KID})
     return token
 
-def verify_token(token: str):
-    return jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
+

@@ -146,12 +146,11 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
         url_lineup,
         headers=headers,
     )
-    
+        
     last_lineup= response_lineup.json()
     #print(last_lineup)
     return last_lineup
         
-    raise HTTPException(status_code=404, detail="Nessuna formazione schierata")
 
 # TODO: delete ?
 
