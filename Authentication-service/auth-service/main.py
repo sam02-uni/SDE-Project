@@ -197,29 +197,3 @@ def core_jwks():
     """
     return requests.get(f"{AUTH_CORE_URL}/core/jwks").json()
 
-@app.delete("/remove/{email}") # PER TEST
-def remove_user(email: str):
-    # Gestione sessione manuale per operazioni bulk
-    r1=requests.get(f"{DATA_SERVICE_URL}/users/by-email?user_email={email}")
-    utente=r1.json()
-    user_id=utente["id"]
-    r= requests.delete(f"{DATA_SERVICE_URL}/users/{user_id}")
-    if r.status_code==404:
-        print ("NESSUNO ELIMINATO")
-        return   
-    
-    print("UTENTE ELIMINATO")
-    return
-
-@app.get("/check_utenti") # PER TEST
-def check_refresh():
-    r= requests.get(f"{DATA_SERVICE_URL}/users")
-    if r.status_code==404:
-        print("NON CI SONO UTENTI")
-        return
-    
-    users=r.json()
-    stringa=""
-    for u in users:
-        stringa+=u["email"]+ " "
-    return {"result" : stringa}
