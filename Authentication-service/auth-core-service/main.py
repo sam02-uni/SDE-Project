@@ -59,13 +59,16 @@ def core_session_user(refresh_token : Token):
  
     """
     token=refresh_token.token_str
-    payload={"token": token}
-    token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json=payload)
-    token_obj.raise_for_status()
-    token_data = token_obj.json()
-    
-    user_data = requests.get(f"{DATA_SERVICE_URL}/users/{token_data['user_id']}").json()
-    new_token=sign_token(user_data['id'], user_data['email'], 10)
+    try:    
+        payload={"token": token}
+        token_obj = requests.post(f"{DATA_SERVICE_URL}/refresh/get", json=payload)
+        token_data = token_obj.json()
+        user_data = requests.get(f"{DATA_SERVICE_URL}/users/{token_data['user_id']}").json()
+        new_token=sign_token(user_data['id'], user_data['email'], 10)
+    except Exception as e:
+        raise HTTPException(
+            detail=f"Internal error in the access token generation: {str(e)}"
+        )
     
     return new_token
 
@@ -81,7 +84,7 @@ def core_revoke_refresh(refresh_token: Token):
         response = requests.post(f"{DATA_SERVICE_URL}/refresh/revoke", json=payload)
     except Exception as e:
         raise HTTPException(
-            detail=f"Errore interno: {str(e)}"
+            detail=f"Internal error in the refresh token revoking: {str(e)}"
         )
 
     return response.json()

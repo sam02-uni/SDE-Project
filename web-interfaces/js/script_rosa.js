@@ -196,9 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 if(response.ok){
                     alert("Squad added successfully!");
-                    window.location.href = "lega_dashboard.html";
+                    window.location.reload()
                 } else {
-                        window.location.href = "login.html";
+                        window.location.reload()
                         return;
                     }
             } else {

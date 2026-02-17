@@ -119,7 +119,7 @@ def remove_participant(league_id: int, participant_id: int, session: Session = D
     league.participants.remove(user)
     session.add(league)
     # delete squad of particpant too:
-    squad_of_participant = session.exec(select(Squad).where(Squad.league_id == league_id, Squad.owner_id == participant_id))
+    squad_of_participant = session.exec(select(Squad).where(Squad.league_id == league_id, Squad.owner_id == participant_id)).first()
     if squad_of_participant:
         session.delete(squad_of_participant)
     

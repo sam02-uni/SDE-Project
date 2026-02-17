@@ -88,8 +88,6 @@ def auth_callback(code: str):
 
     token_data = token_resp.json()
     id_token = token_data.get("id_token")
-
-    id_token = token_data.get("id_token")
     access_token = token_data.get("access_token")
 
     unverified_header = jwt.get_unverified_header(id_token)
@@ -124,14 +122,12 @@ def auth_callback(code: str):
             )
     
     if response.status_code != 200:
-        print(f"ERROR: {response.text}")
-        raise HTTPException(status_code=response.status_code, detail="Errore in Core Service")
+        raise HTTPException(status_code=response.status_code, detail=response.json().get("detail", "Errore in Core Service" ))
     
     data=response.json()
     internal_jwt = data["access_token"]
     refresh_token = data["refresh_token"]
 
-    # 2. Gestione dei Cookie e Redirect (Responsabilità del Process Layer)
     redirect_url = f"{HOME_URL}/pages/home_news.html?token={internal_jwt}"
     response = RedirectResponse(url=redirect_url)
     
@@ -183,7 +179,6 @@ def logout(request: Request):
         except Exception:
             pass
     response = JSONResponse({"detail": "Logout effettuato con successo"})
-    response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/")
     return response
 
