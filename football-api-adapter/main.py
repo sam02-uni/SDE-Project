@@ -50,7 +50,7 @@ Giornata 23:
 def read_root():
     return {"Adapter service for football data is running"}
 
-@app.get("/update_players", response_model=dict, status_code=200) # Endpoint to update players in the db data from an external football API
+#@app.get("/update_players", response_model=dict, status_code=200) # Endpoint to update players in the db data from an external football API
 def update_players(team_id: str): # team_id query param
     squad = client.get_players_by_team(team_id=team_id)
     if len(squad) <= 0:

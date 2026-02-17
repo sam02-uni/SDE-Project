@@ -91,10 +91,10 @@ def add_partiticant_to_league(league_id: int, participantWithSquad: ParticipantU
     
 
 # usato quando utente scrive nome nella casella di testo e 'cerca' e restituisce i giocatori con quei nomi
-@app.get("/suggest_players")
-def suggest_players(given_name:str):
-    response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
-    return response.json() # return json list of players (all fields)
+#@app.get("/suggest_players")
+#def suggest_players(given_name:str):
+#    response = requests.get(f"{squad_service_url_base}/business/squads/suggest_player?wanted_name={given_name}")
+#    return response.json() # return json list of players (all fields)
 
 
 @app.get("/info_webapp_home", response_model = list[EssentialLeagueInfo], summary = "Get the leagues in which the logged user is owner or participant")
@@ -163,23 +163,6 @@ def get_info_dashboard(league_id: int, request: Request):
 
     return dict_result
 
-# TODO: SERVE ANCORA QUESTO METODO VISTO CHE LA SQUADRA VIENE GIA FORNITA IN INFO_DASHBOARD ????
-'''@app.get("/take_squad/{league_id}")  # TODO: modify in /squads/by-league?league_id as the REST paradigm
-def get_all_players(league_id: int, request: Request):
-    headers = check_auth_headers(request)
-
-    # squad of the logged user:
-    response = requests.get(f"{squad_service_url_base}by-league?league_id={league_id}", headers=headers)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="not able to get squads")
-
-    # take the first one (the only one) with players
-    squad = response.json()[0]
-    response = requests.get(f"{squad_service_url_base}{squad['id']}?with_players=true")
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="not able to get squad with players")
-    
-    return response.json()'''
 
 
 

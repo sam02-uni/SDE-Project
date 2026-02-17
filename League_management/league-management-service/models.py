@@ -28,10 +28,24 @@ class EssentialLeagueInfo(BaseModel):
     id: int
     name: str
 
+class SquadWithPlayers(BaseModel):
+    id: int
+    owner_id: int
+    league_id: int
+    name: str
+    score: float 
+    players: list[Player]
+
+class TableSquadInfo(BaseModel):
+    name: str
+    score: float
+
 class InfoDashboard(BaseModel):
     isAdmin: bool
-    squad: Optional[dict] = None
+    squad: Optional[SquadWithPlayers] = None
     currentMatchday: int
     firstMatchStarted: bool
     lastMatchFinished: bool
-    table: list[dict]
+    table: list[TableSquadInfo]
+
+ 

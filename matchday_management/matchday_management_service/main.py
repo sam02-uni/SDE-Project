@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 import requests
 import os
-from models import LineUpCreate
+from models import *
 
 app = FastAPI(title = "Matchday Management Service", root_path="/process/matchday-management", summary="Service to manage MatchDay processes")
 
@@ -36,7 +36,7 @@ def read_root():
 
 
 
-@app.get("/lineups/{lineup_id}/grades", summary = "get the most recent grades available for the given lineup") 
+@app.get("/lineups/{lineup_id}/grades", summary = "get the most recent grades available for the given lineup", response_model = list[PlayerGrade]) 
 def get_lineup_grades(lineup_id: int):
     
     # get lineup: 
@@ -57,7 +57,7 @@ def get_lineup_grades(lineup_id: int):
     return response.json()
 
 
-@app.get("/leagues/{league_id}/lineups/calculate_scores", summary = "calculate the scores for all the lineups of the league for the given matchday") 
+@app.get("/leagues/{league_id}/lineups/calculate_scores", summary = "calculate the scores for all the lineups of the league for the given matchday", response_model = list[Score]) 
 def calculate_scores(league_id: int, matchday_number: int, request: Request): 
     
     headers = check_auth_headers(request)
@@ -97,13 +97,13 @@ def create_lineup(lineup: LineUpCreate, request: Request):
     headers = check_auth_headers(request)
     response = requests.post(f"{lineup_service_url_base}", json=jsonable_encoder(lineup), headers=headers)
     if response.status_code != 201:
-        print(response.json())
-        raise HTTPException(status_code = response.status_code, detail = "Not able to insert lineup")
+        #print(response.json())
+        raise HTTPException(status_code = response.status_code, detail = response.json().get('detail', 'Not able to insert lineup') )
     
     return response.json()
     
 
-@app.get("/{squad_id}/last-scores", summary = "Get the last scores of a squad given the matchday to start from")
+@app.get("/squads/{squad_id}/last-scores", summary = "Get the last scores of a squad given the matchday to start from", response_model = list[SquadScore])
 def get_scores_of_squad(squad_id: int, matchday_number: int):
     
     res = requests.get(f"{squad_service_url_base}/{squad_id}/last-scores?matchday_number={matchday_number}")
@@ -112,14 +112,12 @@ def get_scores_of_squad(squad_id: int, matchday_number: int):
     
     return res.json()
 
-#  lineups/{squad_id}/{matchday_number}
-@app.get("/squads/{squad_id}/lineups", summary= "Get a certain lineup")
+@app.get("/squads/{squad_id}/lineups", summary= "Get a certain lineup", response_model = LineUpWithPlayers)
 def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
-    # 1. Recupera gli header per l'autorizzazione
+    
     headers = check_auth_headers(request)
     
-    # 2. Chiama il servizio business (Lineup Service)
-    # Nota: uso l'endpoint 'by-squad' che vedo già usato nella tua funzione calculate_scores
+    # get lineups
     url = f"{lineup_service_url_base}/by-squad"
     
     response = requests.get(url, headers=headers, params= {
@@ -142,6 +140,7 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
 
     url_lineup= f"{lineup_service_url_base}/{id_lineup}"
 
+    # get certain lineup wiht players
     response_lineup= requests.get(
         url_lineup,
         headers=headers,

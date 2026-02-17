@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from GradesScraper import GradesScraper
 from typing import Optional
+from models import *
 
 app = FastAPI(title="Fanta Grades Scraper Service", root_path="/scraper/fanta_grades")
 gradeScraper = GradesScraper()
@@ -28,7 +29,7 @@ def read_root():
     return {"message": "Fanta Grades Scraper Service is running"}
 
 
-@app.get("/scrape_grades/{matchday_number}", summary = "Scrape the grades for the given matchday")
+@app.get("/scrape_grades/{matchday_number}", summary = "Scrape the grades for the given matchday", response_model = MatchdayGrades)
 def scrape_fanta_grades(matchday_number: Optional[int] = None):
     
     grades = gradeScraper.scrape_grades(matchday_number=matchday_number)

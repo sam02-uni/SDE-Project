@@ -1,13 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.security import HTTPBearer
 import requests
 import os
-from models import LineUpCreate
+from models import *
 from dependency import verify_token
 from typing import Optional
 
 app = FastAPI(title= "Lineup business service", root_path="/business/lineups")
-security = HTTPBearer()
 grades_scraper_service_url_base = os.getenv("GRADES_SCRAPER_URL_BASE", "http://grades-scraper-service:8000")
 data_service_url_base = os.getenv("DATA_SERVICE_URL_BASE", "http://data-service:8000")
 football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE", "http://football-adatper-service:8000") 
@@ -17,12 +15,12 @@ football_adapter_service_url_base = os.getenv("FOOTBALL_ADAPTER_SERVICE_URL_BASE
 def read_root():
     return {"Lineup Business service is running"}
 
-@app.get("/by-squad", summary = "Get lineups of a squad or instead the lineup for the given matchday")
+@app.get("/by-squad", summary = "Get lineups of a squad or instead the lineup for the given matchday", response_model = list[LineUp])
 def get_lineups_of_squad(squad_id: int, matchday_number: Optional[int] = None):
 
     matchday_id = None
    
-    if matchday_number:
+    if matchday_number: 
         # get matchday_id:
         response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={matchday_number}")
         if response.status_code != 200:
@@ -64,8 +62,8 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
             raise HTTPException(status_code = 400, detail = "Bad request")
 
     
-    # Authorization TODO: Verifica che l'utente di sessione sia il proprietario della squadra
-    if True:#logged_user_id == squad['owner_id']:
+    # Authorization : Verifica che l'utente di sessione sia il proprietario della squadra
+    if logged_user_id == squad['owner_id']:
         
         response = requests.get(f"{data_service_url_base}/matchdays?matchday_number={base_line_up.matchday_number}")
         if response.status_code != 200:
@@ -75,27 +73,14 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
         # Verifica che il matchday esiste
         if response.status_code == 200:
 
-            # verifica se formazione per la giornata à gia inserita
-            response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad['id']}&matchDay_id={matchday_id_for_lineup}")
-            existing_formation = response.json()
-            if (response.status_code == 200) and ( len(existing_formation) >= 1) : # già presente
-                # la elimino :
-                old_id = existing_formation[0]['id']
-                res = requests.delete(f"{data_service_url_base}/lineups/{old_id}")
-                if res.status_code != 200:
-                    raise HTTPException(status_code = res.status_code, detail = "Unable to delete the old lineup")
-                
-            # ok, go on
-
-            print("Arrivato qui")
             # Verifica sul numero di giocatori inseriti per la formazione
-            # TODO: riaggiusta == 11
-            if len(base_line_up.starting_ids) >= 0 :#and len(base_line_up.bench_ids) == 7:
+            if len(base_line_up.starting_ids) == 11 and len(base_line_up.bench_ids) == 7:
                 lineup = set(base_line_up.starting_ids + base_line_up.bench_ids) # set of player ids in lineup
                 squad_ids = [player['id'] for player in squad['players']]
                 squad_set = set(squad_ids)
                 # Verifica che tutti i giocatori appartengono alla squadra
                 if (lineup.issubset(squad_set)):
+
                     # Creazione del dict da mandare al db
                     lineUpPlayer = {
                         'squad_id': squad['id'],
@@ -103,14 +88,31 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
                         'players': [] 
                     }
 
+                    module_roles = {
+                        'G': 0,
+                        'D': 0,
+                        'M': 0,
+                        'A': 0
+                    } # 433 module
+
                     for playerId in base_line_up.starting_ids:
                         response = requests.get(f"{data_service_url_base}/players/{playerId}")
                         player = response.json()
+                        # controllo sul modulo :
+                        so_far = module_roles.get(player['role'])
+                        module_roles.update({player['role']: so_far + 1})
+
                         lineUpPlayer["players"].append({
                             'is_starting': True, 
                             'player': player
                         })
-                    
+
+                    # controllo sul modulo:
+                    if module_roles.get('G') != 1 or module_roles.get('D') < 3 or module_roles.get('M') < 3 or module_roles.get('A') < 2:
+                        raise HTTPException(status_code = 400, detail = "This lineup does not have the right number of player for role")
+                    #if any(v != 0 for v in module_roles.values()):
+                    #    raise HTTPException(status_code = 400, detail = "This lineup does not have the right number of player for role")
+
                     for playerId in base_line_up.bench_ids:
                         response = requests.get(f"{data_service_url_base}/players/{playerId}")
                         player = response.json()
@@ -118,6 +120,17 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
                             'is_starting': False, 
                             'player': player
                         })
+
+                    # verifica se formazione per la giornata à gia inserita
+                    response = requests.get(f"{data_service_url_base}/lineups?squad_id={squad['id']}&matchDay_id={matchday_id_for_lineup}")
+                    existing_formation = response.json()
+                    if (response.status_code == 200) and ( len(existing_formation) >= 1) : # già presente
+                        # la elimino :
+                        old_id = existing_formation[0]['id']
+                        res = requests.delete(f"{data_service_url_base}/lineups/{old_id}")
+                        if res.status_code != 200:
+                            raise HTTPException(status_code = res.status_code, detail = "Unable to delete the old lineup")
+                    
                     # Richiesta di inserimento al db
                     postResponse = requests.post(f"{data_service_url_base}/lineups", json=lineUpPlayer)
                     if postResponse.status_code != 201:
@@ -134,10 +147,8 @@ def insert_lineup(base_line_up: LineUpCreate, user: dict = Depends(verify_token)
         raise HTTPException(status_code = 403, detail = "User is not the owner")
     
 
-@app.get("/{lineup_id}/grades", summary = "get the grades of the given lineup's players")
+@app.get("/{lineup_id}/grades", summary = "get the grades of the given lineup's players", response_model = list[PlayerGrade])
 def get_lineup_grades(lineup_id: int): 
-
-    # TODO AUTHORIZATION?: solo l'owner della squad o l'admin della lega può visualizzare i voti della sua formazione
 
     # get lineup from data service
     response = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")
@@ -164,7 +175,7 @@ def get_lineup_grades(lineup_id: int):
     return result
 
              
-@app.get("/update_grades", summary = "Update the players grades for the given matchday") 
+@app.get("/update_grades", summary = "Update the players grades for the given matchday", response_model = dict()) 
 def update_grades(matchday_id: int):  
  
     # matchday in db
@@ -187,7 +198,7 @@ def update_grades(matchday_id: int):
     matchday_db_status = response.json()
 
     # if the local value is lower than the actual value, get the new matches (teams):
-    if matchday_db_status['played_so_far'] >= 40 : #actual_matchday_info['played']
+    if matchday_db_status['played_so_far'] >= actual_matchday_info['played'] : 
         return {"status": "There are no new matches whose grades has to be added"}
     else:
         print("there are new matches to be graded")
@@ -254,7 +265,7 @@ def update_grades(matchday_id: int):
 
 
 
-@app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup")
+@app.get("/{lineup_id}/calculate_score", summary = "calculate the score of the given lineup", response_model = LineUpScore)
 def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
 
     logged_user_id = user['user_id']
@@ -265,7 +276,7 @@ def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=response.status_code, detail="LineUp not found")
     lineup_with_players = response.json()
 
-    # Authorization, solo admin può calcolare
+    # Authorization: solo admin può calcolare
     res_squad = requests.get(f"{data_service_url_base}/squads/{lineup_with_players['squad_id']}")
     league = requests.get(f"{data_service_url_base}/leagues/{res_squad.json()['league_id']}").json()
     if logged_user_id != league['owner_id']:
@@ -300,19 +311,22 @@ def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
         res = requests.get(f"{data_service_url_base}/players/rating?matchday_id={lineup_with_players['matchday_id']}&player_id={actual_player['id']}")
         rating_data = res.json()[0] if res.status_code == 200 else None
         
-        # Se non ha voto (None) o voto non valido (<= 0)
-        if not rating_data or rating_data['fanta_rating'] < 0: # TODO: CAMBIATO IN -1 IL SENZA VOTO QUINDI PLAYER RATING DA RIAGGIORNARE
+        # Se titolare non ha voto (None) o voto non valido (< 0)
+        if not rating_data or rating_data['fanta_rating'] < 0: 
             # se può ancora fare cambi:
             if times_switched >= 3:
-                score += 0
+                # score += 0 # aggiungi zero
+                continue
             found_sub = False
             for bench_p in bench_players:
                 b_id = bench_p['player']['id']
+
                 # Controllo ruolo e che non sia già entrato
                 if bench_p['player']['role'] == actual_player['role'] and b_id not in counted_bench_players:
                     res_b = requests.get(f"{data_service_url_base}/players/rating?matchday_id={lineup_with_players['matchday_id']}&player_id={b_id}")
                     b_rating_data = res_b.json()[0] if res_b.status_code == 200 else None
                     
+                    # panchinaro ha un voto valido
                     if b_rating_data and b_rating_data['fanta_rating'] > 0:
                         score += b_rating_data['fanta_rating']
                         counted_bench_players.add(b_id) # SEGNA COME USATO
@@ -339,7 +353,7 @@ def calculate_score(lineup_id: int, user: dict = Depends(verify_token)):
     
     return {'score_lineup': score}
 
-@app.get("/{lineup_id}", summary = "Get a certain lineup")
+@app.get("/{lineup_id}", summary = "Get a certain lineup", response_model = LineUpWithPlayers)
 def get_lineup(lineup_id: int):
 
     res = requests.get(f"{data_service_url_base}/lineups/{lineup_id}")

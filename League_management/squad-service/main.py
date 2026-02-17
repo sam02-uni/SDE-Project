@@ -19,7 +19,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
     user_id = logged_user['user_id']
     # minimum number of players check
     players = info.players
-    '''g, d, m, a = 0,0,0,0
+    g, d, m, a = 0,0,0,0
     for player in players:
         match player.role:
             case "G":
@@ -36,7 +36,7 @@ def create_squad(info: SquadCreate, logged_user : dict = Depends(verify_token)):
                 continue
 
     if g < 3 or d < 8 or m < 8 or a < 6: # 25 giocatori
-        raise HTTPException(status_code = 400, detail="Not enough players in squad")'''
+        raise HTTPException(status_code = 400, detail="Not enough players in squad")
     
     # authorization : user loggato è admin della lega ?
     response = requests.get(f"{data_service_url_base}/leagues/{info.league_id}")
@@ -107,26 +107,6 @@ def get_squads_by_league(league_id: int, logged_user: dict = Depends(verify_toke
         raise HTTPException(status_code = response.status_code, detail = "Unable to get squads in league")
     squads = response.json()
     return squads
-
-'''
-# TODO: TEST - Optional se vogliamo
-@app.patch("/{squad_id}/add_player", summary = "Add a player to a squad")
-def add_player_to_squad(squad_id: int, player_body: dict, logged_user: dict = Depends(verify_token)):
-    user_id = logged_user["user_id"]
-
-    # get squad from squad_id
-    response = requests.get(f"{data_service_url_base}/squads/{squad_id}")
-    if response.status_code != 200:
-        raise HTTPException(status_code = 404, detail = "Squad not found")
-    squad = response.json()
-
-    # authorization : user loggato è admin della lega ?
-    response = requests.get(f"{data_service_url_base}/leagues/{squad.league_id}")
-    if user_id != response.json()['owner_id']:
-        raise HTTPException(status_code = 403, detail="Action is Forbidden for the logged user")
-    
-    # TODO: aggiunti giocatore alla rosa
-'''
 
 
 @app.get("/{squad_id}", summary = "Get a Squad with or without players", response_model = dict)

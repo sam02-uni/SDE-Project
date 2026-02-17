@@ -219,7 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (response.status != 201){
-                alert("Error saving the lineup");
+                error= await response.json();
+                message= error.detail || "Generic error";
+                alert("Error saving the lineup:"+message);
             } else {
                 alert("Lineup correctly saved!");
                 renderFormazione()
@@ -415,10 +417,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (infoLega.lastMatchFinished){
                     btnCalcoloGiornata.style.display = 'block';
                 } else {
+                    btnCalcoloGiornata.style.display = 'none';
                     btnViewGrades.style.display = 'block';
                 }
             } else {
                 btnInserisciSquadra.style.display = 'none';
+                btnCalcoloGiornata.style.display = 'none';
             }
 
             if (infoLega.firstMatchStarted){
@@ -630,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
         squad_id=parseInt(squadId)
         matchday= parseInt(currentMatchday)
 
-        let url = `${MATCHDAY_URL}/${squad_id}/last-scores?matchday_number=${matchday}`;
+        let url = `${MATCHDAY_URL}/squads/${squad_id}/last-scores?matchday_number=${matchday}`;
         
         try {
                 const token = localStorage.getItem('access_token');
