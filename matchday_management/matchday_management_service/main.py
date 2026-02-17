@@ -75,15 +75,16 @@ def calculate_scores(league_id: int, matchday_number: int, request: Request):
         response = requests.get(f"{lineup_service_url_base}/by-squad?squad_id={squad['id']}&matchday_number={matchday_number}")
         if response.status_code != 200:
             raise HTTPException(status_code = response.status_code, detail = response.json()['detail'])
-        if len(response.json()) == 0:
-            raise HTTPException(status_code = 400, detail = "There are no Lineups for this matchday")
+        if len(response.json()) == 0:   # Owner of the squad didn't insert a lineup
+            continue
+            # raise HTTPException(status_code = 400, detail = "There are no Lineups for this matchday")
         lineup_for_matchday = response.json()[0]
 
         print("la lineup ha id:", lineup_for_matchday)
         # calculate:
         response = requests.get(f"{lineup_service_url_base}/{lineup_for_matchday['id']}/calculate_score", headers=headers)
         if response.status_code != 200:
-            raise HTTPException(status_code = response.status_code, detail = "Unable to calculate score for a lineup")
+            raise HTTPException(status_code = response.status_code, detail = response.json().get("detail", "Unable to calculate score for a lineup"))
         score_lineup = response.json()
 
         scores.append({'lineup_id': lineup_for_matchday['id'], 'score': score_lineup['score_lineup']})

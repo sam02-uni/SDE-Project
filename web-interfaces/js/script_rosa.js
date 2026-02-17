@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     } 
                 
                 if(response.ok){
-                    alert("Lineup added successfully!");
+                    alert("Squad added successfully!");
                     window.location.href = "lega_dashboard.html";
                 } else {
                         window.location.href = "login.html";
