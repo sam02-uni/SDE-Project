@@ -50,14 +50,14 @@ function selectRole(element, playerId, tipo) {
             formazione.titolari.push(p_id);
             element.classList.add('selected-t');
         } else {
-            alert("Hai già 11 titolari!");
+            alert("You already have 11 starters!");
         }
     } else if (tipo === 'p') {
         if (formazione.panchina.length < 7) {
             formazione.panchina.push(p_id);
             element.classList.add('selected-p');
         } else {
-            alert("La panchina è piena (max 7)!");
+            alert("The bench is full (max 7)!");
         }
     }
 }
@@ -219,9 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (response.status != 201){
-                alert("Errore imprevisto nel salvataggio della formazione");
+                alert("Error saving the lineup");
             } else {
-                alert("Formazione salvata correttamente");
+                alert("Lineup correctly saved!");
                 renderFormazione()
                 window.location.reload()
             }
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const matchday = selectElement.value;
 
                 if (!matchday) {
-                    alert("Seleziona una giornata");
+                    alert("Select a matchday");
                     return;
                     }
 
@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 if (response.ok) {
-                    alert("Giornata calcolata con successo!");
+                    alert("Matchday successfully calculated!");
                     // This is to refresh the classific
                     window.location.reload(); 
                 } else if (response.status === 401) {
@@ -275,11 +275,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.location.href = "login.html";
                     }
                 } else {
-                    alert("Errore: Impossibile calcolare la giornata");
+                    error= await response.json();
+                    message= error.detail || "Generic error";
+                    alert("Error: Impossible to compute the matchday: " + message);
                 }
 
             } catch (error) {
-                console.error("Errore durante il calcolo:", error);
+                console.error("Error during the computation", error);
             }
 
     }
@@ -295,14 +297,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 credentials: 'include' // Invia il cookie refresh_token alla 8000
             });
 
-            if (!refreshResp.ok) throw new Error('Sessione scaduta');
+            if (!refreshResp.ok) throw new Error('Session expired');
 
             const data = await refreshResp.json();
             // Salvo il nuovo access token il local storage
             localStorage.setItem('access_token', data.access_token); 
             return true; 
         } catch (err) {
-            console.error('Errore refresh:', err);
+            console.error('Refresh error:', err);
             return false;
         }
     }
@@ -676,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.clear(); 
                     window.location.href = "login.html"; 
                 } else {
-                    alert("Errore durante il logout. Riprova.");
+                    alert("Error during the logout.");
                 }
             } catch (error) {
                 console.error("Errore di rete o CORS:", error);

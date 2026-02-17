@@ -44,8 +44,6 @@ services:
     container_name: auth-core-service
     ports:
       - "8010:8000"
-    volumes:
-      - ./Authentication-service/auth-core-service/keys:/app/keys:ro
     
     # League Business Service
   league-service:

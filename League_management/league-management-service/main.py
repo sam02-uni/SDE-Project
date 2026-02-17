@@ -105,6 +105,7 @@ def get_info_webapp_home(request: Request):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
     
+    print(f"QUESTO E' QUELLO CHE RICEVO {response.json()}")
     return response.json() # list of leagues with essential info
 
 

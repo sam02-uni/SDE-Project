@@ -157,7 +157,7 @@ if (logoutForm) {
             const crediti = parseInt(document.getElementById("creditiLega").value);
 
             if (!nome || !crediti) {
-                alert("Per favore, compila tutti i campi!");
+                alert("Please fill in all fields!");
                 return;
             }
 
@@ -193,17 +193,17 @@ if (logoutForm) {
 
                 if (response.ok) {
                     let legaId = await response.json();
-                    alert(`Lega "${nome}" creata con successo!`);
+                    alert(`League "${nome}" successfully created!`);
                     localStorage.setItem('selected_league_id', legaId);
                     localStorage.setItem('nome_lega', nome);
                     window.location.href = "lega_dashboard.html";
                 } else {
                     const errorData = await response.json();
-                    alert("Impossibile creare la lega: " + (errorData.detail || "Errore sconosciuto"));
+                    alert("Impossible to create the league: " + (errorData.detail || "Unknown error"));
                 }
             } catch (err) {
                 console.error("Errore di rete:", err);
-                alert("Errore di connessione al server.");
+                alert("Server connection error");
             } finally {
                 btnCrea.disabled = false;
                 btnCrea.textContent = "Crea Lega";

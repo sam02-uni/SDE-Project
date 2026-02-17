@@ -19,7 +19,7 @@ def read_root():
     return {"message": "League Business Service is running"}
 
 @app.get("/by_user", response_model=list[EssentialLeagueInfo], summary = "Get the league whose owner or participant is the user, logged or given")
-def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant : Optional[bool] = False, user: Optional[dict] = Depends(verify_token), token: str = Depends(security)): 
+def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant : Optional[bool] = True, user: Optional[dict] = Depends(verify_token), token: str = Depends(security)): 
     params = {}
     if as_participant:
         params.update({'as_participant': 'true'})
@@ -27,7 +27,7 @@ def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant
         params.update({'user_id': not_logged_user_id})
     else:
         logged_user_id = user['user_id']
-        params.update({'user_id': logged_user_id})       
+        params.update({'user_id': logged_user_id})     
     response = requests.get(f"{data_service_url_base}leagues", params=params)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Not found")
