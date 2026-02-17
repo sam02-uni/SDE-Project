@@ -7,7 +7,7 @@ class NewsItem(BaseModel):
     fonte: str
     titolo: str
     riassunto: str
-    data: datetime
+    data: str
     link: str
 
 class NewsResponse(BaseModel):

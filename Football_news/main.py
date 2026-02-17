@@ -72,8 +72,7 @@ async def takeNews(request: Request):
             HTMLdata = response.json()
             html_list = HTMLdata.get("news", HTMLdata) if isinstance(HTMLdata, dict) else HTMLdata
             data = processCentric.merge_and_sort_news(rss_list, html_list)
-            # print (data)
-            return {"Response" : data}
+            return JSONResponse(content={"Response": data})
     else:
         raise HTTPException(status_code=resp.status_code, detail="Internal error")
 

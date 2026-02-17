@@ -80,60 +80,60 @@ async function refreshAccessToken() {
 async function fetchNews() {
     try {
         // Recuperiamo il token attuale dal localStorage
-    let token = localStorage.getItem('access_token');
+        let token = localStorage.getItem('access_token');
 
-    let response = await fetch(API_URL, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+        let response = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        //Controllo se l'Access Token è scaduto 
+        if (response.status === 401) {
+            console.warn("Access token scaduto, tentativo di refresh in corso...");
+            // Questa funzione aggiornerà il localStorage con il nuovo token
+            const success = await refreshAccessToken();
+            if (success) {
+                // Recuperiamo il NUOVO token appena salvato
+                token = localStorage.getItem('access_token');
+                //Riproviamo la GET con il nuovo token
+                response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } else {
+                console.error("Refresh fallito o sessione scaduta.");
+                window.location.href = 'login.html';
+                return;
+            }
+
         }
-    });
 
-    //Controllo se l'Access Token è scaduto 
-    if (response.status === 401) {
-        console.warn("Access token scaduto, tentativo di refresh in corso...");
-        // Questa funzione aggiornerà il localStorage con il nuovo token
-        const success = await refreshAccessToken();
-        if (success) {
-            // Recuperiamo il NUOVO token appena salvato
-            token = localStorage.getItem('access_token');
-            //Riproviamo la GET con il nuovo token
-            response = await fetch(API_URL, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        } else {
-            console.error("Refresh fallito o sessione scaduta.");
-            window.location.href = 'login.html';
-            return;
-        }
-
-    }
-
-    //Controllo finale sulla riuscita della richiesta
-    if (!response.ok) {
+        //Controllo finale sulla riuscita della richiesta
+        if (!response.ok) {
             window.location.href = 'login.html';
             return;
         }
         
-    const data = await response.json();
-    console.log("Dati ricevuti dal server:", data);
-    if (data.Response && data.Response.Filter) {
-        allNews = data.Response.Filter; 
+        const data = await response.json();
+        console.log("Dati ricevuti dal server:", data);
+        if (data.Response && data.Response.Filter) {
+            allNews = data.Response.Filter; 
         } 
-    else if (data.Response) {
-        allNews = data.Response;
+        else if (data.Response) {
+            allNews = data.Response;
         }
-    else if (Array.isArray(data)) {
-        allNews = data;
+        else if (Array.isArray(data)) {
+            allNews = data;
         }
 
-    filteredNews = allNews;
-    renderPage();
+        filteredNews = allNews;
+        renderPage();
     } catch (error) {
         console.error("Errore fetch:", error);
         newsGrid.innerHTML = `<p>Errore nel caricamento: ${error.message}</p>`;

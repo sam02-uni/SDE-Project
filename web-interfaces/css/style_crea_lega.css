@@ -4,7 +4,6 @@ body {
     background-color: #f8fafc;
 }
 
-/* --- HEADER MINIMALE --- */
 .header-minimal {
     padding: 20px;
     display: flex;
@@ -28,7 +27,6 @@ body {
     background-color: #d35400;
 }
 
-/* --- SIDEBAR --- */
 .sidebar {
     height: 100%;
     width: 250px; /* Leggermente più larga per leggibilità */
@@ -61,7 +59,6 @@ body {
     padding-left: 35px;
 }
 
-/* --- OVERLAY --- */
 .overlay {
     display: none;
     position: fixed;
@@ -72,7 +69,6 @@ body {
 }
 .overlay.active { display: block; }
 
-/* --- GRID ARTICOLI --- */
 .container-articoli {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
@@ -113,7 +109,6 @@ body {
     margin-bottom: 30px;
 }
 
-/* --- INPUT GROUPS --- */
 .form-group {
     text-align: left;
     margin-bottom: 20px;
@@ -144,7 +139,6 @@ body {
     background-color: #fffaf9;
 }
 
-/* --- BOTTONE --- */
 .btn-primary {
     width: 100%;
     background-color: #d35400;
@@ -180,7 +174,7 @@ body {
     border: none;
     padding: 15px 25px; 
     text-align: left; /* Allinea a sinistra come i link */
-    font-family: inherit; /* Usa lo stesso font (Inter) */
+    font-family: inherit; 
     font-size: 16px;
     color: #f1f5f9;
     cursor: pointer;

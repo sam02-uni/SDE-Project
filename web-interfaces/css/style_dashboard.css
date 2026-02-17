@@ -1,6 +1,4 @@
-/* ==========================================================================
-   1. RESET E BASI 
-   ========================================================================== */
+
 * {
     box-sizing: border-box;
 }
@@ -14,9 +12,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ==========================================================================
-   2. SIDEBAR (LA TENDINA) - COMUNE A TUTTE LE PAGINE
-   ========================================================================== */
 .sidebar {
     height: 100%;
     width: 250px;
@@ -73,7 +68,6 @@ body {
     margin: 10px 0;
 }
 
-/* --- OVERLAY SFONDO --- */
 .overlay {
     display: none;
     position: fixed;
@@ -89,9 +83,6 @@ body {
     display: block;
 }
 
-/* ==========================================================================
-   3. HEADER E LAYOUT
-   ========================================================================== */
 .header-minimal {
     padding: 15px 25px;
     display: flex;
@@ -141,9 +132,6 @@ body {
     color: #334155;
 }
 
-/* ==========================================================================
-   4. DASHBOARD (WIDGETS)
-   ========================================================================== */
 .dashboard-container {
     max-width: 1100px;
     margin: 30px auto;
@@ -184,7 +172,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* --- CLASSIFICA --- */
 .classifica-table {
     width: 100%;
     border-collapse: collapse;
@@ -210,29 +197,27 @@ body {
 
 .score-row {
     display: flex;
-    justify-content: space-between; /* Spinge il numero a sx e il punteggio a dx */
+    justify-content: space-between; 
     padding: 8px 15px;
     border-bottom: 1px solid #f0f0f0;
 }
 
 .score-row:last-child {
-    border-bottom: none; /* Rimuove la linea dall'ultima riga */
+    border-bottom: none; 
 }
 
 .matchday-label {
-    color: #64748b; /* Grigio scuro per la label */
+    color: #64748b; 
     font-size: 14px;
 }
 
 .score-value {
     font-weight: bold;
-    color: #1e293b; /* Colore più scuro per il punteggio */
+    color: #1e293b; 
     font-size: 16px;
 }
 
-/* ==========================================================================
-   5. BOTTONI E MODAL
-   ========================================================================== */
+
 .btn-primary {
     width: 100%;
     background-color: #d35400;
@@ -251,7 +236,6 @@ body {
     transform: translateY(-1px);
 }
 
-/* --- MODAL FORMAZIONE --- */
 .modal {
     display: none; 
     position: fixed;
@@ -281,7 +265,6 @@ body {
     color: #94a3b8;
 }
 
-/* --- LISTA GIOCATORI SEMPLICE --- */
 .players-list {
     margin: 20px 0;
     max-height: 350px;
@@ -306,8 +289,6 @@ body {
 .player-role { font-size: 0.7rem; color: #b54a1f; font-weight: bold; }
 
 .player-checkbox { accent-color: #d35400; width: 18px; height: 18px; }
-
-/* Aggiungi queste righe al tuo style_dashboard.css */
 
 .btn-add {
     background: #10b981; /* Verde */
@@ -354,12 +335,12 @@ body {
 }
 
 .logout-btn {
-    width: 100%; /* Occupa tutta la larghezza della sidebar */
+    width: 100%; 
     background: none;
     border: none;
     padding: 15px 25px; 
-    text-align: left; /* Allinea a sinistra come i link */
-    font-family: inherit; /* Usa lo stesso font (Inter) */
+    text-align: left; 
+    font-family: inherit; 
     font-size: 16px;
     color: #f1f5f9;
     cursor: pointer;
@@ -393,11 +374,9 @@ body {
     transition: 0.3s;
 }
 
-/* Classe da aggiungere via JS quando il bottone è attivo */
 .btn-sel.active-t { background-color: #28a745; color: white; border-color: #1e7e34; }
 .btn-sel.active-p { background-color: #ffc107; color: black; border-color: #d39e00; }
 
-/* Stile base dei pulsanti */
 .btn-sel {
     border: 1px solid #ccc;
     background-color: #f8f9fa;
@@ -407,7 +386,6 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Classe per il Titolare selezionato */
 .selected-t {
     background-color: #28a745 !important;
     color: white !important;
@@ -415,7 +393,6 @@ body {
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
 }
 
-/* Classe per il Panchinaro selezionato */
 .selected-p {
     background-color: #fd7e14 !important;
     color: white !important;
@@ -446,9 +423,6 @@ body {
     flex-direction: column;
     gap: 8px;
 }
-
-/* Card del calciatore */
-
 
 .player-card.starter { border-left: 4px solid #28a745; }
 .player-card.bench { border-left: 4px solid #fd7e14; background: #fffcf9; }
@@ -486,11 +460,11 @@ body {
 
 .player-card {
     display: flex;
-    align-items: center; /* Allinea verticalmente il cerchietto e i testi */
+    align-items: center; 
     padding: 10px;
     background: #fff;
     border-bottom: 1px solid #eee;
-    min-height: 60px; /* Altezza minima per stare larghi */
+    min-height: 60px; 
 }
 
 .player-card:hover {
@@ -499,8 +473,8 @@ body {
 
 .p-details {
     display: flex;
-    flex-direction: column; /* Questo mette la squadra sotto il nome */
-    margin-left: 15px;      /* Spazio tra cerchietto ruolo e testi */
+    flex-direction: column; 
+    margin-left: 15px;      
     flex-grow: 1;
 }
 
@@ -532,9 +506,6 @@ body {
     font-size: 0.7rem;
     font-weight: bold;
 }
-/* ==========================================================================
-   STILE SELECT E MODAL CALCOLA
-   ========================================================================== */
 
 /* La select delle giornate */
 #selectMatchday {
@@ -574,7 +545,6 @@ body {
     font-weight: 800;
 }
 
-/* Se vuoi differenziare il tasto calcola da quello salva formazione */
 #modalCalcolaGiornata .btn-primary {
     margin-top: 10px;
     background-color: #d35400;

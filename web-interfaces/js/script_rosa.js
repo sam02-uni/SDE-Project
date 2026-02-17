@@ -1,8 +1,10 @@
+// URL necessary
 const LEGHE_URL="http://localhost:8007/process/league-management/info_webapp_home"
 const PLAYERS_URL="http://localhost:8007/process/league-management/allPlayers"
 const SQUAD_URL="http://localhost:8007/process/league-management"
 
 document.addEventListener("DOMContentLoaded", () => {
+    // DOM elements
     const sidebar = document.getElementById("mySidebar");
     const overlay = document.getElementById("overlay");
     const openBtn = document.getElementById("openSidebar");
@@ -16,11 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let miaRosa = [];
 
-    // --- SIDEBAR HOVER ---
     openBtn.addEventListener("mouseenter", () => { sidebar.classList.add("active"); overlay.classList.add("active"); });
     sidebar.addEventListener("mouseleave", () => { sidebar.classList.remove("active"); overlay.classList.remove("active"); });
 
-    // --- GESTIONE ROSA LOCALE ---
+    // Player logic
     window.aggiungiGiocatore = (id, surname, role) => {
         if (miaRosa.find(p => p.id === id)) return alert("Giocatore già in rosa!");
         if (miaRosa.length >= 25) return alert("Rosa completa!");
@@ -72,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
     }
-    // Caricamento dinamico delle leghe
+    // Leagues load
     async function caricaLeghe() {
         let url=new URL(LEGHE_URL);
         try {
@@ -104,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const leghe = await response.json();        
-            // 2. Pulisci il div dedicato alle leghe
             containerLeagues.innerHTML = ""; 
 
             leghe.forEach(lega => {
@@ -116,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
             
                 link.onclick = (e) => {
                     e.preventDefault();
-                    // SE DOVESSE SERVIRE PER IL FRONTEND
                     localStorage.setItem('selected_league_id', lega.id);
                     localStorage.setItem('nome_lega', lega.name);
                     window.location.href = "lega_dashboard.html";
@@ -210,9 +209,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     saveSquad.addEventListener("click", inserisciSquadra);
-    // Funzioni necessarie al recupero delle informazioni, ricerca e gestione dei calciatori
+    
+    // Group of functions necessary to work
     let databaseCalciatori;
 
+    // Retrieve players
     async function recuperoGiocatori(){        
         let url=new URL(PLAYERS_URL);
         try {
@@ -232,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- FUNZIONE RICERCA ---
+    // Search function
     searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase();
         if (query.length < 2) return;
@@ -241,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMercato(filtrati);
     });
 
-    // Mostra i giocatori nello spazio sottostante
+    // Players render
     function renderMercato(calciatori) {
         listaMercato.innerHTML = "";
         calciatori.forEach(p => {
@@ -258,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Invocazione delle funzioni necessarie al primo caricamento
+    // Call of all necessary functions
     controlloLega();
     caricaLeghe();
     recuperoGiocatori(); 
