@@ -309,6 +309,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Silent refresh logic
+    
+
     // Load leagues
     async function caricaLeghe() {
         let url=new URL(LEGHE_URL);
@@ -569,6 +572,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore nel recupero info formazione:", error);
             }
         }
+
+         // Role ordination
+        titolariData.sort((a, b) => {
+            return prioritaRuoli[a.role] - prioritaRuoli[b.role];
+        });
+        panchinaData.sort((a, b) => {
+            return prioritaRuoli[a.role] - prioritaRuoli[b.role];
+        });
 
         // DISEGNA I TITOLARI
         titolariData.forEach(p => {

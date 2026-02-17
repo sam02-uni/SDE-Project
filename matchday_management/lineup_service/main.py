@@ -187,7 +187,7 @@ def update_grades(matchday_id: int):
     matchday_db_status = response.json()
 
     # if the local value is lower than the actual value, get the new matches (teams):
-    if matchday_db_status['played_so_far'] >= 40 : #actual_matchday_info['played']
+    if matchday_db_status['played_so_far'] >= actual_matchday_info['played'] : 
         return {"status": "There are no new matches whose grades has to be added"}
     else:
         print("there are new matches to be graded")
