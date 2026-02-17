@@ -132,7 +132,7 @@ def get_squad_lineup(squad_id: int, matchday_number: int, request: Request):
         raise HTTPException(status_code=response.status_code, detail="Errore nel recupero della formazione")
     
     if len(response.json()) == 0:
-        return None
+        raise HTTPException(status_code=404, detail="Formazione non trovata per questa giornata")
     
     lineups = response.json()
     print(lineups)

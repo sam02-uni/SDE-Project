@@ -35,8 +35,7 @@ def get_leagues_by_user(not_logged_user_id: Optional[int] = None, as_participant
 
 @app.get("/current_matchday", summary = "Get infos about the Current Matchday", response_model = MatchDayInfo)
 def get_current_matchday_info():
-    # TODO: TESTING DA TOGLIERE 
-    response = requests.get(f"{football_adapter_service_url_base}/matchday_info?matchday=21")
+    response = requests.get(f"{football_adapter_service_url_base}/matchday_info") # TEST: ?matchday=21
     if response.status_code != 200:
         return {"error": "unable to fetch current matchday info"}
     
@@ -126,8 +125,9 @@ def add_league_participant(league_id: int, email_participant: emailParticipant, 
     
 
 @app.delete("/{league_id}/participants/by-email", summary = "Delete a participant using the email")
-def delete_participant_by_mail(league_id: int, email: str):
-    # authorization ?
+def delete_participant_by_mail(league_id: int, email: str, user : dict = Depends(verify_token)):
+    
+    logged_user_id = user['user_id']
 
     # get id of the participant
     res = requests.get(f"{data_service_url_base}users/by-email?user_email={email}")
@@ -135,6 +135,16 @@ def delete_participant_by_mail(league_id: int, email: str):
         raise HTTPException(status_code = res.status_code, detail= "User not found")
     
     id_participant = res.json()['id']
+
+    # authorization: only the admin can remove participants
+    # get league:
+    res  = requests.get(f"{data_service_url_base}leagues/{league_id}")
+    if res.status_code != 200:
+        raise HTTPException(status_code = res.status_code, detail = res.json().get("detail", "League Not found"))
+    league = res.json()
+
+    if league['owner_id'] != logged_user_id:
+        raise HTTPException(status_code = 403, detail = "Only the Owner of the league can remove participants")
 
     # delete from league
     res = requests.delete(f"{data_service_url_base}leagues/{league_id}/participants/{id_participant}")
