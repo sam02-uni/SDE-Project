@@ -32,7 +32,7 @@ async def get_filtered_news(tags: Optional[List[str]] = Query(None)):
     """Take the filtered news"""
     async with httpx.AsyncClient() as client:
         news_list = await call_RSS() 
-        data = news_list.get("news", []) 
+        data = news_list.get("news") 
         filtered_data = news_agg.apply_fanta_filter(data, tags)
         return {"Filter": filtered_data}
     

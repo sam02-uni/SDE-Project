@@ -224,7 +224,7 @@ async function applyFilters() {
 
         // Retrieve data
         const data = await response.json();
-        allNews = data.Response.Filter || [];
+        allNews = data.Response || [];
         filteredNews = allNews;
         
         currentPage = 1;

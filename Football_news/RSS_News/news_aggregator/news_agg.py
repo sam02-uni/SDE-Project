@@ -1,7 +1,7 @@
 # Filtrare e formattare le news in modo tale che siano visibili per l'utente
 from typing import List
 
-KEYWORDS = ["infortunio", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro"]
+KEYWORDS = ["infortun", "stop", "scelte", "formazione", "voti", "ufficiale", "rientro", "riecco", "non ce la fa"]
 
 # Filter logic
 def apply_fanta_filter(news_list: List[dict], active_tags: List[str] = None) -> List[dict]:

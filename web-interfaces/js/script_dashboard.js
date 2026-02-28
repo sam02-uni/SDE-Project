@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function controlloLega(){
         if (!leagueId) {
             console.error("Nessuna lega selezionata! Torno alla home.");
-            window.location.href = "login.html"; // Opzionale: rimanda indietro se manca l'ID
+            window.location.href = "login.html"; // Opzionale
             return;
         }
 
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            // Gestione del token scaduto
+            
             if (response.status === 401) {
                 const success = await refreshAccessToken();
                 if (success) {
